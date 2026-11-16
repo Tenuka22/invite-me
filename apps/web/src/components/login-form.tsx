@@ -1,11 +1,12 @@
 import { StatefulButton } from "@invite-me/ui/components/motion/button/stateful";
 import { Input } from "@invite-me/ui/components/motion/input";
 import { useNavigate } from "@tanstack/react-router";
-import { KeyRound, Mail } from "lucide-react";
+import { KeyRound, Mail, User } from "lucide-react";
 import { type FormEvent, useState } from "react";
 
 import { authClient } from "@/lib/auth-client";
 
+type Mode = "login" | "signup";
 type Step = "email" | "code";
 type Busy = "email" | "code" | "google" | "passkey";
 
@@ -24,17 +25,34 @@ function GoogleIcon() {
 
 export function LoginForm() {
   const navigate = useNavigate();
+  const [mode, setMode] = useState<Mode>("login");
   const [step, setStep] = useState<Step>("email");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState<Busy | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const isSignup = mode === "signup";
   const emailError =
     email.length > 0 && !EMAIL_PATTERN.test(email) ? "Enter a valid email" : undefined;
+  const nameError = isSignup && name.trim().length === 0 && step === "email" && email.length > 0
+    ? "Enter your name"
+    : undefined;
+
+  function switchMode() {
+    setMode(isSignup ? "login" : "signup");
+    setStep("email");
+    setCode("");
+    setError(null);
+  }
 
   async function sendCode(event: FormEvent) {
     event.preventDefault();
+    if (isSignup && name.trim().length === 0) {
+      setError("Enter your name");
+      return;
+    }
     setError(null);
     setBusy("email");
     const { error } = await authClient.emailOtp.sendVerificationOtp({
@@ -54,11 +72,22 @@ export function LoginForm() {
     setError(null);
     setBusy("code");
     const { error } = await authClient.signIn.emailOtp({ email, otp: code });
-    setBusy(null);
     if (error) {
+      setBusy(null);
       setError(error.message ?? "Invalid code");
       return;
     }
+    // The OTP sign-in creates the account on first use, with no name.
+    // Save the name entered at sign-up.
+    if (isSignup) {
+      const { error: nameErr } = await authClient.updateUser({ name: name.trim() });
+      if (nameErr) {
+        setBusy(null);
+        setError(nameErr.message ?? "Could not save your name");
+        return;
+      }
+    }
+    setBusy(null);
     await navigate({ to: "/profile" });
   }
 
@@ -90,16 +119,33 @@ export function LoginForm() {
   return (
     <div className="flex w-full max-w-sm flex-col gap-5 rounded-3xl border border-border p-6">
       <div className="flex flex-col gap-1">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">Log in</h1>
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">
+          {isSignup ? "Create account" : "Log in"}
+        </h1>
         <p className="text-sm text-muted-foreground">
-          {step === "email"
-            ? "Use an email code, Google, or a passkey."
-            : `Enter the code we sent to ${email}.`}
+          {step === "code"
+            ? `Enter the code we sent to ${email}.`
+            : isSignup
+              ? "Sign up with an email code or Google."
+              : "Use an email code, Google, or a passkey."}
         </p>
       </div>
 
       {step === "email" ? (
         <form noValidate onSubmit={sendCode} className="flex flex-col gap-4">
+          {isSignup ? (
+            <Input
+              label="Name"
+              autoComplete="name"
+              placeholder="Ada Lovelace"
+              leftIcon={<User />}
+              disabled={anyBusy}
+              value={name}
+              onChange={setName}
+              error={nameError}
+              reserveErrorLine
+            />
+          ) : null}
           <Input
             label="Email"
             type="email"
@@ -120,7 +166,7 @@ export function LoginForm() {
             state={busy === "email" ? "loading" : "idle"}
             loadingText="Sending code"
           >
-            Email me a code
+            {isSignup ? "Create account with email" : "Email me a code"}
           </StatefulButton>
         </form>
       ) : (
@@ -143,7 +189,7 @@ export function LoginForm() {
             state={busy === "code" ? "loading" : "idle"}
             loadingText="Verifying"
           >
-            Verify and log in
+            {isSignup ? "Verify and create account" : "Verify and log in"}
           </StatefulButton>
           <StatefulButton
             type="button"
@@ -180,22 +226,37 @@ export function LoginForm() {
           icon={<GoogleIcon />}
           onClick={signInWithGoogle}
         >
-          Continue with Google
+          {isSignup ? "Sign up with Google" : "Continue with Google"}
         </StatefulButton>
+        {isSignup ? null : (
+          <StatefulButton
+            type="button"
+            variant="outline"
+            size="lg"
+            className="w-full"
+            disabled={anyBusy}
+            state={busy === "passkey" ? "loading" : "idle"}
+            loadingText="Waiting for passkey"
+            icon={<KeyRound />}
+            onClick={signInWithPasskey}
+          >
+            Sign in with a passkey
+          </StatefulButton>
+        )}
+      </div>
+
+      <p className="text-center text-sm text-muted-foreground">
+        {isSignup ? "Already have an account?" : "New here?"}{" "}
         <StatefulButton
           type="button"
-          variant="outline"
-          size="lg"
-          className="w-full"
+          variant="ghost"
+          size="sm"
           disabled={anyBusy}
-          state={busy === "passkey" ? "loading" : "idle"}
-          loadingText="Waiting for passkey"
-          icon={<KeyRound />}
-          onClick={signInWithPasskey}
+          onClick={switchMode}
         >
-          Sign in with a passkey
+          {isSignup ? "Log in" : "Create an account"}
         </StatefulButton>
-      </div>
+      </p>
 
       {error ? (
         <p
