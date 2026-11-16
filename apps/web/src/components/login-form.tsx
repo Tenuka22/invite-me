@@ -164,6 +164,7 @@ export function LoginForm() {
             size="lg"
             className="w-full"
             state={busy === "email" ? "loading" : "idle"}
+            disabled={anyBusy}
             loadingText="Sending code"
           >
             {isSignup ? "Create account with email" : "Email me a code"}
@@ -187,6 +188,7 @@ export function LoginForm() {
             size="lg"
             className="w-full"
             state={busy === "code" ? "loading" : "idle"}
+            disabled={anyBusy}
             loadingText="Verifying"
           >
             {isSignup ? "Verify and create account" : "Verify and log in"}
@@ -237,7 +239,7 @@ export function LoginForm() {
             disabled={anyBusy}
             state={busy === "passkey" ? "loading" : "idle"}
             loadingText="Waiting for passkey"
-            icon={<KeyRound />}
+            icon={<KeyRound className="size-4" />}
             onClick={signInWithPasskey}
           >
             Sign in with a passkey
