@@ -1,11 +1,11 @@
 import { StatefulButton } from "@invite-me/ui/components/motion/button/stateful";
 import { Input } from "@invite-me/ui/components/motion/input";
 import { useNavigate } from "@tanstack/react-router";
-import { KeyRound, Mail, User } from "lucide-react";
+import { KeyRound, Mail, Sparkles, User } from "lucide-react";
 import { type FormEvent, useState } from "react";
 
-import { authClient } from "@/lib/auth-client";
 import { toast } from "@/components/toaster";
+import { authClient } from "@/lib/auth-client";
 
 type Mode = "login" | "signup";
 type Step = "email" | "code";
@@ -37,12 +37,14 @@ export function LoginForm() {
   const isSignup = mode === "signup";
   const emailError =
     email.length > 0 && !EMAIL_PATTERN.test(email) ? "Enter a valid email" : undefined;
-  const nameError = isSignup && name.trim().length === 0 && step === "email" && email.length > 0
-    ? "Enter your name"
-    : undefined;
+  const nameError =
+    isSignup && name.trim().length === 0 && step === "email" && email.length > 0
+      ? "Enter your name"
+      : undefined;
 
-  function switchMode() {
-    setMode(isSignup ? "login" : "signup");
+  function switchMode(next: Mode) {
+    if (next === mode) return;
+    setMode(next);
     setStep("email");
     setCode("");
     setError(null);
@@ -87,8 +89,6 @@ export function LoginForm() {
         setError(nameErr.message ?? "Could not save your name");
         return;
       }
-    }
-    if (isSignup) {
       setBusy("passkey");
       const { error: passkeyError } = await authClient.passkey.addPasskey({
         name: "This device",
@@ -126,19 +126,52 @@ export function LoginForm() {
 
   const anyBusy = busy !== null;
 
+  const title = isSignup ? "Create your account" : "Welcome back";
+  const subtitle =
+    step === "code"
+      ? `Enter the 6-digit code we sent to ${email}.`
+      : isSignup
+        ? "Verify your email, then set up a passkey."
+        : "Log in with an email code, Google, or a passkey.";
+
   return (
-    <div className="flex w-full max-w-sm flex-col gap-5 rounded-3xl border border-border p-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          {isSignup ? "Create account" : "Log in"}
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          {step === "code"
-            ? `Enter the code we sent to ${email}.`
-            : isSignup
-              ? "Verify your email, then set up a passkey."
-              : "Use an email code, Google, or a passkey."}
-        </p>
+    <div className="flex w-full max-w-sm flex-col gap-6 rounded-3xl bg-card p-6 shadow-xl shadow-black/5 ring-1 ring-border">
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center gap-3">
+          <span className="grid size-10 place-items-center rounded-2xl bg-primary text-primary-foreground">
+            <Sparkles className="size-5" aria-hidden />
+          </span>
+          <div className="flex flex-col">
+            <span className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+              Invite Me
+            </span>
+            <h1 className="text-xl font-semibold tracking-tight text-foreground">{title}</h1>
+          </div>
+        </div>
+        <p className="text-sm text-muted-foreground">{subtitle}</p>
+
+        <div className="grid grid-cols-2 gap-1 rounded-full bg-muted p-1" role="group" aria-label="Mode">
+          <StatefulButton
+            type="button"
+            size="sm"
+            variant={isSignup ? "ghost" : "primary"}
+            className="w-full"
+            disabled={anyBusy}
+            onClick={() => switchMode("login")}
+          >
+            Log in
+          </StatefulButton>
+          <StatefulButton
+            type="button"
+            size="sm"
+            variant={isSignup ? "primary" : "ghost"}
+            className="w-full"
+            disabled={anyBusy}
+            onClick={() => switchMode("signup")}
+          >
+            Create account
+          </StatefulButton>
+        </div>
       </div>
 
       {step === "email" ? (
@@ -173,11 +206,11 @@ export function LoginForm() {
             type="submit"
             size="lg"
             className="w-full"
-            state={busy === "email" ? "loading" : "idle"}
             disabled={anyBusy}
+            state={busy === "email" ? "loading" : "idle"}
             loadingText="Sending code"
           >
-            {isSignup ? "Create account with email" : "Email me a code"}
+            {isSignup ? "Continue with email" : "Email me a code"}
           </StatefulButton>
         </form>
       ) : (
@@ -197,9 +230,9 @@ export function LoginForm() {
             type="submit"
             size="lg"
             className="w-full"
-            state={busy === "code" ? "loading" : "idle"}
             disabled={anyBusy}
-            loadingText="Verifying"
+            state={busy === "code" || busy === "passkey" ? "loading" : "idle"}
+            loadingText={busy === "passkey" ? "Creating passkey" : "Verifying"}
           >
             {isSignup ? "Verify and create account" : "Verify and log in"}
           </StatefulButton>
@@ -220,7 +253,7 @@ export function LoginForm() {
         </form>
       )}
 
-      <div className="flex items-center gap-3 text-xs text-muted-foreground" aria-hidden>
+      <div className="flex items-center gap-3 text-xs uppercase tracking-widest text-muted-foreground" aria-hidden>
         <span className="h-px flex-1 bg-border" />
         or
         <span className="h-px flex-1 bg-border" />
@@ -256,20 +289,6 @@ export function LoginForm() {
           </StatefulButton>
         )}
       </div>
-
-      <p className="text-center text-sm text-muted-foreground">
-        {isSignup ? "Already have an account?" : "New here?"}{" "}
-        <StatefulButton
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="bg-transparent px-0 hover:bg-transparent"
-          disabled={anyBusy}
-          onClick={switchMode}
-        >
-          {isSignup ? "Log in" : "Create an account"}
-        </StatefulButton>
-      </p>
 
       {error ? (
         <p
