@@ -1,0 +1,4 @@
+{
+  "extends": "@invite-me/config/tsconfig.base.json",
+  "include": ["alchemy.run.ts"]
+}

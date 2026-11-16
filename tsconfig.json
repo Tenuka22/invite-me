@@ -1,0 +1,3 @@
+{
+  "extends": "@invite-me/config/tsconfig.base.json"
+}
