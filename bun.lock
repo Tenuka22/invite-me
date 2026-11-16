@@ -60,7 +60,6 @@
         "next-themes": "catalog:",
         "react": "catalog:",
         "react-dom": "catalog:",
-        "sonner": "catalog:",
         "tailwindcss": "catalog:",
         "varlock": "catalog:",
         "zod": "catalog:",
@@ -140,7 +139,7 @@
         "@effect/platform-bun": "4.1.4",
         "@effect/platform-node": "4.1.4",
         "@invite-me/config": "workspace:*",
-        "alchemy": "2.0.0-beta.86",
+        "alchemy": "2.0.0-beta.87",
         "effect": "4.1.4",
         "typescript": "catalog:",
         "varlock": "catalog:",
@@ -153,13 +152,15 @@
         "@base-ui/react": "^1.9.0",
         "@shadcn/react": "^0.3.1",
         "class-variance-authority": "^0.7.1",
+        "clsx": "^2.1.1",
         "cn": "^0.5.2",
         "lucide-react": "catalog:",
+        "motion": "^14.14.0",
         "next-themes": "catalog:",
         "react": "catalog:",
         "react-dom": "catalog:",
         "shadcn": "^4.23.0",
-        "sonner": "catalog:",
+        "tailwind-merge": "^3.7.0",
         "tw-animate-css": "^1.4.0",
       },
       "devDependencies": {
@@ -187,7 +188,6 @@
     "next-themes": "^0.4.6",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
-    "sonner": "^2.0.8",
     "tailwindcss": "^4.3.5",
     "typescript": "^6.0.3",
     "varlock": "1.25.0",
@@ -204,9 +204,9 @@
 
     "@alchemy.run/neon": ["@alchemy.run/neon@2.0.0-beta.86", "", { "dependencies": { "@alchemy.run/sql": "2.0.0-beta.86", "@distilled.cloud/aws": "1.0.0-rc.19", "@distilled.cloud/core": "1.0.0-rc.19", "@distilled.cloud/neon": "1.0.0-rc.19", "@distilled.cloud/s3": "1.0.0-rc.19", "@neon/functions": "0.11.0" }, "peerDependencies": { "@effect/platform-node": "^4.1.4", "@vercel/nft": "^1.10.2", "alchemy": "2.0.0-beta.86", "effect": "^4.1.4", "pg": "^8.22.0" }, "optionalPeers": ["@effect/platform-node", "@vercel/nft", "pg"] }, "sha512-sEZyYgV+/97tQ3k5HveRH+Bt/ZpZKS+JKGzJAMpDCm+2RSZevtUTS9wxxWnVS0aBYuD/owpGtvd71hxlHKvQNA=="],
 
-    "@alchemy.run/node-utils": ["@alchemy.run/node-utils@2.0.0-beta.86", "", { "dependencies": { "chokidar": "^5.0.0", "rolldown": "1.2.16" } }, "sha512-fVo6F4FN42kroWh3Lxk85Od1+izcZxCHscSDkM2Nx57YzKlth3yhTuQO5/vvB2dMw0752h9pffhht1RGNC5pyA=="],
+    "@alchemy.run/node-utils": ["@alchemy.run/node-utils@2.0.0-beta.87", "", { "dependencies": { "chokidar": "^5.0.0", "rolldown": "1.2.16" } }, "sha512-GhQSAY89Sz0P046tuHnLqoCUj79PMu1WUAOnIRLCwO4E4yPZ76IkEDrdl3hjCb7YHuqYA1Da6ZfV59TIQgGkSg=="],
 
-    "@alchemy.run/sigil": ["@alchemy.run/sigil@0.1.0-alpha.3", "", { "peerDependencies": { "@types/react": ">=19.2.0", "react-devtools-core": ">=6.1.2" }, "optionalPeers": ["@types/react", "react-devtools-core"] }, "sha512-NBhQRjbeFp4jPYDGqlXSoUlT45QyNc/6DGQWmkXUnS9nHKjHa5eIRZChdnCDYHYvmgFJWNaRfPFGwxrCWmlLzw=="],
+    "@alchemy.run/sigil": ["@alchemy.run/sigil@0.1.0-alpha.4", "", { "peerDependencies": { "@types/react": ">=19.2.0", "react-devtools-core": ">=6.1.2" }, "optionalPeers": ["@types/react", "react-devtools-core"] }, "sha512-d6Uo16C2P6Wk7TNoYt4qzjjNGyjsrJLjq8bBotl86Nmcp/U6+R34/n4CZomqFERF2wMinut2DBqWNeUQPTBtFQ=="],
 
     "@alchemy.run/sql": ["@alchemy.run/sql@2.0.0-beta.86", "", { "peerDependencies": { "@effect/sql-libsql": "^4.1.4", "@effect/sql-mysql2": "^4.1.4", "@effect/sql-pg": "^4.1.4", "alchemy": "2.0.0-beta.86", "effect": "^4.1.4", "mysql2": "^3.24.2", "pg": "^8.22.0" }, "optionalPeers": ["@effect/sql-libsql", "@effect/sql-mysql2", "@effect/sql-pg", "mysql2", "pg"] }, "sha512-fkYV4hnrj+XgS63Tr8TFWYkEC1vHPrKL1J3S3c0jQAeqQsNBPSpp7rAWjj7g9msnAtTRwBn2YaSfbSMoPZFSIw=="],
 
@@ -832,7 +832,7 @@
 
     "ajv-formats": ["ajv-formats@2.1.1", "", { "dependencies": { "ajv": "^8.0.0" } }, "sha512-Wx0Kx52hxE7C18hkMEggYlEifqWZtYaRgouJor+WMdPnQyEK13vgEWyVNup7SoeeoLMsr4kf5h6dOW11I15MUA=="],
 
-    "alchemy": ["alchemy@2.0.0-beta.86", "", { "dependencies": { "@alchemy.run/node-utils": "2.0.0-beta.86", "@alchemy.run/sigil": "0.1.0-alpha.3", "capnweb": "^0.12.0", "fflate": "^0.8.3", "pathe": "^2.0.3", "picomatch": "^4.0.7", "rolldown": "1.2.16", "tinyglobby": "^0.2.17", "yaml": "^2.9.1" }, "peerDependencies": { "@alchemy.run/frontend-frameworks": "2.0.0-beta.86", "@effect/platform-bun": "^4.1.4", "@effect/platform-node": "^4.1.4", "effect": "^4.1.4", "vite": "^7.0.0 || ^8.0.0", "ws": "^8.21.0" }, "optionalPeers": ["@alchemy.run/frontend-frameworks", "@effect/platform-bun", "@effect/platform-node", "vite", "ws"], "bin": { "alchemy": "./bin/cli.js" } }, "sha512-HxS/84x8IL3FVmIvRr6iE/n7+YY9VE4vSLjRYINM06rUcDvOeXcOCMUCHhPpM70x5tMglM1wYhZLYdH50qzu2g=="],
+    "alchemy": ["alchemy@2.0.0-beta.87", "", { "dependencies": { "@alchemy.run/node-utils": "2.0.0-beta.87", "@alchemy.run/sigil": "0.1.0-alpha.4", "capnweb": "^0.12.0", "fflate": "^0.8.3", "pathe": "^2.0.3", "picomatch": "^4.0.7", "rolldown": "1.2.16", "tinyglobby": "^0.2.17", "yaml": "^2.9.1" }, "peerDependencies": { "@alchemy.run/frontend-frameworks": "2.0.0-beta.87", "@effect/platform-bun": "^4.1.4", "@effect/platform-node": "^4.1.4", "effect": "^4.1.4", "vite": "^7.0.0 || ^8.0.0", "ws": "^8.21.0" }, "optionalPeers": ["@alchemy.run/frontend-frameworks", "@effect/platform-bun", "@effect/platform-node", "vite", "ws"], "bin": { "alchemy": "./bin/cli.js" } }, "sha512-6UOKPvqIZnycx916MDVlmwcrVJVPlI1Tcpk6Azn4uyvokXaA6fccVdRpRmDHsVkpjRxJrL8/Zqtjl0ZVAI2opQ=="],
 
     "ansi-colors": ["ansi-colors@4.1.3", "", {}, "sha512-/6w/C21Pm1A7aZitlI5Ni/2J6FFQN8i1Cvz3kHABAAbw93v/NlvKdVOqz7CCWz/3iv/JplRSEEZ83XION15ovw=="],
 
@@ -1024,6 +1024,8 @@
 
     "find-up": ["find-up@3.0.0", "", { "dependencies": { "locate-path": "^3.0.0" } }, "sha512-1yD6RmLI1XBfxugvORwlck6f75tYL+iR0jqwsOrOxMZyGYqUuDhJ0l4AXdO1iX/FTs9cBAMEk1gWSEx1kSbylg=="],
 
+    "framer-motion": ["framer-motion@14.14.0", "", { "dependencies": { "motion-dom": "14.14.0", "motion-utils": "14.7.0", "tslib": "^2.4.0" }, "peerDependencies": { "react": "^18.0.0 || ^19.0.0", "react-dom": "^18.0.0 || ^19.0.0", "remix": "^3.1.0" }, "optionalPeers": ["react", "react-dom", "remix"] }, "sha512-fidRX0VzkZdA9OovFiBSzJtt9/jLcJpna78Z+KCqQQZIWoIpN3tOhEXAhhAw/FObUUh+o3Y18yx1F4BP0mVJ8Q=="],
+
     "fs-constants": ["fs-constants@1.0.0", "", {}, "sha512-y6OAwoSIf7FyjMIv94u+b5rdheZEjzR63GTyZJm5qh4Bi+2YgwLCcI/fPFZkL5PSixOt6ZNKm+w+Hfp/Bciwow=="],
 
     "fs-extra": ["fs-extra@11.4.1", "", { "dependencies": { "graceful-fs": "^4.2.0", "jsonfile": "^6.0.1", "universalify": "^2.0.0" } }, "sha512-KYAb4c9BJQI6QqGKthV68OHe0badztdXJWKo0WtBA9IuCFPTKvE5ZdUBglP833aMjhaSPNO4A5j/EkzZtGlKjA=="],
@@ -1192,6 +1194,12 @@
 
     "modern-tar": ["modern-tar@0.8.6", "", {}, "sha512-LYSks0tNVqbtez/9OB0YFP6qLRSqkdAxJWOQpVaR67lNTbj2zNLyYpowkRMia5lXLCZKzxwoxkxH2MbbBR2aEg=="],
 
+    "motion": ["motion@14.14.0", "", { "dependencies": { "framer-motion": "14.14.0", "tslib": "^2.4.0" }, "peerDependencies": { "react": "^18.0.0 || ^19.0.0", "react-dom": "^18.0.0 || ^19.0.0", "remix": "^3.1.0" }, "optionalPeers": ["react", "react-dom", "remix"] }, "sha512-a306U6sV5VKq1abtzKiinB+UQjiY88jrsvQzWORP3WPv/DFANyoYVlPbdnmJPMEbusyPXB4GyQJVANaq/pSIYQ=="],
+
+    "motion-dom": ["motion-dom@14.14.0", "", { "dependencies": { "motion-utils": "14.7.0" } }, "sha512-IAxcKhYkuQA2W0Tlx1AvVgImfqEoF3/t3IovbPQJlYkefmGsmrXjn967lMII5VmFmLpQEab4+ZkHo/ijJ4Esig=="],
+
+    "motion-utils": ["motion-utils@14.7.0", "", {}, "sha512-woO0/Nb7ys75f94fjvQi/6leiHGvZUYkeHUPEZ3vxsV+9OpEVhkxp01x8MlRwX0zt31EqgXsKDAoBoJLC148Tw=="],
+
     "ms": ["ms@2.1.3", "", {}, "sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA=="],
 
     "nanoid": ["nanoid@3.3.20", "", { "bin": { "nanoid": "bin/nanoid.cjs" } }, "sha512-uKdg2G3GNCKQn9byYOpxbGqrT2fGO5KRt5J/8b3pok8rT6qxGWF6hxMyJiEYtAf+FVyYuD9hRaDqX5uPFYJ4ZQ=="],
@@ -1356,8 +1364,6 @@
 
     "solid-transition-group": ["solid-transition-group@0.2.3", "", { "dependencies": { "@solid-primitives/refs": "^1.0.5", "@solid-primitives/transition-group": "^1.0.2" }, "peerDependencies": { "solid-js": "^1.6.12" } }, "sha512-iB72c9N5Kz9ykRqIXl0lQohOau4t0dhel9kjwFvx81UZJbVwaChMuBuyhiZmK24b8aKEK0w3uFM96ZxzcyZGdg=="],
 
-    "sonner": ["sonner@2.0.8", "", { "peerDependencies": { "@types/react": "^18.0.0 || ^19.0.0", "react": "^18.0.0 || ^19.0.0 || ^19.0.0-rc", "react-dom": "^18.0.0 || ^19.0.0 || ^19.0.0-rc" }, "optionalPeers": ["@types/react"] }, "sha512-UM/ByIoFra8yzV75n1o0Puu0bw5U/9UNnDacrJNspekBewIfsQ3D6ez1nvlWpt7aTsO6rujQtifBpycwIivqlg=="],
-
     "source-map": ["source-map@0.6.1", "", {}, "sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g=="],
 
     "source-map-js": ["source-map-js@1.2.2", "", {}, "sha512-KGj/8Y43x35aZVDtt+J4mK1hoLGHULMYfSkODJNQjNDC3oW1PqPoxMwo0pLUsWM/UEGzON/NxeHywEfNXNP3Vw=="],
@@ -1385,6 +1391,8 @@
     "systeminformation": ["systeminformation@5.33.23", "", { "os": "!aix", "bin": { "systeminformation": "lib/cli.js" } }, "sha512-OBOvemo4WHf8bGMszwszn3JcFxkIMZt7adjhdgJh3eePo37EIBZovZbhJDQ2zfVYPEtXScHDJXGik8eYd3WMNw=="],
 
     "tagged-tag": ["tagged-tag@1.0.0", "", {}, "sha512-yEFYrVhod+hdNyx7g5Bnkkb0G6si8HJurOoOEgC8B/O0uXLHlaey/65KRv6cuWBNhBgHKAROVpc7QyYqE5gFng=="],
+
+    "tailwind-merge": ["tailwind-merge@3.7.0", "", {}, "sha512-XPPUyAc+cvspz3lHTcR/QgPfW2A0lv/xQNIjX3HGhLR+Nq2lHaLq5MtTesHn8GUr3W3DguT2KT5x3NVgRtYwmA=="],
 
     "tailwindcss": ["tailwindcss@4.3.5", "", {}, "sha512-FcQk9BuffmEHJP2G0XmB2SplU1aLTI7j07Kunk+U74Ny+XiWOtzXz9aujFZ/avntw1e2cOv/3PkgzflQ7gX2vQ=="],
 
@@ -1516,6 +1524,18 @@
 
     "zod": ["zod@4.6.7", "", {}, "sha512-g8W2D2kU6a8untc053fX1uVBKzM7yqAxW/3zwk83+6RyF2+SKOuV+c0wBDhUwzV1PaGapmZH+rmcUzPf+3CGwg=="],
 
+    "@alchemy.run/acme/alchemy": ["alchemy@2.0.0-beta.86", "", { "dependencies": { "@alchemy.run/node-utils": "2.0.0-beta.86", "@alchemy.run/sigil": "0.1.0-alpha.3", "capnweb": "^0.12.0", "fflate": "^0.8.3", "pathe": "^2.0.3", "picomatch": "^4.0.7", "rolldown": "1.2.16", "tinyglobby": "^0.2.17", "yaml": "^2.9.1" }, "peerDependencies": { "@alchemy.run/frontend-frameworks": "2.0.0-beta.86", "@effect/platform-bun": "^4.1.4", "@effect/platform-node": "^4.1.4", "effect": "^4.1.4", "vite": "^7.0.0 || ^8.0.0", "ws": "^8.21.0" }, "optionalPeers": ["@alchemy.run/frontend-frameworks", "@effect/platform-bun", "@effect/platform-node", "vite", "ws"], "bin": { "alchemy": "./bin/cli.js" } }, "sha512-HxS/84x8IL3FVmIvRr6iE/n7+YY9VE4vSLjRYINM06rUcDvOeXcOCMUCHhPpM70x5tMglM1wYhZLYdH50qzu2g=="],
+
+    "@alchemy.run/cloudflare/alchemy": ["alchemy@2.0.0-beta.86", "", { "dependencies": { "@alchemy.run/node-utils": "2.0.0-beta.86", "@alchemy.run/sigil": "0.1.0-alpha.3", "capnweb": "^0.12.0", "fflate": "^0.8.3", "pathe": "^2.0.3", "picomatch": "^4.0.7", "rolldown": "1.2.16", "tinyglobby": "^0.2.17", "yaml": "^2.9.1" }, "peerDependencies": { "@alchemy.run/frontend-frameworks": "2.0.0-beta.86", "@effect/platform-bun": "^4.1.4", "@effect/platform-node": "^4.1.4", "effect": "^4.1.4", "vite": "^7.0.0 || ^8.0.0", "ws": "^8.21.0" }, "optionalPeers": ["@alchemy.run/frontend-frameworks", "@effect/platform-bun", "@effect/platform-node", "vite", "ws"], "bin": { "alchemy": "./bin/cli.js" } }, "sha512-HxS/84x8IL3FVmIvRr6iE/n7+YY9VE4vSLjRYINM06rUcDvOeXcOCMUCHhPpM70x5tMglM1wYhZLYdH50qzu2g=="],
+
+    "@alchemy.run/cloudflare-runtime/@alchemy.run/node-utils": ["@alchemy.run/node-utils@2.0.0-beta.86", "", { "dependencies": { "chokidar": "^5.0.0", "rolldown": "1.2.16" } }, "sha512-fVo6F4FN42kroWh3Lxk85Od1+izcZxCHscSDkM2Nx57YzKlth3yhTuQO5/vvB2dMw0752h9pffhht1RGNC5pyA=="],
+
+    "@alchemy.run/docker/alchemy": ["alchemy@2.0.0-beta.86", "", { "dependencies": { "@alchemy.run/node-utils": "2.0.0-beta.86", "@alchemy.run/sigil": "0.1.0-alpha.3", "capnweb": "^0.12.0", "fflate": "^0.8.3", "pathe": "^2.0.3", "picomatch": "^4.0.7", "rolldown": "1.2.16", "tinyglobby": "^0.2.17", "yaml": "^2.9.1" }, "peerDependencies": { "@alchemy.run/frontend-frameworks": "2.0.0-beta.86", "@effect/platform-bun": "^4.1.4", "@effect/platform-node": "^4.1.4", "effect": "^4.1.4", "vite": "^7.0.0 || ^8.0.0", "ws": "^8.21.0" }, "optionalPeers": ["@alchemy.run/frontend-frameworks", "@effect/platform-bun", "@effect/platform-node", "vite", "ws"], "bin": { "alchemy": "./bin/cli.js" } }, "sha512-HxS/84x8IL3FVmIvRr6iE/n7+YY9VE4vSLjRYINM06rUcDvOeXcOCMUCHhPpM70x5tMglM1wYhZLYdH50qzu2g=="],
+
+    "@alchemy.run/neon/alchemy": ["alchemy@2.0.0-beta.86", "", { "dependencies": { "@alchemy.run/node-utils": "2.0.0-beta.86", "@alchemy.run/sigil": "0.1.0-alpha.3", "capnweb": "^0.12.0", "fflate": "^0.8.3", "pathe": "^2.0.3", "picomatch": "^4.0.7", "rolldown": "1.2.16", "tinyglobby": "^0.2.17", "yaml": "^2.9.1" }, "peerDependencies": { "@alchemy.run/frontend-frameworks": "2.0.0-beta.86", "@effect/platform-bun": "^4.1.4", "@effect/platform-node": "^4.1.4", "effect": "^4.1.4", "vite": "^7.0.0 || ^8.0.0", "ws": "^8.21.0" }, "optionalPeers": ["@alchemy.run/frontend-frameworks", "@effect/platform-bun", "@effect/platform-node", "vite", "ws"], "bin": { "alchemy": "./bin/cli.js" } }, "sha512-HxS/84x8IL3FVmIvRr6iE/n7+YY9VE4vSLjRYINM06rUcDvOeXcOCMUCHhPpM70x5tMglM1wYhZLYdH50qzu2g=="],
+
+    "@alchemy.run/sql/alchemy": ["alchemy@2.0.0-beta.86", "", { "dependencies": { "@alchemy.run/node-utils": "2.0.0-beta.86", "@alchemy.run/sigil": "0.1.0-alpha.3", "capnweb": "^0.12.0", "fflate": "^0.8.3", "pathe": "^2.0.3", "picomatch": "^4.0.7", "rolldown": "1.2.16", "tinyglobby": "^0.2.17", "yaml": "^2.9.1" }, "peerDependencies": { "@alchemy.run/frontend-frameworks": "2.0.0-beta.86", "@effect/platform-bun": "^4.1.4", "@effect/platform-node": "^4.1.4", "effect": "^4.1.4", "vite": "^7.0.0 || ^8.0.0", "ws": "^8.21.0" }, "optionalPeers": ["@alchemy.run/frontend-frameworks", "@effect/platform-bun", "@effect/platform-node", "vite", "ws"], "bin": { "alchemy": "./bin/cli.js" } }, "sha512-HxS/84x8IL3FVmIvRr6iE/n7+YY9VE4vSLjRYINM06rUcDvOeXcOCMUCHhPpM70x5tMglM1wYhZLYdH50qzu2g=="],
+
     "@babel/core/semver": ["semver@6.3.2", "", { "bin": { "semver": "bin/semver.js" } }, "sha512-GYrCADwpu6yV5OAvchkQ27Z5wwMxWAEMg5NNWjyHh/5DboFFqbdbvYNIvZouQpxXyeMPoTOh0vdPYKlf0ZswdQ=="],
 
     "@babel/helper-compilation-targets/lru-cache": ["lru-cache@5.1.1", "", { "dependencies": { "yallist": "^3.0.2" } }, "sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w=="],
@@ -1615,6 +1635,36 @@
     "vite/rolldown": ["rolldown@1.2.19", "", { "dependencies": { "@oxc-project/types": "=0.156.0", "@rolldown/pluginutils": "^1.0.0" }, "optionalDependencies": { "@rolldown/binding-android-arm-eabi": "1.2.19", "@rolldown/binding-android-arm64": "1.2.19", "@rolldown/binding-darwin-arm64": "1.2.19", "@rolldown/binding-darwin-x64": "1.2.19", "@rolldown/binding-freebsd-x64": "1.2.19", "@rolldown/binding-linux-arm-gnueabihf": "1.2.19", "@rolldown/binding-linux-arm64-gnu": "1.2.19", "@rolldown/binding-linux-arm64-musl": "1.2.19", "@rolldown/binding-linux-ppc64-gnu": "1.2.19", "@rolldown/binding-linux-s390x-gnu": "1.2.19", "@rolldown/binding-linux-x64-gnu": "1.2.19", "@rolldown/binding-linux-x64-musl": "1.2.19", "@rolldown/binding-openharmony-arm64": "1.2.19", "@rolldown/binding-wasm32-wasi": "1.2.19", "@rolldown/binding-win32-arm64-msvc": "1.2.19", "@rolldown/binding-win32-x64-msvc": "1.2.19" }, "bin": { "rolldown": "./bin/cli.mjs" } }, "sha512-QIiV1J9d0pzN4jeeTH4sjPy0AZ6cAy2cG0ExeoE1+U8Rvj+hR3gYkokx0YbeUNGlZqiQJJ2utcETe0oKXwzsuA=="],
 
     "wsl-utils/is-wsl": ["is-wsl@3.1.1", "", { "dependencies": { "is-inside-container": "^1.0.0" } }, "sha512-e6rvdUCiQCAuumZslxRJWR/Doq4VpPR82kqclvcS0efgt430SlGIk05vdCN58+VrzgtIcfNODjozVielycD4Sw=="],
+
+    "@alchemy.run/acme/alchemy/@alchemy.run/node-utils": ["@alchemy.run/node-utils@2.0.0-beta.86", "", { "dependencies": { "chokidar": "^5.0.0", "rolldown": "1.2.16" } }, "sha512-fVo6F4FN42kroWh3Lxk85Od1+izcZxCHscSDkM2Nx57YzKlth3yhTuQO5/vvB2dMw0752h9pffhht1RGNC5pyA=="],
+
+    "@alchemy.run/acme/alchemy/@alchemy.run/sigil": ["@alchemy.run/sigil@0.1.0-alpha.3", "", { "peerDependencies": { "@types/react": ">=19.2.0", "react-devtools-core": ">=6.1.2" }, "optionalPeers": ["@types/react", "react-devtools-core"] }, "sha512-NBhQRjbeFp4jPYDGqlXSoUlT45QyNc/6DGQWmkXUnS9nHKjHa5eIRZChdnCDYHYvmgFJWNaRfPFGwxrCWmlLzw=="],
+
+    "@alchemy.run/acme/alchemy/yaml": ["yaml@2.9.1", "", { "bin": { "yaml": "bin.mjs" } }, "sha512-3NxN8+78OdzbT7C/WjGsyfPAtJaN3FNDsWxv7Y7mcDsT/oOmgW8BpyQQFFBnvZE3j9Y2Sdz1ULFLezL7Eb2yFw=="],
+
+    "@alchemy.run/cloudflare/alchemy/@alchemy.run/node-utils": ["@alchemy.run/node-utils@2.0.0-beta.86", "", { "dependencies": { "chokidar": "^5.0.0", "rolldown": "1.2.16" } }, "sha512-fVo6F4FN42kroWh3Lxk85Od1+izcZxCHscSDkM2Nx57YzKlth3yhTuQO5/vvB2dMw0752h9pffhht1RGNC5pyA=="],
+
+    "@alchemy.run/cloudflare/alchemy/@alchemy.run/sigil": ["@alchemy.run/sigil@0.1.0-alpha.3", "", { "peerDependencies": { "@types/react": ">=19.2.0", "react-devtools-core": ">=6.1.2" }, "optionalPeers": ["@types/react", "react-devtools-core"] }, "sha512-NBhQRjbeFp4jPYDGqlXSoUlT45QyNc/6DGQWmkXUnS9nHKjHa5eIRZChdnCDYHYvmgFJWNaRfPFGwxrCWmlLzw=="],
+
+    "@alchemy.run/cloudflare/alchemy/yaml": ["yaml@2.9.1", "", { "bin": { "yaml": "bin.mjs" } }, "sha512-3NxN8+78OdzbT7C/WjGsyfPAtJaN3FNDsWxv7Y7mcDsT/oOmgW8BpyQQFFBnvZE3j9Y2Sdz1ULFLezL7Eb2yFw=="],
+
+    "@alchemy.run/docker/alchemy/@alchemy.run/node-utils": ["@alchemy.run/node-utils@2.0.0-beta.86", "", { "dependencies": { "chokidar": "^5.0.0", "rolldown": "1.2.16" } }, "sha512-fVo6F4FN42kroWh3Lxk85Od1+izcZxCHscSDkM2Nx57YzKlth3yhTuQO5/vvB2dMw0752h9pffhht1RGNC5pyA=="],
+
+    "@alchemy.run/docker/alchemy/@alchemy.run/sigil": ["@alchemy.run/sigil@0.1.0-alpha.3", "", { "peerDependencies": { "@types/react": ">=19.2.0", "react-devtools-core": ">=6.1.2" }, "optionalPeers": ["@types/react", "react-devtools-core"] }, "sha512-NBhQRjbeFp4jPYDGqlXSoUlT45QyNc/6DGQWmkXUnS9nHKjHa5eIRZChdnCDYHYvmgFJWNaRfPFGwxrCWmlLzw=="],
+
+    "@alchemy.run/docker/alchemy/yaml": ["yaml@2.9.1", "", { "bin": { "yaml": "bin.mjs" } }, "sha512-3NxN8+78OdzbT7C/WjGsyfPAtJaN3FNDsWxv7Y7mcDsT/oOmgW8BpyQQFFBnvZE3j9Y2Sdz1ULFLezL7Eb2yFw=="],
+
+    "@alchemy.run/neon/alchemy/@alchemy.run/node-utils": ["@alchemy.run/node-utils@2.0.0-beta.86", "", { "dependencies": { "chokidar": "^5.0.0", "rolldown": "1.2.16" } }, "sha512-fVo6F4FN42kroWh3Lxk85Od1+izcZxCHscSDkM2Nx57YzKlth3yhTuQO5/vvB2dMw0752h9pffhht1RGNC5pyA=="],
+
+    "@alchemy.run/neon/alchemy/@alchemy.run/sigil": ["@alchemy.run/sigil@0.1.0-alpha.3", "", { "peerDependencies": { "@types/react": ">=19.2.0", "react-devtools-core": ">=6.1.2" }, "optionalPeers": ["@types/react", "react-devtools-core"] }, "sha512-NBhQRjbeFp4jPYDGqlXSoUlT45QyNc/6DGQWmkXUnS9nHKjHa5eIRZChdnCDYHYvmgFJWNaRfPFGwxrCWmlLzw=="],
+
+    "@alchemy.run/neon/alchemy/yaml": ["yaml@2.9.1", "", { "bin": { "yaml": "bin.mjs" } }, "sha512-3NxN8+78OdzbT7C/WjGsyfPAtJaN3FNDsWxv7Y7mcDsT/oOmgW8BpyQQFFBnvZE3j9Y2Sdz1ULFLezL7Eb2yFw=="],
+
+    "@alchemy.run/sql/alchemy/@alchemy.run/node-utils": ["@alchemy.run/node-utils@2.0.0-beta.86", "", { "dependencies": { "chokidar": "^5.0.0", "rolldown": "1.2.16" } }, "sha512-fVo6F4FN42kroWh3Lxk85Od1+izcZxCHscSDkM2Nx57YzKlth3yhTuQO5/vvB2dMw0752h9pffhht1RGNC5pyA=="],
+
+    "@alchemy.run/sql/alchemy/@alchemy.run/sigil": ["@alchemy.run/sigil@0.1.0-alpha.3", "", { "peerDependencies": { "@types/react": ">=19.2.0", "react-devtools-core": ">=6.1.2" }, "optionalPeers": ["@types/react", "react-devtools-core"] }, "sha512-NBhQRjbeFp4jPYDGqlXSoUlT45QyNc/6DGQWmkXUnS9nHKjHa5eIRZChdnCDYHYvmgFJWNaRfPFGwxrCWmlLzw=="],
+
+    "@alchemy.run/sql/alchemy/yaml": ["yaml@2.9.1", "", { "bin": { "yaml": "bin.mjs" } }, "sha512-3NxN8+78OdzbT7C/WjGsyfPAtJaN3FNDsWxv7Y7mcDsT/oOmgW8BpyQQFFBnvZE3j9Y2Sdz1ULFLezL7Eb2yFw=="],
 
     "@dotenvx/dotenvx/execa/get-stream": ["get-stream@6.0.1", "", {}, "sha512-ts6Wi+2j3jQjqi70w5AlN8DFnkSwC+MqmxEzdEALB2qXZYV3X/b1CTfgPLGJNMeAWxdPfU8FO1ms3NUfaHCPYg=="],
 

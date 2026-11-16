@@ -3,7 +3,7 @@ import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
 import { createTanstackQueryUtils } from "@orpc/tanstack-query";
 import { QueryCache, QueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { toast } from "@/components/toaster";
 
 import { ENV } from "../env.public";
 

@@ -10,6 +10,7 @@ import "varlock/auto-load";
 
 const managedDatabase = Effect.gen(function* () {
   const database = yield* Neon.Project("database", {
+    historyRetentionSeconds: 21600,
     migrations: "../../packages/db/src/migrations",
   });
   const runtimeUrl = database.pooledConnectionUri.pipe(Output.map(Redacted.make));
