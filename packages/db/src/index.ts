@@ -1,12 +1,11 @@
-import { neon } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-http";
+import { type DrizzleD1Database, drizzle } from "drizzle-orm/d1";
 
-import type { DatabaseConfig } from "./config";
 import { relations } from "./relations";
 
-export function createDb(env: DatabaseConfig) {
-  const sql = neon(env.DATABASE_URL || "");
-  return drizzle({ client: sql, relations });
-}
+export type Database = DrizzleD1Database<typeof relations>;
 
-export type Database = ReturnType<typeof createDb>;
+// `d1` is the Worker's D1 binding (`env.DB`). Constructing the client is
+// free: no connection is opened, so it is safe to build per request.
+export function createDb(d1: D1Database): Database {
+  return drizzle(d1, { relations });
+}

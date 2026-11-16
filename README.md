@@ -12,7 +12,7 @@ This project was created with [Better-T-Stack](https://github.com/AmanVarshney01
 - **oRPC** - End-to-end type-safe APIs with OpenAPI integration
 - **workers** - Runtime environment
 - **Drizzle** - TypeScript-first ORM
-- **PostgreSQL** - Database engine
+- **Cloudflare D1** - SQLite database engine
 - **Authentication** - Better-Auth
 - **Nx** - Smart monorepo task orchestration and caching
 - **Oxlint** - Oxlint + Oxfmt (linting & formatting)
@@ -27,9 +27,9 @@ bun install
 
 ## Database Setup
 
-Alchemy provisions Neon, passes its connection credentials directly to the deployed application, and manages database deployment in the same stack as the consuming app. You do not need to copy a hosted `DATABASE_URL` into the app environment.
+Alchemy provisions a Cloudflare D1 database and binds it to the server Worker as `DB`. No database URL or credentials are needed in the app environment.
 
-Generate and commit migration SQL with `bun run db:generate`. Deployment applies checked-in migrations after provisioning the database.
+Generate and commit migration SQL with `bun run db:generate`. `alchemy dev` and `alchemy deploy` apply the checked-in migrations to D1 automatically.
 
 Then, run the development server:
 
@@ -88,7 +88,7 @@ Run standalone Node/Bun tools that use Varlock from the owning app directory so 
 - Deploy: bun run deploy
 - Destroy: bun run destroy
 
-`alchemy profile edit` stores the selected Axiom, Cloudflare, Neon, PlanetScale, and/or Prisma provider profiles under `~/.alchemy`; no provider-specific setup command is required by this scaffold.
+`alchemy profile edit` stores the selected provider profiles (Cloudflare for this app) under `~/.alchemy`; no provider-specific setup command is required by this scaffold.
 
 Deploys are staged and default to a personal `dev_<username>` stage. For production, run the deploy with an explicit stage from `packages/infra`:
 
@@ -125,8 +125,5 @@ invite-me/
 - `bun run dev:web`: Start only the web application
 - `bun run dev:server`: Start only the server
 - `bun run check-types`: Check TypeScript types across all apps
-- `bun run db:push`: Push schema changes to database
-- `bun run db:generate`: Generate database client/types
-- `bun run db:migrate`: Run database migrations
-- `bun run db:studio`: Open database studio UI
+- `bun run db:generate`: Generate SQL migrations from the Drizzle schema
 - `bun run check`: Run Oxlint and Oxfmt
