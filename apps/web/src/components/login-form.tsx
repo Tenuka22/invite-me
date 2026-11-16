@@ -5,6 +5,7 @@ import { KeyRound, Mail, User } from "lucide-react";
 import { type FormEvent, useState } from "react";
 
 import { authClient } from "@/lib/auth-client";
+import { toast } from "@/components/toaster";
 
 type Mode = "login" | "signup";
 type Step = "email" | "code";
@@ -87,6 +88,15 @@ export function LoginForm() {
         return;
       }
     }
+    if (isSignup) {
+      setBusy("passkey");
+      const { error: passkeyError } = await authClient.passkey.addPasskey({
+        name: "This device",
+      });
+      if (passkeyError) {
+        toast.error("Passkey not created", { description: "Add one from your profile." });
+      }
+    }
     setBusy(null);
     await navigate({ to: "/profile" });
   }
@@ -126,7 +136,7 @@ export function LoginForm() {
           {step === "code"
             ? `Enter the code we sent to ${email}.`
             : isSignup
-              ? "Sign up with an email code or Google."
+              ? "Verify your email, then set up a passkey."
               : "Use an email code, Google, or a passkey."}
         </p>
       </div>
@@ -253,6 +263,7 @@ export function LoginForm() {
           type="button"
           variant="ghost"
           size="sm"
+          className="bg-transparent px-0 hover:bg-transparent"
           disabled={anyBusy}
           onClick={switchMode}
         >
