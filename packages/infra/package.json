@@ -19,6 +19,7 @@
     "@invite-me/config": "workspace:*",
     "alchemy": "2.0.0-beta.87",
     "effect": "4.1.4",
+    "pg": "^8.23.1",
     "typescript": "catalog:",
     "varlock": "catalog:"
   }
