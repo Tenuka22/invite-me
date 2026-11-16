@@ -37,6 +37,10 @@ export const server = Cloudflare.Worker("server", {
     ...databaseBindings,
     CORS_ORIGIN: Config.String("CORS_ORIGIN"),
     BETTER_AUTH_SECRET: Config.Redacted("BETTER_AUTH_SECRET"),
+    GOOGLE_CLIENT_ID: Config.String("GOOGLE_CLIENT_ID"),
+    GOOGLE_CLIENT_SECRET: Config.Redacted("GOOGLE_CLIENT_SECRET"),
+    RESEND_API_KEY: Config.Redacted("RESEND_API_KEY"),
+    EMAIL_FROM: Config.String("EMAIL_FROM"),
     BETTER_AUTH_URL: Cloudflare.Worker.URL,
   },
   dev: {
