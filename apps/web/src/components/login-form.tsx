@@ -1,7 +1,7 @@
 import { StatefulButton } from "@invite-me/ui/components/motion/button/stateful";
 import { Input } from "@invite-me/ui/components/motion/input";
 import { useNavigate } from "@tanstack/react-router";
-import { KeyRound, Mail, Sparkles, User } from "lucide-react";
+import { KeyRound, Mail, User } from "lucide-react";
 import { type FormEvent, useState } from "react";
 
 import { toast } from "@/components/toaster";
@@ -137,16 +137,11 @@ export function LoginForm() {
   return (
     <div className="flex w-full max-w-sm flex-col gap-6 rounded-3xl bg-card p-6 shadow-xl shadow-black/5 ring-1 ring-border">
       <div className="flex flex-col gap-4">
-        <div className="flex items-center gap-3">
-          <span className="grid size-10 place-items-center rounded-2xl bg-primary text-primary-foreground">
-            <Sparkles className="size-5" aria-hidden />
+        <div className="flex flex-col gap-1">
+          <span className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+            Invite Me
           </span>
-          <div className="flex flex-col">
-            <span className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-              Invite Me
-            </span>
-            <h1 className="text-xl font-semibold tracking-tight text-foreground">{title}</h1>
-          </div>
+          <h1 className="text-xl font-semibold tracking-tight text-foreground">{title}</h1>
         </div>
         <p className="text-sm text-muted-foreground">{subtitle}</p>
 
