@@ -1,12 +1,15 @@
 import { StatefulButton } from "@invite-me/ui/components/motion/button/stateful";
 import { Input } from "@invite-me/ui/components/motion/input";
 import { useNavigate } from "@tanstack/react-router";
+import { KeyRound, Mail } from "lucide-react";
 import { type FormEvent, useState } from "react";
 
 import { authClient } from "@/lib/auth-client";
 
 type Step = "email" | "code";
 type Busy = "email" | "code" | "google" | "passkey";
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function LoginForm() {
   const navigate = useNavigate();
@@ -15,6 +18,9 @@ export function LoginForm() {
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState<Busy | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const emailError =
+    email.length > 0 && !EMAIL_PATTERN.test(email) ? "Enter a valid email" : undefined;
 
   async function sendCode(event: FormEvent) {
     event.preventDefault();
@@ -26,7 +32,7 @@ export function LoginForm() {
     });
     setBusy(null);
     if (error) {
-      setError(error.message ?? "Could not send the code");
+      setError(error.message ?? "Could not send code");
       return;
     }
     setStep("code");
@@ -39,7 +45,7 @@ export function LoginForm() {
     const { error } = await authClient.signIn.emailOtp({ email, otp: code });
     setBusy(null);
     if (error) {
-      setError(error.message ?? "Invalid or expired code");
+      setError(error.message ?? "Invalid code");
       return;
     }
     await navigate({ to: "/profile" });
@@ -52,10 +58,8 @@ export function LoginForm() {
       provider: "google",
       callbackURL: `${window.location.origin}/profile`,
     });
-    if (error) {
-      setBusy(null);
-      setError(error.message ?? "Google sign-in failed");
-    }
+    setBusy(null);
+    if (error) setError(error.message ?? "Google sign-in failed");
   }
 
   async function signInWithPasskey() {
@@ -70,57 +74,72 @@ export function LoginForm() {
     await navigate({ to: "/profile" });
   }
 
+  const anyBusy = busy !== null;
+
   return (
-    <div className="flex w-full max-w-sm flex-col gap-6">
-      <div className="flex flex-col gap-1 text-center">
-        <h1 className="text-2xl font-semibold tracking-tight">Log in</h1>
+    <div className="flex w-full max-w-sm flex-col gap-5 rounded-3xl border border-border p-6">
+      <div className="flex flex-col gap-1">
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">Log in</h1>
         <p className="text-sm text-muted-foreground">
-          Use an email code, Google, or a passkey.
+          {step === "email"
+            ? "Use an email code, Google, or a passkey."
+            : `Enter the code we sent to ${email}.`}
         </p>
       </div>
 
       {step === "email" ? (
-        <form onSubmit={sendCode} className="flex flex-col gap-4">
+        <form noValidate onSubmit={sendCode} className="flex flex-col gap-4">
           <Input
             label="Email"
             type="email"
+            inputMode="email"
             autoComplete="email"
-            required
+            placeholder="you@example.com"
+            leftIcon={<Mail />}
+            disabled={anyBusy}
             value={email}
             onChange={setEmail}
+            error={emailError}
+            reserveErrorLine
           />
           <StatefulButton
             type="submit"
+            size="lg"
             className="w-full"
             state={busy === "email" ? "loading" : "idle"}
+            loadingText="Sending code"
           >
             Email me a code
           </StatefulButton>
         </form>
       ) : (
-        <form onSubmit={verifyCode} className="flex flex-col gap-4">
-          <p className="text-sm text-muted-foreground">
-            Enter the 6-digit code sent to {email}.
-          </p>
+        <form noValidate onSubmit={verifyCode} className="flex flex-col gap-4">
           <Input
             label="Code"
             inputMode="numeric"
             autoComplete="one-time-code"
-            maxLength={6}
-            required
+            placeholder="123456"
+            leftIcon={<KeyRound />}
+            disabled={anyBusy}
             value={code}
             onChange={setCode}
+            reserveErrorLine
           />
           <StatefulButton
             type="submit"
+            size="lg"
             className="w-full"
             state={busy === "code" ? "loading" : "idle"}
+            loadingText="Verifying"
           >
-            Verify code
+            Verify and log in
           </StatefulButton>
-          <button
+          <StatefulButton
             type="button"
-            className="text-sm text-muted-foreground underline"
+            variant="ghost"
+            size="lg"
+            className="w-full"
+            disabled={anyBusy}
             onClick={() => {
               setStep("email");
               setCode("");
@@ -128,39 +147,48 @@ export function LoginForm() {
             }}
           >
             Use a different email
-          </button>
+          </StatefulButton>
         </form>
       )}
 
-      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+      <div className="flex items-center gap-3 text-xs text-muted-foreground" aria-hidden>
         <span className="h-px flex-1 bg-border" />
         or
         <span className="h-px flex-1 bg-border" />
       </div>
 
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-2">
         <StatefulButton
           type="button"
           variant="outline"
+          size="lg"
           className="w-full"
-          onClick={signInWithGoogle}
+          disabled={anyBusy}
           state={busy === "google" ? "loading" : "idle"}
+          loadingText="Redirecting"
+          onClick={signInWithGoogle}
         >
           Continue with Google
         </StatefulButton>
         <StatefulButton
           type="button"
           variant="outline"
+          size="lg"
           className="w-full"
-          onClick={signInWithPasskey}
+          disabled={anyBusy}
           state={busy === "passkey" ? "loading" : "idle"}
+          loadingText="Waiting for passkey"
+          onClick={signInWithPasskey}
         >
           Sign in with a passkey
         </StatefulButton>
       </div>
 
       {error ? (
-        <p role="alert" className="text-sm text-destructive">
+        <p
+          role="alert"
+          className="rounded-2xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive"
+        >
           {error}
         </p>
       ) : null}

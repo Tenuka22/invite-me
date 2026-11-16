@@ -39,8 +39,11 @@ export const server = Cloudflare.Worker("server", {
     BETTER_AUTH_SECRET: Config.Redacted("BETTER_AUTH_SECRET"),
     GOOGLE_CLIENT_ID: Config.String("GOOGLE_CLIENT_ID"),
     GOOGLE_CLIENT_SECRET: Config.Redacted("GOOGLE_CLIENT_SECRET"),
-    RESEND_API_KEY: Config.Redacted("RESEND_API_KEY"),
-    EMAIL_FROM: Config.String("EMAIL_FROM"),
+    EMAIL_PROVIDER: Config.String("EMAIL_PROVIDER").pipe(Config.withDefault("console")),
+    RESEND_API_KEY: Config.Redacted("RESEND_API_KEY").pipe(
+      Config.withDefault(Redacted.make("")),
+    ),
+    EMAIL_FROM: Config.String("EMAIL_FROM").pipe(Config.withDefault("")),
     BETTER_AUTH_URL: Cloudflare.Worker.URL,
   },
   dev: {
