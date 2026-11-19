@@ -1,14 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
-
-import { orpc } from "@/utils/orpc";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
-  component: HomeComponent,
+  ssr: false,
+  beforeLoad: () => {
+    throw redirect({ to: "/invitations" });
+  },
 });
-
-function HomeComponent() {
-  useQuery(orpc.healthCheck.queryOptions());
-
-  return <div>Invite Them</div>;
-}

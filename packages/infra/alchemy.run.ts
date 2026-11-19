@@ -3,11 +3,12 @@ import * as Alchemy from "alchemy";
 import * as Config from "effect/Config";
 import * as Effect from "effect/Effect";
 import * as Redacted from "effect/Redacted";
-import "varlock/auto-load";
 
 export const database = Cloudflare.D1.Database("db", {
   migrations: "../../packages/db/src/migrations",
 });
+
+export const photos = Cloudflare.R2.Bucket("photos");
 
 export const server = Cloudflare.Worker("server", {
   main: "../../apps/server/src/index.ts",
@@ -16,8 +17,10 @@ export const server = Cloudflare.Worker("server", {
   },
   env: {
     DB: database,
+    PHOTOS: photos,
     CORS_ORIGIN: Config.String("CORS_ORIGIN"),
     BETTER_AUTH_SECRET: Config.Redacted("BETTER_AUTH_SECRET"),
+    INVITE_LINK_KEY: Config.Redacted("INVITE_LINK_KEY"),
     GOOGLE_CLIENT_ID: Config.String("GOOGLE_CLIENT_ID").pipe(Config.withDefault("")),
     GOOGLE_CLIENT_SECRET: Config.Redacted("GOOGLE_CLIENT_SECRET").pipe(
       Config.withDefault(Redacted.make("")),
