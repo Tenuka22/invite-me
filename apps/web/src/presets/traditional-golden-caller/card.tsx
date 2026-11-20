@@ -199,12 +199,15 @@ export function GoldenCallerCard({
   card: rawCard,
   forceOpen = false,
   maxWidth,
+  flow = false,
   activeField,
   onFieldClick,
 }: {
   card: Card;
   forceOpen?: boolean;
   maxWidth?: string;
+  /** Drop the 1075:1523 minimum height: the card is exactly as tall as its content. */
+  flow?: boolean;
   /** Editor only: the card part (a `data-field` value) to outline. */
   activeField?: CardField | null;
   /** Editor only: called with the tapped card part. */
@@ -313,7 +316,8 @@ export function GoldenCallerCard({
             // min-h (not aspect-ratio) so the sheet keeps the 1075:1523 portrait for
             // typical content but stretches when a full card needs more room.
             // `mt-auto` on the rules then pins them to the bottom, clear of RSVP.
-            "relative isolate flex min-h-[141.674cqw] flex-col overflow-hidden text-center",
+            "relative isolate flex flex-col overflow-hidden text-center",
+            flow ? "" : "min-h-[141.674cqw]",
             "border-solid [border-width:2.3cqw] border-[color:var(--frame)] bg-[color:var(--paper)]",
             "px-[4cqw] pb-[2.5cqw] pt-[42.1cqw]",
             "shadow-[inset_0_0_40px_rgb(120_90_30/0.1)]",

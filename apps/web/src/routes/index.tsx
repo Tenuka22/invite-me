@@ -43,11 +43,6 @@ function HomeSkeleton() {
 function Landing() {
   const navigate = useNavigate();
   const signIn = () => navigate({ to: "/login", search: { next: "/" } });
-  const steps = [
-    { title: "Design the card", body: "Add the names, date and venue, then pick a template." },
-    { title: "Share with each guest", body: "Every guest gets their own link to their own card." },
-    { title: "Guests RSVP", body: "They open the card and confirm. You see who is coming." },
-  ];
 
   return (
     <div className="mx-auto flex min-h-svh w-full max-w-5xl flex-col px-6">
@@ -82,20 +77,14 @@ function Landing() {
         </div>
       </main>
 
-      <section aria-labelledby="how-heading" className="grid gap-8 border-t border-border py-12">
-        <h2 id="how-heading" className="font-display text-2xl tracking-[-0.02em]">
-          How it works
-        </h2>
-        <ol className="grid gap-8 md:grid-cols-3">
-          {steps.map((step, i) => (
-            <li key={step.title} className="grid content-start gap-2">
-              <span className="font-display text-sm text-primary">0{i + 1}</span>
-              <h3 className="font-medium">{step.title}</h3>
-              <p className="text-sm text-muted-foreground">{step.body}</p>
-            </li>
-          ))}
-        </ol>
-      </section>
+      <footer className="flex flex-col items-center justify-between gap-3 border-t border-border py-8 text-sm text-muted-foreground sm:flex-row">
+        <div className="flex items-center gap-2">
+          <Logo className="size-5" />
+          <span className="font-display tracking-[-0.02em] text-foreground">Invite Me</span>
+        </div>
+        <p>Beautiful invitations, one link per guest.</p>
+        <p>© {new Date().getFullYear()} Invite Me</p>
+      </footer>
     </div>
   );
 }

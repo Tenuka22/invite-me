@@ -1,7 +1,12 @@
 import { type Card } from "@invite-me/api/invites/card";
 import { parseLinkToken } from "@invite-me/api/invites/token";
 import { Button } from "@invite-me/ui/components/motion/button/base";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@invite-me/ui/components/motion/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@invite-me/ui/components/motion/dialog";
 import { Check, Heart, Minus, Plus } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
@@ -64,6 +69,23 @@ function Open({ input, party, card }: { input: LinkInput; party: GuestParty; car
     recordOpen.mutate(input);
   }
 
+  // The card has no fixed aspect ratio (its height follows its content), so measure it
+  // and size the width so the whole card fits the space above the RSVP button.
+  const cardBox = useRef<HTMLDivElement>(null);
+  const [ratio, setRatio] = useState(1.32);
+  useEffect(() => {
+    const card = cardBox.current?.firstElementChild;
+    if (!card) return;
+    const measure = () => {
+      const { width, height } = card.getBoundingClientRect();
+      if (width > 0 && height > 0) setRatio(height / width);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(card);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-4xl flex-col items-center justify-center px-3 pt-4 pb-24">
       {/* Eyebrow above the hero card: names the invitee early, so the card's own
@@ -73,10 +95,13 @@ function Open({ input, party, card }: { input: LinkInput; party: GuestParty; car
           You're invited · {party.displayName}
         </h1>
         <div ref={onCardMounted} className="mx-auto w-full">
-          <GoldenCallerCard
-            card={card}
-            maxWidth="min(100%, calc((100svh - 9rem) * 0.706))"
-          />
+          <div ref={cardBox}>
+            <GoldenCallerCard
+              card={card}
+              flow
+              maxWidth={`min(100%, calc((100svh - 9rem) / ${ratio}))`}
+            />
+          </div>
         </div>
       </div>
       <div className="mx-auto mt-6 grid w-full gap-6">
@@ -156,7 +181,9 @@ function Rsvp({
         <DialogContent>
           <div className="grid gap-6">
             <div>
-              <DialogTitle className="font-display text-3xl tracking-[-0.02em]">Will you attend?</DialogTitle>
+              <DialogTitle className="font-display text-3xl tracking-[-0.02em]">
+                Will you attend?
+              </DialogTitle>
               <DialogDescription className="mt-1 text-base text-muted-foreground">
                 Let the hosts know. You can change your answer later.
               </DialogDescription>
@@ -175,7 +202,10 @@ function Rsvp({
                   >
                     <Minus className="size-5" aria-hidden />
                   </Button>
-                  <span className="w-8 text-center text-xl font-semibold tabular-nums" aria-live="polite">
+                  <span
+                    className="w-8 text-center text-xl font-semibold tabular-nums"
+                    aria-live="polite"
+                  >
                     {headCount}
                   </span>
                   <Button
