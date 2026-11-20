@@ -1,28 +1,80 @@
-import { CARD_PLACEHOLDERS, type Card, cardSchema } from "@invite-me/api/invites/card";
+import { type Card, cardSchema } from "@invite-me/api/invites/card";
 import { Button } from "@invite-me/ui/components/motion/button/base";
 import { DatePicker } from "@invite-me/ui/components/motion/date-picker";
-import { Input } from "@invite-me/ui/components/motion/input";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
-import { type ComponentProps, type ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { type FocusEvent, useCallback, useEffect, useRef, useState } from "react";
 
+import {
+  AccordionSection,
+  Field,
+  GrowControl,
+  RowList,
+  TextControl,
+  TimeControl,
+  fieldId,
+} from "@/components/editor-form";
 import { EditorSkeleton } from "@/components/page-skeletons";
 import { toast } from "@/components/toaster";
-import { TEXTAREA } from "@/lib/form-styles";
-import { GoldenCallerCard } from "@/presets/traditional-golden-caller/card";
+import { GoldenCallerCard, type CardField } from "@/presets/traditional-golden-caller/card";
 import { orpc } from "@/utils/orpc";
 
 export const Route = createFileRoute("/_auth/invitations/$id/edit")({
   component: InvitationEditor,
 });
 
-/** Wrapped card lines, so the full sentence stays visible while editing. */
-const COPY_AREA =
-  "min-h-[4.25rem] w-full resize-y rounded-lg border border-foreground/15 bg-background px-3 py-2 text-sm leading-6 outline-none transition-colors focus:border-foreground/40 focus:ring-2 focus:ring-ring/30";
-const FIELD_LABEL = "grid gap-1.5 text-sm font-medium";
-
 /** The overlay drops the page chrome, so the card can use almost the whole window. */
 const LARGE_PREVIEW_MAX_WIDTH = "min(100%, calc((100svh - 8rem) * 0.706))";
+
+/**
+ * What each field says when empty. Sentence case with "e.g." so it reads as a hint, never as content.
+ * (The card itself falls back to CARD_PLACEHOLDERS, drawn on the card only.)
+ */
+const HINT = {
+  name1: "e.g. Binuri",
+  name2: "e.g. Sameera",
+  hostLine1: "e.g. Mr. & Mrs. Perera",
+  hostLine2: "e.g. Mr. & Mrs. Silva",
+  timeFrom: "e.g. 9.30 AM",
+  timeTo: "e.g. 2.30 PM",
+  venueName: "e.g. The Kingsbury",
+  city: "e.g. Colombo",
+  contactName: "e.g. Binuri",
+  contactPhone: "e.g. 077 123 4567",
+  subLabel: "e.g. Poruwa ceremony",
+  rules: "e.g. Adults only, please. No gifts.",
+} as const;
+
+/** Wording used on the card when a field is left empty. */
+const DEFAULTS = {
+  connector: "Together with",
+  requestLine: "Warmly request the honor of your presence",
+  occasionLine: "On the occasion of the marriage of their children",
+} as const;
+
+type SectionId = "couple" | "hosts" | "message" | "when" | "where" | "rsvp" | "extras";
+
+/** Which accordion section holds each card part, and which input to focus when the card part is tapped. */
+const CARD_TARGET: Record<CardField, { section: SectionId; focus: string }> = {
+  name1: { section: "couple", focus: fieldId("name1") },
+  name2: { section: "couple", focus: fieldId("name2") },
+  hostLine1: { section: "hosts", focus: fieldId("hostLine1") },
+  connector: { section: "hosts", focus: fieldId("connector") },
+  hostLine2: { section: "hosts", focus: fieldId("hostLine2") },
+  requestLine: { section: "message", focus: fieldId("requestLine") },
+  occasionLine: { section: "message", focus: fieldId("occasionLine") },
+  date: { section: "when", focus: `${fieldId("date")} button` },
+  timeFrom: { section: "when", focus: fieldId("timeFrom") },
+  venueName: { section: "where", focus: fieldId("venueName") },
+  city: { section: "where", focus: fieldId("city") },
+  rsvpContacts: { section: "rsvp", focus: fieldId("rsvp-0-name") },
+  subEvents: { section: "extras", focus: fieldId("sub-0-label") },
+  rules: { section: "extras", focus: fieldId("rules") },
+};
+
+const COUNTED_SECTIONS: SectionId[] = ["couple", "hosts", "message", "when", "where", "rsvp"];
+
+const filled = (value: string) => value.trim().length > 0;
 
 function InvitationEditor() {
   const { id } = Route.useParams();
@@ -48,6 +100,7 @@ function InvitationEditor() {
 }
 
 function Editor({ id, initial }: { id: string; initial: Card }) {
+  const navigate = useNavigate();
   const [draft, setDraft] = useState<Card>(initial);
   /** What the server has, so autosave knows there is something to write. */
   const savedSnapshot = useRef(JSON.stringify(initial));
@@ -59,13 +112,14 @@ function Editor({ id, initial }: { id: string; initial: Card }) {
   );
 
   const persist = useCallback(
-    (card: Card) => {
+    (card: Card, then?: () => void) => {
       save.mutate(
         { id, card },
         {
           onSuccess: () => {
             savedSnapshot.current = JSON.stringify(card);
             setSavedOnce(true);
+            then?.();
           },
         },
       );
@@ -84,13 +138,113 @@ function Editor({ id, initial }: { id: string; initial: Card }) {
 
   const dirty = JSON.stringify(draft) !== savedSnapshot.current;
 
+  // Unsaved-changes guard for closing the tab while edits are still waiting.
+  useEffect(() => {
+    if (!dirty) return;
+    const warn = (event: BeforeUnloadEvent) => event.preventDefault();
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [dirty]);
+
   /** Required fields only complain once the host has been in them, so a fresh card isn't a wall of red. */
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const touch = (field: string) => setTouched((prev) => ({ ...prev, [field]: true }));
-  const incomplete = !draft.name1.trim() || !draft.name2.trim() || !draft.date;
+  const missingNames = !filled(draft.name1) || !filled(draft.name2);
+  const missingDate = !filled(draft.date);
+  const incomplete = missingNames || missingDate;
 
   function set<K extends keyof Card>(key: K, value: Card[K]) {
     setDraft((prev) => ({ ...prev, [key]: value }));
+  }
+
+  const [openSection, setOpenSection] = useState<SectionId | null>("couple");
+  const [tab, setTab] = useState<"edit" | "preview">("edit");
+  const [activeField, setActiveField] = useState<CardField | null>(null);
+
+  const done: Record<SectionId, boolean> = {
+    couple: !missingNames,
+    hosts: filled(draft.hostLine1),
+    message: true,
+    when: !missingDate,
+    where: filled(draft.venueName) && filled(draft.city),
+    rsvp: draft.rsvpContacts.some((c) => filled(c.name) && filled(c.phone)),
+    extras: draft.subEvents.length > 0 || filled(draft.rules),
+  };
+  const doneCount = COUNTED_SECTIONS.filter((s) => done[s]).length;
+
+  const summaries: Record<SectionId, string> = {
+    couple: [draft.name1, draft.name2].filter(filled).join(" & ") || "Add both names",
+    hosts: [draft.hostLine1, draft.hostLine2].filter(filled).join(" · ") || "Who is inviting",
+    message:
+      filled(draft.requestLine) || filled(draft.occasionLine)
+        ? "Custom wording"
+        : "Standard wording",
+    when:
+      [
+        draft.date &&
+          new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeZone: "UTC" }).format(
+            new Date(`${draft.date}T00:00:00Z`),
+          ),
+        draft.timeFrom && (draft.timeTo ? `${draft.timeFrom} – ${draft.timeTo}` : draft.timeFrom),
+      ]
+        .filter(Boolean)
+        .join(" · ") || "Pick the date",
+    where: [draft.venueName, draft.city].filter(filled).join(", ") || "Venue and city",
+    rsvp:
+      draft.rsvpContacts
+        .filter((c) => filled(c.name) || filled(c.phone))
+        .map((c) => c.name || c.phone)
+        .join(", ") || "Who guests call",
+    extras:
+      [
+        draft.subEvents.length > 0 &&
+          `${draft.subEvents.length} extra event${draft.subEvents.length > 1 ? "s" : ""}`,
+        filled(draft.rules) && "Rules",
+      ]
+        .filter(Boolean)
+        .join(" · ") || "Nothing added",
+  };
+
+  function jumpTo(field: CardField) {
+    const target = CARD_TARGET[field];
+    setTab("edit");
+    setOpenSection(target.section);
+    // Wait a frame so the section is open and the edit pane is visible before focusing.
+    requestAnimationFrame(() => {
+      const el = document.querySelector<HTMLElement>(`#${target.focus}`);
+      if (el) {
+        el.focus({ preventScroll: true });
+        el.scrollIntoView({ block: "center", behavior: "smooth" });
+      } else {
+        document
+          .getElementById(`section-${target.section}`)
+          ?.scrollIntoView({ behavior: "smooth" });
+      }
+    });
+  }
+
+  function onFormFocus(event: FocusEvent<HTMLElement>) {
+    const owner = (event.target as HTMLElement).closest<HTMLElement>("[data-card-field]");
+    setActiveField((owner?.dataset.cardField as CardField | undefined) ?? null);
+  }
+
+  function finish() {
+    if (incomplete) {
+      const first: SectionId = missingNames ? "couple" : "when";
+      setTouched((prev) => ({ ...prev, name1: true, name2: true, date: true }));
+      setTab("edit");
+      setOpenSection(first);
+      toast.error("Add both names and the date first");
+      return;
+    }
+    const parsed = cardSchema.safeParse(draft);
+    if (!parsed.success) {
+      toast.error("Check the card", { description: parsed.error.issues[0]?.message });
+      return;
+    }
+    const leave = () => void navigate({ to: "/invitations/$id", params: { id } });
+    if (dirty) persist(parsed.data, leave);
+    else leave();
   }
 
   function saveNow() {
@@ -102,194 +256,476 @@ function Editor({ id, initial }: { id: string; initial: Card }) {
     persist(parsed.data);
   }
 
-  return (
-    <div className="grid gap-6">
-      <div className="flex justify-end">
-        <SaveStatus
-          pending={save.isPending}
-          failed={save.isError}
-          dirty={dirty}
-          saved={savedOnce}
-          onSave={saveNow}
-          incomplete={incomplete}
+  const toggle = (s: SectionId) => setOpenSection((cur) => (cur === s ? null : s));
+  const section = (s: SectionId) => ({
+    id: `section-${s}`,
+    open: openSection === s,
+    done: done[s],
+    summary: summaries[s],
+    onToggle: () => toggle(s),
+  });
+
+  const status = (
+    <SaveStatus
+      pending={save.isPending}
+      failed={save.isError}
+      dirty={dirty}
+      saved={savedOnce}
+      onSave={saveNow}
+      incomplete={incomplete}
+    />
+  );
+  const progress = (
+    <div className="grid min-w-0 gap-1">
+      <p className="text-xs font-medium">
+        {doneCount} of {COUNTED_SECTIONS.length} sections done
+      </p>
+      <div
+        role="progressbar"
+        aria-label="Sections done"
+        aria-valuemin={0}
+        aria-valuemax={COUNTED_SECTIONS.length}
+        aria-valuenow={doneCount}
+        className="h-1 w-full max-w-40 overflow-hidden rounded-full bg-foreground/10"
+      >
+        <div
+          className="h-full rounded-full bg-primary transition-[width] motion-reduce:transition-none"
+          style={{ width: `${(doneCount / COUNTED_SECTIONS.length) * 100}%` }}
         />
       </div>
+    </div>
+  );
+  const doneButton = (
+    <Button variant="primary" onClick={finish} disabled={save.isPending}>
+      {save.isPending ? "Saving…" : "Done"}
+    </Button>
+  );
 
-      <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,min(calc((100svh-11rem)*0.706),40vw))] lg:gap-14">
-        <div className="grid content-start gap-7">
-          <Section title="The couple">
-            <div className="grid grid-cols-2 gap-3">
-              <Text
-                label="Name 1"
-                placeholder={CARD_PLACEHOLDERS.name1}
-                value={draft.name1}
-                max={40}
-                error={touched.name1 && !draft.name1.trim() ? "Add a name" : undefined}
-                onBlur={() => touch("name1")}
-                onChange={(v) => set("name1", v)}
-              />
-              <Text
-                label="Name 2"
-                placeholder={CARD_PLACEHOLDERS.name2}
-                value={draft.name2}
-                max={40}
-                error={touched.name2 && !draft.name2.trim() ? "Add a name" : undefined}
-                onBlur={() => touch("name2")}
-                onChange={(v) => set("name2", v)}
-              />
+  return (
+    <div className="grid gap-4 pb-24 lg:pb-0">
+      {/* Desktop: progress, save state and the primary action stay in view. */}
+      <div className="sticky top-0 z-20 -mx-6 hidden items-center justify-between gap-4 border-b border-foreground/10 bg-background/95 px-6 py-2.5 backdrop-blur lg:flex">
+        {progress}
+        <div className="flex items-center gap-4">
+          {status}
+          {doneButton}
+        </div>
+      </div>
+
+      {/* Mobile: one pane at a time. */}
+      <div
+        role="tablist"
+        aria-label="Editor view"
+        className="grid h-11 grid-cols-2 gap-1 rounded-full bg-muted p-1 lg:hidden"
+      >
+        {(["edit", "preview"] as const).map((t) => (
+          <button
+            key={t}
+            type="button"
+            role="tab"
+            aria-selected={tab === t}
+            onClick={() => setTab(t)}
+            className={`rounded-full text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none ${
+              tab === t ? "bg-background shadow-sm" : "text-muted-foreground"
+            }`}
+          >
+            {t === "edit" ? "Edit" : "Preview"}
+          </button>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,min(calc((100svh-9rem)*0.706),40vw))] lg:gap-10">
+        <form
+          noValidate
+          onSubmit={(e) => e.preventDefault()}
+          onFocus={onFormFocus}
+          onBlur={() => setActiveField(null)}
+          className={tab === "edit" ? "min-w-0" : "hidden min-w-0 lg:block"}
+        >
+          <AccordionSection
+            {...section("couple")}
+            title="Couple"
+            affects="The two names shown large on the card."
+          >
+            <div className="grid grid-cols-2 gap-2">
+              <Field
+                id={fieldId("name1")}
+                label="First name"
+                required
+                error={touched.name1 && !filled(draft.name1) ? "Add a name" : undefined}
+              >
+                <TextControl
+                  id={fieldId("name1")}
+                  card="name1"
+                  value={draft.name1}
+                  max={40}
+                  placeholder={HINT.name1}
+                  invalid={touched.name1 && !filled(draft.name1)}
+                  onBlur={() => touch("name1")}
+                  onChange={(v) => set("name1", v)}
+                />
+              </Field>
+              <Field
+                id={fieldId("name2")}
+                label="Second name"
+                required
+                error={touched.name2 && !filled(draft.name2) ? "Add a name" : undefined}
+              >
+                <TextControl
+                  id={fieldId("name2")}
+                  card="name2"
+                  value={draft.name2}
+                  max={40}
+                  placeholder={HINT.name2}
+                  invalid={touched.name2 && !filled(draft.name2)}
+                  onBlur={() => touch("name2")}
+                  onChange={(v) => set("name2", v)}
+                />
+              </Field>
             </div>
-          </Section>
+          </AccordionSection>
 
-          <Section title="When">
-            <div className="grid grid-cols-2 gap-3">
+          <AccordionSection
+            {...section("hosts")}
+            title="Hosts"
+            affects="Who is inviting, at the top of the card."
+          >
+            <Field
+              id={fieldId("hostLine1")}
+              label="First host"
+              hint="Parents or family of one side."
+            >
+              <TextControl
+                id={fieldId("hostLine1")}
+                card="hostLine1"
+                value={draft.hostLine1}
+                max={80}
+                placeholder={HINT.hostLine1}
+                onChange={(v) => set("hostLine1", v)}
+              />
+            </Field>
+            <Field
+              id={fieldId("connector")}
+              label="Joined by"
+              hint={
+                filled(draft.connector) ? undefined : `Using the default: “${DEFAULTS.connector}”.`
+              }
+              action={
+                filled(draft.connector) ? (
+                  <ResetButton onClick={() => set("connector", "")} />
+                ) : (
+                  <DefaultBadge />
+                )
+              }
+            >
+              <TextControl
+                id={fieldId("connector")}
+                card="connector"
+                value={draft.connector}
+                max={40}
+                placeholder={DEFAULTS.connector}
+                onChange={(v) => set("connector", v)}
+              />
+            </Field>
+            <Field
+              id={fieldId("hostLine2")}
+              label="Second host"
+              hint="Parents or family of the other side."
+            >
+              <TextControl
+                id={fieldId("hostLine2")}
+                card="hostLine2"
+                value={draft.hostLine2}
+                max={80}
+                placeholder={HINT.hostLine2}
+                onChange={(v) => set("hostLine2", v)}
+              />
+            </Field>
+            <div className="rounded-md bg-muted/60 px-3 py-2 text-center text-xs uppercase leading-5 tracking-[0.06em]">
+              <span className="mb-1 block text-[0.65rem] normal-case tracking-normal text-muted-foreground">
+                How it reads on the card
+              </span>
+              <Preview3 first={draft.hostLine1} joiner={draft.connector} second={draft.hostLine2} />
+            </div>
+          </AccordionSection>
+
+          <AccordionSection
+            {...section("message")}
+            title="Invitation message"
+            affects="The two sentences around the names. Pre-filled; change only if you want different wording."
+          >
+            <WordingField
+              id="requestLine"
+              label="Invitation wording"
+              hint="Printed under the hosts."
+              value={draft.requestLine}
+              fallback={DEFAULTS.requestLine}
+              max={120}
+              onChange={(v) => set("requestLine", v)}
+            />
+            <WordingField
+              id="occasionLine"
+              label="Occasion"
+              hint="Printed above the names."
+              value={draft.occasionLine}
+              fallback={DEFAULTS.occasionLine}
+              max={160}
+              onChange={(v) => set("occasionLine", v)}
+            />
+          </AccordionSection>
+
+          <AccordionSection
+            {...section("when")}
+            title="When"
+            affects="The date block and the time line."
+          >
+            <div id={fieldId("date")} data-card-field="date" className="grid gap-1">
               <DatePicker
-                className="col-span-2"
                 label="Date"
                 value={draft.date}
                 placeholder="Pick the date"
-                error={touched.date && !draft.date ? "Pick the date" : undefined}
+                error={touched.date && missingDate ? "Pick the date" : undefined}
                 onClose={() => touch("date")}
                 onChange={(v) => set("date", v)}
               />
-              <Text
-                label="From"
-                placeholder={CARD_PLACEHOLDERS.timeFrom}
-                value={draft.timeFrom}
-                max={20}
-                onChange={(v) => set("timeFrom", v)}
-              />
-              <Text
-                label="To"
-                placeholder={CARD_PLACEHOLDERS.timeTo}
-                value={draft.timeTo}
-                max={20}
-                onChange={(v) => set("timeTo", v)}
-              />
+              <p className="text-xs text-muted-foreground">
+                Required. Month and weekday are filled in for you.
+              </p>
             </div>
-          </Section>
+            <div className="grid grid-cols-2 gap-2">
+              <Field id={fieldId("timeFrom")} label="Starts">
+                <TimeControl
+                  id={fieldId("timeFrom")}
+                  card="timeFrom"
+                  value={draft.timeFrom}
+                  placeholder={HINT.timeFrom}
+                  onChange={(v) => set("timeFrom", v)}
+                />
+              </Field>
+              <Field id={fieldId("timeTo")} label="Ends">
+                <TimeControl
+                  id={fieldId("timeTo")}
+                  card="timeFrom"
+                  value={draft.timeTo}
+                  placeholder={HINT.timeTo}
+                  onChange={(v) => set("timeTo", v)}
+                />
+              </Field>
+            </div>
+          </AccordionSection>
 
-          <Section title="Where & RSVP">
-            <div className="grid grid-cols-2 gap-3">
-              <Text
-                label="Venue"
-                placeholder={CARD_PLACEHOLDERS.venueName}
-                value={draft.venueName}
-                max={80}
-                onChange={(v) => set("venueName", v)}
-              />
-              <Text
-                label="City"
-                placeholder={CARD_PLACEHOLDERS.city}
-                value={draft.city}
-                max={60}
-                onChange={(v) => set("city", v)}
-              />
+          <AccordionSection
+            {...section("where")}
+            title="Where"
+            affects="The venue and city under the time."
+          >
+            <div className="grid grid-cols-2 gap-2">
+              <Field id={fieldId("venueName")} label="Venue">
+                <TextControl
+                  id={fieldId("venueName")}
+                  card="venueName"
+                  value={draft.venueName}
+                  max={80}
+                  placeholder={HINT.venueName}
+                  onChange={(v) => set("venueName", v)}
+                />
+              </Field>
+              <Field id={fieldId("city")} label="City">
+                <TextControl
+                  id={fieldId("city")}
+                  card="city"
+                  value={draft.city}
+                  max={60}
+                  placeholder={HINT.city}
+                  onChange={(v) => set("city", v)}
+                />
+              </Field>
             </div>
-            <ListEditor
-              title="Contacts"
+          </AccordionSection>
+
+          <AccordionSection
+            {...section("rsvp")}
+            title="RSVP contacts"
+            affects="Who guests call to reply, at the bottom of the card. Up to 5."
+          >
+            <RowList
+              addLabel="Add contact"
               max={5}
               min={1}
               items={draft.rsvpContacts}
               empty={{ name: "", phone: "" }}
               onChange={(items) => set("rsvpContacts", items)}
-              render={(item, update) => (
-                <div className="grid grid-cols-2 gap-2">
-                  <Text
-                    label="Name"
-                    placeholder={CARD_PLACEHOLDERS.contactName}
-                    value={item.name}
-                    max={40}
-                    onChange={(v) => update({ ...item, name: v })}
-                  />
-                  <Text
-                    label="Phone"
-                    placeholder={CARD_PLACEHOLDERS.contactPhone}
-                    value={item.phone}
-                    max={24}
-                    onChange={(v) => update({ ...item, phone: v })}
-                  />
-                </div>
+              render={(item, i, update) => (
+                <>
+                  <Field id={fieldId(`rsvp-${i}-name`)} label="Name">
+                    <TextControl
+                      id={fieldId(`rsvp-${i}-name`)}
+                      card="rsvpContacts"
+                      value={item.name}
+                      max={40}
+                      placeholder={HINT.contactName}
+                      onChange={(v) => update({ ...item, name: v })}
+                    />
+                  </Field>
+                  <Field id={fieldId(`rsvp-${i}-phone`)} label="Phone">
+                    <TextControl
+                      id={fieldId(`rsvp-${i}-phone`)}
+                      card="rsvpContacts"
+                      value={item.phone}
+                      max={24}
+                      placeholder={HINT.contactPhone}
+                      onChange={(v) => update({ ...item, phone: v })}
+                    />
+                  </Field>
+                </>
               )}
             />
-          </Section>
+          </AccordionSection>
 
-          <Disclosure title="Wording on the card">
-            <CopyArea
-              label="Host line 1"
-              placeholder={CARD_PLACEHOLDERS.hostLine1}
-              value={draft.hostLine1}
-              max={80}
-              onChange={(v) => set("hostLine1", v)}
-            />
-            <Text
-              label="Connector"
-              placeholder={CARD_PLACEHOLDERS.connector}
-              value={draft.connector}
-              max={40}
-              onChange={(v) => set("connector", v)}
-            />
-            <CopyArea
-              label="Host line 2"
-              placeholder={CARD_PLACEHOLDERS.hostLine2}
-              value={draft.hostLine2}
-              max={80}
-              onChange={(v) => set("hostLine2", v)}
-            />
-            <CopyArea
-              label="Request line"
-              placeholder={CARD_PLACEHOLDERS.requestLine}
-              value={draft.requestLine}
-              max={120}
-              onChange={(v) => set("requestLine", v)}
-            />
-            <CopyArea
-              label="Occasion line"
-              placeholder={CARD_PLACEHOLDERS.occasionLine}
-              value={draft.occasionLine}
-              max={160}
-              onChange={(v) => set("occasionLine", v)}
-            />
-          </Disclosure>
-
-          <Disclosure title="Extra details">
-            <ListEditor
-              title="Sub-events"
+          <AccordionSection
+            {...section("extras")}
+            title="Extra details"
+            affects="Other events and small print. Both optional."
+          >
+            <RowList
+              addLabel="Add an extra event"
               max={5}
               items={draft.subEvents}
               empty={{ label: "", time: "" }}
               onChange={(items) => set("subEvents", items)}
-              render={(item, update) => (
-                <div className="grid grid-cols-2 gap-2">
-                  <Text
-                    label="Label"
-                    value={item.label}
-                    max={60}
-                    onChange={(v) => update({ ...item, label: v })}
-                  />
-                  <Text
-                    label="Time"
-                    value={item.time}
-                    max={20}
-                    onChange={(v) => update({ ...item, time: v })}
-                  />
-                </div>
+              render={(item, i, update) => (
+                <>
+                  <Field id={fieldId(`sub-${i}-label`)} label="Event">
+                    <TextControl
+                      id={fieldId(`sub-${i}-label`)}
+                      card="subEvents"
+                      value={item.label}
+                      max={60}
+                      placeholder={HINT.subLabel}
+                      onChange={(v) => update({ ...item, label: v })}
+                    />
+                  </Field>
+                  <Field id={fieldId(`sub-${i}-time`)} label="Time">
+                    <TimeControl
+                      id={fieldId(`sub-${i}-time`)}
+                      card="subEvents"
+                      value={item.time}
+                      placeholder={HINT.timeFrom}
+                      onChange={(v) => update({ ...item, time: v })}
+                    />
+                  </Field>
+                </>
               )}
             />
-            <label className={FIELD_LABEL}>
-              Rules
-              <textarea
-                className={TEXTAREA}
-                maxLength={400}
+            <Field
+              id={fieldId("rules")}
+              label="Rules or notes"
+              hint="Printed in small text at the bottom of the card."
+            >
+              <GrowControl
+                id={fieldId("rules")}
+                card="rules"
                 value={draft.rules}
-                onChange={(e) => set("rules", e.target.value)}
+                max={400}
+                placeholder={HINT.rules}
+                onChange={(v) => set("rules", v)}
               />
-            </label>
-          </Disclosure>
-        </div>
+            </Field>
+          </AccordionSection>
+        </form>
 
-        <Preview card={draft} />
+        <Preview
+          card={draft}
+          activeField={activeField}
+          onFieldClick={jumpTo}
+          visibleOnMobile={tab === "preview"}
+        />
+      </div>
+
+      {/* Mobile: the primary action stays under the thumb. */}
+      <div className="fixed inset-x-0 bottom-0 z-30 flex items-center justify-between gap-3 border-t border-foreground/10 bg-background/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur lg:hidden">
+        <div className="grid min-w-0 gap-1">
+          {progress}
+          {status}
+        </div>
+        {doneButton}
       </div>
     </div>
+  );
+}
+
+function DefaultBadge() {
+  return (
+    <span className="rounded-full bg-muted px-2 py-0.5 text-[0.65rem] font-medium text-muted-foreground">
+      Default
+    </span>
+  );
+}
+
+function ResetButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="rounded-sm text-xs text-primary underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+    >
+      Reset to default
+    </button>
+  );
+}
+
+/** A pre-filled sentence: shows the default while empty, offers a reset once edited. */
+function WordingField({
+  id,
+  label,
+  hint,
+  value,
+  fallback,
+  max,
+  onChange,
+}: {
+  id: "requestLine" | "occasionLine";
+  label: string;
+  hint: string;
+  value: string;
+  fallback: string;
+  max: number;
+  onChange: (value: string) => void;
+}) {
+  const custom = filled(value);
+  return (
+    <Field
+      id={fieldId(id)}
+      label={label}
+      hint={custom ? hint : `${hint} Using the default wording.`}
+      action={custom ? <ResetButton onClick={() => onChange("")} /> : <DefaultBadge />}
+    >
+      <GrowControl
+        id={fieldId(id)}
+        card={id}
+        value={value}
+        max={max}
+        placeholder={fallback}
+        onChange={onChange}
+      />
+    </Field>
+  );
+}
+
+/** The three host lines as stacked on the card; empty ones show the card's own wording, muted. */
+function Preview3({ first, joiner, second }: { first: string; joiner: string; second: string }) {
+  const line = (value: string, fallback: string) =>
+    filled(value) ? (
+      <span className="block">{value}</span>
+    ) : (
+      <span className="block text-muted-foreground/70">{fallback}</span>
+    );
+  return (
+    <>
+      {line(first, "Mr. & Mrs. Perera")}
+      {line(joiner, DEFAULTS.connector)}
+      {line(second, "Mr. & Mrs. Silva")}
+    </>
   );
 }
 
@@ -321,7 +757,7 @@ function SaveStatus({
           </Button>
         </>
       ) : incomplete ? (
-        "Add both names and the date to start saving"
+        "Add both names and the date to save"
       ) : dirty ? (
         <>
           Unsaved changes
@@ -339,10 +775,20 @@ function SaveStatus({
 }
 
 /**
- * The card, three ways: inline on desktop, a sheet on phones, and a full-screen view from either one.
- * Inline it is sized to fit the window; the overlay is where you go to read the small print.
+ * The card beside the form on desktop, a tab on phones, and a full-screen view from either.
+ * Tapping a part of the card jumps to the field that controls it.
  */
-function Preview({ card }: { card: Card }) {
+function Preview({
+  card,
+  activeField,
+  onFieldClick,
+  visibleOnMobile,
+}: {
+  card: Card;
+  activeField: CardField | null;
+  onFieldClick: (field: CardField) => void;
+  visibleOnMobile: boolean;
+}) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -359,37 +805,31 @@ function Preview({ card }: { card: Card }) {
     };
   }, [open]);
 
-  const expand = () => setOpen(true);
-
   return (
     <>
-      <section className="hidden min-w-0 lg:sticky lg:top-6 lg:block lg:self-start">
-        <div className="flex items-center justify-between gap-4">
-          <h2 className="font-display text-lg font-semibold tracking-[-0.02em] text-foreground">
-            Preview
-          </h2>
-          <Button variant="ghost" size="sm" onClick={expand}>
+      <section
+        aria-label="Card preview"
+        className={`min-w-0 lg:sticky lg:top-20 lg:block lg:self-start ${visibleOnMobile ? "" : "hidden"}`}
+      >
+        <div className="mx-auto flex w-full max-w-[34rem] items-center justify-between gap-4 lg:max-w-none">
+          <h2 className="font-display text-base font-semibold tracking-[-0.01em]">Preview</h2>
+          <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>
             View larger
           </Button>
         </div>
-        <button
-          type="button"
-          onClick={expand}
-          aria-label="View the invitation larger"
-          className="mt-4 block w-full cursor-zoom-in rounded-lg text-left focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:outline-none"
-        >
-          <div className="rounded-lg shadow-[0_18px_40px_-16px_oklch(0.26_0.035_40/0.45)] transition-shadow hover:shadow-[0_24px_48px_-16px_oklch(0.26_0.035_40/0.5)]">
-            <GoldenCallerCard card={card} forceOpen maxWidth="100%" />
-          </div>
-        </button>
-        <p className="mt-3 text-center text-sm text-muted-foreground">What your guests see</p>
+        <div className="mx-auto mt-2 w-full max-w-[34rem] rounded-lg shadow-[0_18px_40px_-16px_oklch(0.26_0.035_40/0.45)] lg:max-w-none">
+          <GoldenCallerCard
+            card={card}
+            forceOpen
+            maxWidth="100%"
+            activeField={activeField}
+            onFieldClick={onFieldClick}
+          />
+        </div>
+        <p className="mt-3 text-center text-xs text-muted-foreground">
+          Tap any part of the card to edit it.
+        </p>
       </section>
-
-      <div className="fixed inset-x-4 bottom-4 z-30 lg:hidden">
-        <Button variant="primary" className="w-full" onClick={expand}>
-          Preview invitation
-        </Button>
-      </div>
 
       {open ? (
         <div
@@ -420,131 +860,5 @@ function Preview({ card }: { card: Card }) {
         </div>
       ) : null}
     </>
-  );
-}
-
-function Section({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <section className="grid gap-5 border-t border-foreground/10 pt-6">
-      <h2 className="font-display text-lg font-semibold tracking-[-0.02em] text-foreground">
-        {title}
-      </h2>
-      {children}
-    </section>
-  );
-}
-
-/** Native disclosure: keyboard and screen-reader behaviour for free. Closed keeps the page short. */
-function Disclosure({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <details className="group border-t border-foreground/10">
-      <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 rounded-sm py-3 font-display text-lg font-semibold tracking-[-0.02em] focus-visible:ring-2 focus-visible:ring-foreground/50 focus-visible:outline-none [&::-webkit-details-marker]:hidden">
-        <span>{title}</span>
-        <svg
-          viewBox="0 0 16 16"
-          aria-hidden="true"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          className="size-4 text-muted-foreground transition-transform group-open:rotate-180"
-        >
-          <path d="M4 6.5 8 10.5 12 6.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </summary>
-      <div className="grid gap-5 pb-4">{children}</div>
-    </details>
-  );
-}
-
-function CopyArea({
-  label,
-  placeholder,
-  value,
-  max,
-  onChange,
-}: {
-  label: string;
-  placeholder?: string;
-  value: string;
-  max: number;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <label className={FIELD_LABEL}>
-      {label}
-      <textarea
-        placeholder={placeholder}
-        rows={2}
-        maxLength={max}
-        className={COPY_AREA}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      />
-    </label>
-  );
-}
-
-function Text({
-  label,
-  value,
-  max,
-  onChange,
-  ...rest
-}: {
-  label: string;
-  value: string;
-  max: number;
-  onChange: (value: string) => void;
-} & Omit<ComponentProps<typeof Input>, "label" | "value" | "onChange" | "maxLength">) {
-  return <Input label={label} maxLength={max} value={value} onChange={onChange} {...rest} />;
-}
-
-function ListEditor<T>({
-  title,
-  max,
-  min = 0,
-  items,
-  empty,
-  onChange,
-  render,
-}: {
-  title: string;
-  max: number;
-  min?: number;
-  items: T[];
-  empty: T;
-  onChange: (items: T[]) => void;
-  render: (item: T, update: (next: T) => void) => ReactNode;
-}) {
-  return (
-    <div className="grid gap-3">
-      <div className="flex items-center justify-between gap-3">
-        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
-        {items.length < max ? (
-          <Button variant="secondary" size="sm" onClick={() => onChange([...items, empty])}>
-            + Add
-          </Button>
-        ) : null}
-      </div>
-      {items.length > 0 ? (
-        <div className="grid divide-y divide-foreground/10 border-y border-foreground/10">
-          {items.map((item, i) => (
-            <div key={i} className="grid gap-2 py-3">
-              {render(item, (next) => onChange(items.map((x, j) => (j === i ? next : x))))}
-              {items.length > min ? (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="w-fit"
-                  onClick={() => onChange(items.filter((_, j) => j !== i))}
-                >
-                  Remove
-                </Button>
-              ) : null}
-            </div>
-          ))}
-        </div>
-      ) : null}
-    </div>
   );
 }
