@@ -3,7 +3,7 @@ import { user } from "@invite-me/db/schema/auth";
 import { ORPCError } from "@orpc/server";
 import { z } from "zod";
 
-import { publicProcedure } from "../index";
+import { publicProcedure } from "../base";
 
 /** Profile-page settings. The planner toggle makes a user an event planner. */
 export const profileRouter = {

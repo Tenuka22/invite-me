@@ -3,7 +3,7 @@ import { z } from "zod";
 import { requireAccess } from "../invites/access";
 import { computeMeter } from "../invites/meter";
 import { listParties } from "../invites/store";
-import { publicProcedure } from "../index";
+import { publicProcedure } from "../base";
 import { guard } from "./errors";
 
 export const meterRouter = {

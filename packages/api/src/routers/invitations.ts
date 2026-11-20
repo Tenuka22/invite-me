@@ -1,7 +1,7 @@
 import { ORPCError } from "@orpc/server";
 import { z } from "zod";
 
-import { publicProcedure } from "../index";
+import { publicProcedure } from "../base";
 import { cardSchema } from "../invites/card";
 import {
   PRESET,

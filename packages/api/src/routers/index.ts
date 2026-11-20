@@ -1,12 +1,14 @@
 import type { RouterClient } from "@orpc/server";
 
-import { publicProcedure } from "../index";
+import { publicProcedure } from "../base";
 import { guestRouter } from "./guest";
 import { invitationsRouter } from "./invitations";
 import { leaderboardRouter } from "./leaderboard";
 import { meterRouter } from "./meter";
 import { partiesRouter } from "./parties";
 import { profileRouter } from "./profile";
+
+export { o, publicProcedure } from "../base";
 
 export const appRouter = {
   invitations: invitationsRouter,

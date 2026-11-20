@@ -10,7 +10,7 @@ import {
   updatePartyFor,
 } from "../invites/store";
 import { requireAccess } from "../invites/access";
-import { publicProcedure } from "../index";
+import { publicProcedure } from "../base";
 import { guard } from "./errors";
 
 const partyInput = z.object({

@@ -1,7 +1,7 @@
 import { ORPCError } from "@orpc/server";
 
 import { leaderboard } from "../invites/leaderboard";
-import { publicProcedure } from "../index";
+import { publicProcedure } from "../base";
 
 /** Who the leaderboard ranks: invitations where the caller is owner or admin, couples first by engagement. */
 export const leaderboardRouter = {
