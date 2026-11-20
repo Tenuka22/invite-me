@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@invite-m
 import { Check, Heart, Minus, Plus } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { GuestInviteSkeleton } from "@/components/page-skeletons";
 import { toast } from "@/components/toaster";
@@ -48,6 +48,15 @@ function Open({ input, party, card }: { input: LinkInput; party: GuestParty; car
   const recordOpen = useMutation(orpc.invite.recordOpen.mutationOptions());
   const counted = useRef(false);
 
+  // A guest often has many tabs open; name this one after the invitee.
+  useEffect(() => {
+    const previous = document.title;
+    document.title = `You're invited — ${party.displayName}`;
+    return () => {
+      document.title = previous;
+    };
+  }, [party.displayName]);
+
   // Called on mount of the card element. One open per page view, and only once the card is on screen.
   function onCardMounted(el: HTMLDivElement | null) {
     if (!el || counted.current) return;
@@ -57,12 +66,22 @@ function Open({ input, party, card }: { input: LinkInput; party: GuestParty; car
 
   return (
     <main className="mx-auto min-h-dvh w-full px-3 pt-4 pb-32">
-      <p className="mb-4 text-center font-display text-xl text-muted-foreground">For {party.displayName}</p>
-      <div ref={onCardMounted} className="mx-auto w-full" style={{ maxWidth: "min(100%, 56rem)" }}>
-        <GoldenCallerCard card={card} maxWidth="100%" />
+      {/* Eyebrow above the hero card: names the invitee early, so the card's own
+          display line is the focus. */}
+      <h1 className="mb-3 text-center text-[0.65rem] font-semibold uppercase tracking-[0.22em] text-muted-foreground/80">
+        You're invited — {party.displayName}
+      </h1>
+      <div ref={onCardMounted} className="mx-auto w-full">
+        <GoldenCallerCard card={card} />
       </div>
-      {card.rules ? <p className="mx-auto mt-6 max-w-md text-base whitespace-pre-line">{card.rules}</p> : null}
-      {party.rules ? <p className="mx-auto mt-3 max-w-md text-base whitespace-pre-line">{party.rules}</p> : null}
+      {party.rules ? (
+        <div className="mx-auto mt-6 max-w-md rounded-xl border border-border bg-card/60 px-4 py-3 text-sm leading-relaxed whitespace-pre-line text-muted-foreground">
+          <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.14em] text-foreground/80">
+            Good to know
+          </span>
+          {party.rules}
+        </div>
+      ) : null}
       <Rsvp input={input} seats={party.seats} seatLabel={party.seatLabel} current={party.rsvp} />
     </main>
   );
@@ -103,7 +122,8 @@ function Rsvp({
 
   return (
     <>
-      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+      {/* Fixed CTA: a soft ivory fade keeps the button legible where it floats over the card. */}
+      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center bg-linear-to-t from-background via-background/70 to-transparent px-4 pt-12 pb-[max(1rem,env(safe-area-inset-bottom))]">
         <Button
           size="lg"
           variant={answered ? "secondary" : "primary"}

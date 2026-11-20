@@ -1,6 +1,8 @@
 import "@fontsource-variable/inter";
 
 import "@fontsource-variable/fraunces";
+import "@fontsource-variable/cormorant-garamond";
+import "@fontsource/marcellus";
 import { Toaster } from "@/components/toaster";
 import type { QueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";

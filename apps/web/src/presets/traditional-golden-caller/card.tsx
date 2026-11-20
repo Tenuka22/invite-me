@@ -18,11 +18,12 @@ import { Mandala } from "./mandala";
  * Tailwind version of the Traditional Golden Caller card (golden-caller.css is no longer needed).
  *
  * Needs Tailwind v3.4+ or v4 (named groups, group-data variants, arbitrary properties).
- * Fonts: add Marcellus + Cormorant Garamond to your <head> (see the note in the chat).
+ * Fonts (Marcellus + Cormorant Garamond) are bundled via @fontsource and imported in __root.tsx.
  *
- * Sizing: the card is a fixed 1075:1523 portrait. Every size below is in `cqw`
+ * Sizing: the card is a 1075:1523 portrait. Every size below is in `cqw`
  * (1cqw = 1% of the card width, the root is the size container), so the layout
- * is a pixel-proportional copy of the reference at any width.
+ * is a pixel-proportional copy of the reference at any width. The sheet keeps that
+ * ratio as a *minimum* height and grows for tall content, so nothing can clip.
  */
 
 /* ---- design tokens (colour morph variables live on the root) ---------- */
@@ -309,9 +310,12 @@ export function GoldenCallerCard({
         {/* Sheet: thick frame, ivory paper, 1075:1523 portrait */}
         <div
           className={[
-            "relative isolate aspect-[1075/1523] overflow-hidden text-center",
+            // min-h (not aspect-ratio) so the sheet keeps the 1075:1523 portrait for
+            // typical content but stretches when a full card needs more room.
+            // `mt-auto` on the rules then pins them to the bottom, clear of RSVP.
+            "relative isolate flex min-h-[141.674cqw] flex-col overflow-hidden text-center",
             "border-solid [border-width:2.3cqw] border-[color:var(--frame)] bg-[color:var(--paper)]",
-            "px-[4cqw] pb-[2cqw] pt-[42.1cqw]",
+            "px-[4cqw] pb-[2.5cqw] pt-[42.1cqw]",
             "shadow-[0_30px_60px_-20px_rgb(0_0_0/0.55),inset_0_0_40px_rgb(120_90_30/0.1)]",
             "transition-colors duration-[900ms]",
           ].join(" ")}
@@ -454,7 +458,7 @@ export function GoldenCallerCard({
             </Reveal>
 
             {/* RSVP */}
-            <Reveal enabled={revealed} delay={1600} className="mt-[1.6cqw] pb-[8cqw]">
+            <Reveal enabled={revealed} delay={1600} className="mt-[1.6cqw]">
               <p className="uppercase tracking-[0.1em]">
                 <span className="block text-[max(10px,2.05cqw)] leading-[1.3] tracking-[0.12em]">
                   RSVP
@@ -482,12 +486,13 @@ export function GoldenCallerCard({
             </Reveal>
           </div>
 
-          {/* Rules: small print pinned to the bottom of the sheet */}
+          {/* Rules: small print pinned to the bottom of the sheet by mt-auto, so it can
+              never collide with the RSVP block above (which is in normal flow). */}
           {card.rules ? (
             <Reveal
               enabled={revealed}
               delay={1800}
-              className="absolute inset-x-[18cqw] bottom-[3.4cqw] z-[1]"
+              className="relative z-[1] mx-[14cqw] mt-auto pt-[2cqw]"
             >
               <p
                 data-field="rules"

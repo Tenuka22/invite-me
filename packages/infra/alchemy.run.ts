@@ -29,7 +29,7 @@ export const server = Cloudflare.Worker("server", {
     BETTER_AUTH_URL: Cloudflare.Worker.URL,
   },
   dev: {
-    port: 3000,
+    port: 4000,
   },
 });
 
@@ -52,7 +52,7 @@ export default Alchemy.Stack(
         VITE_SERVER_URL: serverWorker.url.as<string>(),
       },
       dev: {
-        port: 3001,
+        port: 4001,
       },
     });
 
