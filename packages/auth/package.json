@@ -12,7 +12,6 @@
   "dependencies": {
     "@better-auth/core": "1.7.22",
     "@better-auth/drizzle-adapter": "1.7.22",
-    "@better-auth/passkey": "1.7.22",
     "@invite-me/db": "workspace:*",
     "@simplewebauthn/server": "13.3.3",
     "better-auth": "catalog:",

@@ -26,9 +26,6 @@ export const server = Cloudflare.Worker("server", {
     GITHUB_CLIENT_SECRET: Config.Redacted("GITHUB_CLIENT_SECRET").pipe(
       Config.withDefault(Redacted.make("")),
     ),
-    EMAIL_PROVIDER: Config.String("EMAIL_PROVIDER").pipe(Config.withDefault("console")),
-    RESEND_API_KEY: Config.Redacted("RESEND_API_KEY").pipe(Config.withDefault(Redacted.make(""))),
-    EMAIL_FROM: Config.String("EMAIL_FROM").pipe(Config.withDefault("")),
     BETTER_AUTH_URL: Cloudflare.Worker.URL,
   },
   dev: {

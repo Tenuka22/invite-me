@@ -53,6 +53,3 @@ jobs:
           # GitHub reserves the GITHUB_ prefix for secret names, so these are stored as GH_OAUTH_*.
           GITHUB_CLIENT_ID: ${{ vars.GH_OAUTH_CLIENT_ID }}
           GITHUB_CLIENT_SECRET: ${{ secrets.GH_OAUTH_CLIENT_SECRET }}
-          EMAIL_PROVIDER: ${{ vars.EMAIL_PROVIDER }}
-          EMAIL_FROM: ${{ vars.EMAIL_FROM }}
-          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}

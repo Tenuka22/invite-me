@@ -1,13 +1,12 @@
 import { Button } from "@invite-me/ui/components/motion/button/base";
-import { Input } from "@invite-me/ui/components/motion/input";
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { Fragment, type FormEvent, type ReactNode, useState } from "react";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { useState } from "react";
 
 import { Logo } from "@/components/logo";
 import { LoginSkeleton } from "@/components/page-skeletons";
 import { toast } from "@/components/toaster";
-import { authClient } from "@/lib/auth-client";
 import { ENV } from "@/env.public";
+import { authClient } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/login")({
   ssr: false,
@@ -29,210 +28,40 @@ export const Route = createFileRoute("/login")({
   pendingMinMs: 250,
 });
 
-const callbackURL = (next: string) => `${window.location.origin}${next}`;
+type Provider = "google" | "github";
+type Methods = Record<Provider, boolean>;
 
-type Methods = { google: boolean; github: boolean; email: boolean };
+const PROVIDER_NAME: Record<Provider, string> = { google: "Google", github: "GitHub" };
 
-/** Ask the server which sign-in methods it can really offer. If it can't be reached, offer only the ones that need no setup. */
+/** Ask the server which providers have credentials. If it can't be reached, offer none rather than a button that fails. */
 async function fetchMethods(): Promise<Methods> {
   try {
     const response = await fetch(`${ENV.VITE_SERVER_URL.replace(/\/$/, "")}/api/methods`);
     if (!response.ok) throw new Error("methods unavailable");
     return (await response.json()) as Methods;
   } catch {
-    return { google: false, github: false, email: false };
+    return { google: false, github: false };
   }
 }
 
-/** The shared field hairline is near-white; keep the edge visible on a white page. */
-const FIELD = {
-  field: "border-foreground/15 data-[state=focused]:border-foreground/25",
-} as const;
-
-type Mode = "code" | "link" | "password" | "passkey";
-
-const METHOD_LABEL: Record<Mode, string> = {
-  code: "email code",
-  link: "sign-in link",
-  password: "password",
-  passkey: "passkey",
-};
-
-type Fields = { email?: string; password?: string; otp?: string };
-
 function LoginPage() {
-  const navigate = useNavigate();
   const { next: returnTo = "/invitations" } = Route.useSearch();
   const methods = Route.useLoaderData();
-  const [mode, setMode] = useState<Mode>(methods.email ? "code" : "password");
-  const [creating, setCreating] = useState(false);
-  const [codeStep, setCodeStep] = useState<"email" | "code">("email");
-  const [linkSent, setLinkSent] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [otp, setOtp] = useState("");
-  const [errors, setErrors] = useState<Fields>({});
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState<Provider>();
+  const available = (Object.keys(PROVIDER_NAME) as Provider[]).filter((provider) => methods[provider]);
 
-  function goTo(next: Mode) {
-    setMode(next);
-    setCodeStep("email");
-    setLinkSent(false);
-    setErrors({});
-    setOtp("");
-  }
-
-  function hasEmail(fields: Fields = {}) {
-    if (email.trim()) {
-      setErrors(fields);
-      return true;
-    }
-    setErrors({ ...fields, email: "Enter your email" });
-    return false;
-  }
-
-  async function sendCode() {
-    if (!hasEmail()) return;
-    setBusy(true);
-    const { error } = await authClient.emailOtp.sendVerificationOtp({ email, type: "sign-in" });
-    setBusy(false);
-    if (error) {
-      toast.error("Could not send the code", { description: error.message });
-      return;
-    }
-    setCodeStep("code");
-    setOtp("");
-  }
-
-  async function sendLink() {
-    if (!hasEmail()) return;
-    setBusy(true);
-    const { error } = await authClient.signIn.magicLink({ email, callbackURL: callbackURL(returnTo) });
-    setBusy(false);
-    if (error) {
-      toast.error("Could not send the link", { description: error.message });
-      return;
-    }
-    setLinkSent(true);
-  }
-
-  async function verifyCode() {
-    if (!otp.trim()) {
-      setErrors({ otp: "Enter the code from your email" });
-      return;
-    }
-    setBusy(true);
-    const { error } = await authClient.signIn.emailOtp({ email, otp });
-    setBusy(false);
-    if (error) {
-      setErrors({ otp: "That code is wrong or has expired" });
-      return;
-    }
-    await navigate({ href: returnTo });
-  }
-
-  async function signInWithPassword() {
-    const next: Fields = {};
-    if (!email.trim()) next.email = "Enter your email";
-    if (!password) next.password = "Enter your password";
-    setErrors(next);
-    if (Object.keys(next).length > 0) return;
-    setBusy(true);
-    const { error } = await authClient.signIn.email({ email, password });
-    setBusy(false);
-    if (error) {
-      toast.error("Could not sign in", {
-        description: "Check your email and password, then try again.",
-      });
-      return;
-    }
-    await navigate({ href: returnTo });
-  }
-
-  async function signInWithPasskey() {
-    setBusy(true);
-    const { error } = await authClient.signIn.passkey();
-    setBusy(false);
-    if (error) {
-      toast.error("Could not use a passkey", { description: error.message });
-      return;
-    }
-    await navigate({ href: returnTo });
-  }
-
-  async function signUpWithPassword() {
-    const next: Fields = {};
-    if (!email.trim()) next.email = "Enter your email";
-    if (password.length < 8) next.password = "Use at least 8 characters";
-    setErrors(next);
-    if (Object.keys(next).length > 0) return;
-    setBusy(true);
-    const { error } = await authClient.signUp.email({
-      email,
-      password,
-      name: email.split("@")[0] || "Host",
-    });
-    setBusy(false);
-    if (error) {
-      toast.error("Could not create the account", {
-        description: error.message ?? "Try a different email.",
-      });
-      return;
-    }
-    await navigate({ href: returnTo });
-  }
-
-  async function signInWithProvider(provider: "google" | "github") {
-    const name = provider === "google" ? "Google" : "GitHub";
+  async function signIn(provider: Provider) {
+    setBusy(provider);
     const { error } = await authClient.signIn.social({
       provider,
-      callbackURL: callbackURL(returnTo),
+      callbackURL: `${window.location.origin}${returnTo}`,
     });
+    // On success the browser is already leaving for the provider.
     if (error) {
-      toast.error(`Could not sign in with ${name}`, {
-        description:
-          error.message === "Provider not found"
-            ? `${name} sign-in is not configured on this server.`
-            : error.message,
-      });
+      setBusy(undefined);
+      toast.error(`Could not sign in with ${PROVIDER_NAME[provider]}`, { description: error.message });
     }
   }
-
-
-  const hint =
-    mode === "password"
-      ? creating
-        ? "Pick a password of at least 8 characters."
-        : "The password you set for this account."
-      : mode === "passkey"
-        ? "Your browser will ask for a fingerprint, face, or security key."
-        : mode === "link"
-          ? linkSent
-            ? `Link sent to ${email}. Open it on this device.`
-            : "We'll email you a link that signs you in."
-          : codeStep === "code"
-            ? `Code sent to ${email}. It expires in five minutes.`
-            : "We'll email you a six-digit code.";
-
-  const emailField = (
-    <Input
-      label="Email"
-      type="email"
-      value={email}
-      onChange={setEmail}
-      error={errors.email}
-      reserveErrorLine
-      autoComplete="email"
-      autoCapitalize="none"
-      spellCheck={false}
-      autoFocus={mode === "code" || mode === "link" || mode === "password"}
-      classNames={FIELD}
-    />
-  );
-
-  const others = (Object.keys(METHOD_LABEL) as Mode[]).filter(
-    (option) => option !== mode && (methods.email || (option !== "code" && option !== "link")),
-  );
 
   return (
     <main className="grid min-h-svh place-items-center px-6 py-16">
@@ -242,193 +71,38 @@ function LoginPage() {
           <span className="sr-only">Invite Me</span>
         </span>
 
-        <h1 className="mt-9 text-2xl font-semibold tracking-[-0.02em]">Sign in</h1>
-        <p
-          aria-live="polite"
-          className="mt-1.5 text-sm leading-6 text-pretty text-muted-foreground"
-        >
-          {hint}
+        <h1 className="mt-9 font-display text-3xl tracking-[-0.02em]">Sign in</h1>
+        <p className="mt-2 text-pretty text-muted-foreground">
+          Use your Google or GitHub account. We never see your password.
         </p>
 
-        {mode === "code" && codeStep === "email" && (
-          <form onSubmit={submit(sendCode)} noValidate className="mt-7 flex flex-col gap-2">
-            {emailField}
-            <Button type="submit" size="md" className="w-full" disabled={busy}>
-              {busy ? "Sending code…" : "Send code"}
-            </Button>
-          </form>
-        )}
-
-        {mode === "code" && codeStep === "code" && (
-          <form onSubmit={submit(verifyCode)} noValidate className="mt-7 flex flex-col gap-2">
-            <Input
-              label="Code"
-              value={otp}
-              onChange={setOtp}
-              error={errors.otp}
-              reserveErrorLine
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              maxLength={6}
-              autoFocus
-              classNames={{ ...FIELD, input: "text-center text-lg tracking-[0.5em]" }}
-            />
-            <Button type="submit" size="md" className="w-full" disabled={busy}>
-              {busy ? "Signing in…" : "Sign in"}
-            </Button>
-            <div className="flex flex-wrap items-center gap-x-4">
-              <TextButton onClick={() => void sendCode()}>Send a new code</TextButton>
-              <TextButton
-                onClick={() => {
-                  setCodeStep("email");
-                  setOtp("");
-                  setErrors({});
-                }}
-              >
-                Use a different email
-              </TextButton>
-            </div>
-          </form>
-        )}
-
-        {mode === "link" &&
-          (linkSent ? (
-            <div className="mt-7 flex flex-col gap-2">
-              <Button size="md" className="w-full" disabled={busy} onClick={() => void sendLink()}>
-                {busy ? "Sending…" : "Send the link again"}
-              </Button>
-              <TextButton
-                onClick={() => {
-                  setLinkSent(false);
-                  setErrors({});
-                }}
-              >
-                Use a different email
-              </TextButton>
-            </div>
-          ) : (
-            <form onSubmit={submit(sendLink)} noValidate className="mt-7 flex flex-col gap-2">
-              {emailField}
-              <Button type="submit" size="md" className="w-full" disabled={busy}>
-                {busy ? "Sending link…" : "Send link"}
-              </Button>
-            </form>
-          ))}
-
-        {mode === "password" && (
-          <form
-            onSubmit={submit(creating ? signUpWithPassword : signInWithPassword)}
-            noValidate
-            className="mt-7 flex flex-col gap-2"
-          >
-            {emailField}
-            <Input
-              label="Password"
-              type="password"
-              value={password}
-              onChange={setPassword}
-              error={errors.password}
-              reserveErrorLine
-              autoComplete={creating ? "new-password" : "current-password"}
-              classNames={FIELD}
-            />
-            <Button type="submit" size="md" className="w-full" disabled={busy}>
-              {creating
-                ? busy
-                  ? "Creating account…"
-                  : "Create account"
-                : busy
-                  ? "Signing in…"
-                  : "Sign in"}
-            </Button>
-            <TextButton
-              onClick={() => {
-                setCreating((value) => !value);
-                setErrors({});
-              }}
+        <div className="mt-8 grid gap-3">
+          {available.map((provider) => (
+            <Button
+              key={provider}
+              variant="outline"
+              size="lg"
+              className="w-full border-foreground/25"
+              disabled={busy !== undefined}
+              onClick={() => void signIn(provider)}
             >
-              {creating ? "Already have an account? Sign in" : "New here? Create an account"}
-            </TextButton>
-          </form>
-        )}
-
-        {mode === "passkey" && (
-          <div className="mt-7">
-            <Button size="md" className="w-full" disabled={busy} onClick={signInWithPasskey}>
-              {busy ? "Waiting for your passkey…" : "Continue with a passkey"}
+              {provider === "google" ? (
+                <GoogleMark aria-hidden className="size-5" />
+              ) : (
+                <GitHubMark aria-hidden className="size-5" />
+              )}
+              {busy === provider ? "Opening…" : `Continue with ${PROVIDER_NAME[provider]}`}
             </Button>
-          </div>
-        )}
-
-        {methods.google || methods.github ? (
-          <div className={methods.google && methods.github ? "mt-4 grid grid-cols-2 gap-3" : "mt-4 grid gap-3"}>
-            {methods.google ? (
-              <Button
-                variant="outline"
-                size="md"
-                className="w-full border-foreground/15"
-                onClick={() => signInWithProvider("google")}
-              >
-                <GoogleMark aria-hidden className="size-4" />
-                Google
-              </Button>
-            ) : null}
-            {methods.github ? (
-              <Button
-                variant="outline"
-                size="md"
-                className="w-full border-foreground/15"
-                onClick={() => signInWithProvider("github")}
-              >
-                <GitHubMark aria-hidden className="size-4" />
-                GitHub
-              </Button>
-            ) : null}
-          </div>
-        ) : null}
-
-        <p className="mt-6 text-[0.8125rem] leading-6 text-muted-foreground">
-          Other ways to sign in:{" "}
-          {others.map((option, index) => (
-            <Fragment key={option}>
-              {index > 0 && <span aria-hidden> · </span>}
-              <InlineLink onClick={() => goTo(option)}>{METHOD_LABEL[option]}</InlineLink>
-            </Fragment>
           ))}
-        </p>
+        </div>
+
+        {available.length === 0 ? (
+          <p role="status" className="mt-2 text-sm text-muted-foreground">
+            Sign-in isn't set up on this server yet.
+          </p>
+        ) : null}
       </div>
     </main>
-  );
-}
-
-function submit(action: () => Promise<void>) {
-  return (event: FormEvent) => {
-    event.preventDefault();
-    void action();
-  };
-}
-
-function TextButton({ onClick, children }: { onClick: () => void; children: ReactNode }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="-mx-1 self-start rounded-sm px-1 py-0.5 text-sm text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-foreground/50 focus-visible:outline-none"
-    >
-      {children}
-    </button>
-  );
-}
-
-function InlineLink({ onClick, children }: { onClick: () => void; children: ReactNode }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="rounded-sm text-foreground underline decoration-foreground/30 underline-offset-4 transition-colors hover:decoration-foreground focus-visible:ring-2 focus-visible:ring-foreground/50 focus-visible:outline-none"
-    >
-      {children}
-    </button>
   );
 }
 
