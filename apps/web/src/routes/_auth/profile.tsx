@@ -1,8 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { LogOut } from "lucide-react";
+import { useState } from "react";
+
+import { useMutation } from "@tanstack/react-query";
 
 import { authClient } from "@/lib/auth-client";
 import { sessionGate } from "@/lib/session-gate";
+import { orpc } from "@/utils/orpc";
 
 export const Route = createFileRoute("/_auth/profile")({
   component: ProfilePage,
@@ -13,6 +17,14 @@ function ProfilePage() {
   const { data: session } = authClient.useSession();
   const email = session?.user.email ?? "";
   const name = session?.user.name || email.split("@")[0] || "";
+  const role = (session?.user as { role?: string } | undefined)?.role ?? "host";
+  const [planner, setPlanner] = useState(role === "planner");
+
+  const setRole = useMutation(
+    orpc.profile.setRole.mutationOptions({
+      onSuccess: () => window.location.reload(),
+    }),
+  );
 
   async function signOut() {
     await authClient.signOut();
@@ -35,6 +47,15 @@ function ProfilePage() {
         </div>
       </section>
 
+      <PlannerToggle
+        planner={planner}
+        setRole={setRole}
+        onToggle={(next) => {
+          setPlanner(next);
+          setRole.mutate({ role: next ? "planner" : "host" });
+        }}
+      />
+
       <button
         type="button"
         onClick={signOut}
@@ -44,5 +65,33 @@ function ProfilePage() {
         Sign out
       </button>
     </div>
+  );
+}
+
+function PlannerToggle({
+  planner,
+  setRole,
+  onToggle,
+}: {
+  planner: boolean;
+  setRole: ReturnType<typeof useMutation<{ role: "host" | "planner" }>>;
+  onToggle: (next: boolean) => void;
+}) {
+  return (
+    <label className="flex cursor-pointer items-center gap-4 rounded-2xl border border-border bg-card px-5 py-4">
+      <input
+        type="checkbox"
+        checked={planner}
+        onChange={(e) => onToggle(e.target.checked)}
+        disabled={setRole.isPending}
+        className="size-5 accent-primary"
+      />
+      <span className="flex flex-col">
+        <span className="font-medium">Event planner</span>
+        <span className="text-xs text-muted-foreground">
+          You create invitations for your clients
+        </span>
+      </span>
+    </label>
   );
 }

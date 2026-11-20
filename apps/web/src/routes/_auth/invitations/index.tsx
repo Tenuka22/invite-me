@@ -1,6 +1,6 @@
 import { Button } from "@invite-me/ui/components/motion/button/base";
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 
 import { InvitationGallery } from "@/components/invitation-gallery";
 import { InvitationsSkeleton } from "@/components/page-skeletons";
@@ -13,6 +13,64 @@ export const Route = createFileRoute("/_auth/invitations/")({
   pendingComponent: InvitationsSkeleton,
   component: InvitationsPage,
 });
+
+/** Brides and grooms ranked across your invitations by their responses. */
+function Leaderboard() {
+  const leaderboard = useQuery(orpc.leaderboard.get.queryOptions());
+  const entries = leaderboard.data ?? [];
+
+  if (leaderboard.isPending) {
+    return (
+      <section className="mt-14 grid gap-4">
+        <h2 className="font-display text-2xl tracking-[-0.01em]">Leaderboard</h2>
+        <ol className="grid gap-3">
+          <li className="h-16 animate-pulse rounded-2xl border border-border bg-card" />
+        </ol>
+        <span className="sr-only">Loading leaderboard…</span>
+      </section>
+    );
+  }
+  if (entries.length === 0) {
+    return (
+      <section className="mt-14 grid gap-4">
+        <h2 className="font-display text-2xl tracking-[-0.01em]">Leaderboard</h2>
+        <p className="text-sm text-muted-foreground">Add guests to their invitations and start building the rankings.</p>
+      </section>
+    );
+  }
+
+  return (
+    <section className="mt-14 grid gap-4">
+      <div className="flex items-baseline justify-between">
+        <h2 className="font-display text-2xl tracking-[-0.01em]">Leaderboard</h2>
+        <p className="text-sm text-muted-foreground">Couples ranked by confirmed RSVPs, opens, maybe and no replies.</p>
+      </div>
+      <ol className="grid gap-3">
+        {entries.map((couple, i) => (
+          <li key={couple.eventId} className="rounded-2xl border border-border bg-card px-5 py-4">
+            <div className="flex items-start justify-between gap-4">
+              <span className="text-lg font-semibold text-muted-foreground tabular-nums">#{i + 1}</span>
+              <Link
+                to="/invitations/$id"
+                params={{ id: couple.eventId }}
+                className="font-display text-xl leading-tight tracking-[-0.02em] text-balance"
+              >
+                {couple.coupleName}
+              </Link>
+            </div>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {[couple.venue, couple.city].filter(Boolean).join(", ")}
+            </p>
+            <p className="mt-1.5 text-sm">
+              <span className="font-semibold">{couple.confirmedSeats}</span>
+              <span className="text-muted-foreground"> confirmed · {couple.maybe} maybe · {couple.no} no · {couple.opens} opened</span>
+            </p>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
 
 function InvitationsPage() {
   const navigate = useNavigate();
@@ -47,8 +105,9 @@ function InvitationsPage() {
           </Button>
         </div>
       ) : (
-        <div className="mt-10">
+        <div className="mt-10 grid gap-8">
           <InvitationGallery items={items} />
+          <Leaderboard />
         </div>
       )}
     </main>

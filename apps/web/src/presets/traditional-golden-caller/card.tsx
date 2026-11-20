@@ -202,18 +202,21 @@ export function GoldenCallerCard({
   flow = false,
   activeField,
   onFieldClick,
+  hideUnpicked = false,
 }: {
   card: Card;
   forceOpen?: boolean;
   maxWidth?: string;
-  /** Drop the 1075:1523 minimum height: the card is exactly as tall as its content. */
+  /** Content-sized height with a looser 1:1.3 minimum (instead of 1075:1523), so it never turns square. */
   flow?: boolean;
   /** Editor only: the card part (a `data-field` value) to outline. */
   activeField?: CardField | null;
   /** Editor only: called with the tapped card part. */
   onFieldClick?: (field: CardField) => void;
+  /** Editor only: show nothing for values the host hasn't picked yet. */
+  hideUnpicked?: boolean;
 }) {
-  const card = withPlaceholders(rawCard);
+  const card = hideUnpicked ? rawCard : withPlaceholders(rawCard);
   const rootRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(forceOpen);
   const [revealed, setRevealed] = useState(forceOpen);
@@ -317,7 +320,7 @@ export function GoldenCallerCard({
             // typical content but stretches when a full card needs more room.
             // `mt-auto` on the rules then pins them to the bottom, clear of RSVP.
             "relative isolate flex flex-col overflow-hidden text-center",
-            flow ? "" : "min-h-[141.674cqw]",
+            flow ? "min-h-[130cqw]" : "min-h-[141.674cqw]",
             "border-solid [border-width:2.3cqw] border-[color:var(--frame)] bg-[color:var(--paper)]",
             "px-[4cqw] pb-[2.5cqw] pt-[42.1cqw]",
             "shadow-[inset_0_0_40px_rgb(120_90_30/0.1)]",

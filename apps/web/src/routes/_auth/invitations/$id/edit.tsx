@@ -824,6 +824,7 @@ function Preview({
             maxWidth="100%"
             activeField={activeField}
             onFieldClick={onFieldClick}
+            hideUnpicked
           />
         </div>
         <p className="mt-3 text-center text-xs text-muted-foreground">
@@ -853,7 +854,7 @@ function Preview({
                 <span className="text-sm font-medium">Preview</span>
               </div>
               <div className="grid place-items-center overflow-y-auto rounded-lg shadow-2xl">
-                <GoldenCallerCard card={card} forceOpen maxWidth={LARGE_PREVIEW_MAX_WIDTH} />
+                <GoldenCallerCard card={card} forceOpen maxWidth={LARGE_PREVIEW_MAX_WIDTH} hideUnpicked />
               </div>
             </div>
           </div>

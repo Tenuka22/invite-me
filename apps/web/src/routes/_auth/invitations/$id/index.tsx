@@ -1,8 +1,9 @@
 import { Button } from "@invite-me/ui/components/motion/button/base";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Pencil, UserPlus } from "lucide-react";
+import { Pencil, ShieldCheck, UserPlus } from "lucide-react";
 
+import { AdminControl } from "@/components/admin-control";
 import { GuestAvatar } from "@/components/guest-avatar";
 import { POLL_MS } from "@/lib/poll";
 import { longDate } from "@/lib/format";
@@ -32,6 +33,8 @@ function InvitationDashboard() {
   const m = meter.data;
   const share = m && m.allottedSeats > 0 ? Math.round((m.confirmedSeats / m.allottedSeats) * 100) : 0;
   const guests = parties.data ?? [];
+  const isOwner = invitation.data?.role === "owner";
+  const isAdmin = invitation.data?.role === "admin";
 
   const names = card ? [card.name1, card.name2].filter(Boolean).join(" & ") || "Untitled" : null;
 
@@ -73,24 +76,40 @@ function InvitationDashboard() {
             </div>
           )}
           <div className="mt-6 grid grid-cols-2 gap-3 sm:flex">
-            <Button
-              size="lg"
-              className="sm:min-w-40"
-              onClick={() => navigate({ to: "/invitations/$id/edit", params: { id } })}
-            >
-              <Pencil className="size-4" aria-hidden />
-              Edit card
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="border-foreground/25 sm:min-w-40"
-              onClick={() => navigate({ to: "/invitations/$id/add-guest", params: { id } })}
-            >
-              <UserPlus className="size-4" aria-hidden />
-              Add guest
-            </Button>
+            {isOwner ? (
+              <Button
+                size="lg"
+                className="sm:min-w-40"
+                onClick={() => navigate({ to: "/invitations/$id/edit", params: { id } })}
+              >
+                <Pencil className="size-4" aria-hidden />
+                Edit card
+              </Button>
+            ) : null}
+            {isOwner ? (
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-foreground/25 sm:min-w-40"
+                onClick={() => navigate({ to: "/invitations/$id/add-guest", params: { id } })}
+              >
+                <UserPlus className="size-4" aria-hidden />
+                Add guest
+              </Button>
+            ) : null}
+            {isAdmin ? (
+              <span className="flex items-center gap-2 self-start rounded-full border border-border bg-muted/60 px-3 py-1 text-xs font-medium text-muted-foreground">
+                <ShieldCheck className="size-4 text-primary" aria-hidden />
+                Admin
+              </span>
+            ) : null}
           </div>
+          {isAdmin ? (
+            <p className="mt-2 text-sm text-muted-foreground">
+              You have admin access — see the card, guests and replies. The owner edits the card and adds guests.
+            </p>
+          ) : null}
+          {(isOwner || isAdmin) ? <AdminControl eventId={id} /> : null}
         </section>
 
         <section aria-labelledby="replies">
