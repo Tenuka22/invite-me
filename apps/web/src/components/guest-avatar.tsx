@@ -19,7 +19,8 @@ export function GuestAvatar({ seed, size = 40 }: { seed: string; size?: number }
   for (let y = 0; y < 5; y++) {
     for (let x = 0; x < 3; x++) {
       if ((h >>> (y * 3 + x)) & 1) {
-        cells.push([x, y], [4 - x, y]);
+        cells.push([x, y]);
+        if (x !== 2) cells.push([4 - x, y]);
       }
     }
   }

@@ -466,12 +466,16 @@ export function GoldenCallerCard({
                     className="block text-[max(10px,1.95cqw)] leading-[1.3]"
                   >
                     {contact.name}-
-                    <a
-                      href={`tel:${contact.phone.replace(/\s/g, "")}`}
-                      className="text-inherit no-underline"
-                    >
-                      {contact.phone}
-                    </a>
+                    {forceOpen ? (
+                      <span>{contact.phone}</span>
+                    ) : (
+                      <a
+                        href={`tel:${contact.phone.replace(/\s/g, "")}`}
+                        className="text-inherit no-underline"
+                      >
+                        {contact.phone}
+                      </a>
+                    )}
                   </span>
                 ))}
               </p>
