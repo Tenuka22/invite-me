@@ -51,7 +51,7 @@ function Open({ input, party, card }: { input: LinkInput; party: GuestParty; car
   // A guest often has many tabs open; name this one after the invitee.
   useEffect(() => {
     const previous = document.title;
-    document.title = `You're invited — ${party.displayName}`;
+    document.title = `You're invited · ${party.displayName}`;
     return () => {
       document.title = previous;
     };
@@ -65,17 +65,17 @@ function Open({ input, party, card }: { input: LinkInput; party: GuestParty; car
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-4xl flex-col items-center justify-center px-3 pt-4 pb-28">
+    <main className="mx-auto flex min-h-dvh w-full max-w-4xl flex-col items-center justify-center px-3 pt-4 pb-24">
       {/* Eyebrow above the hero card: names the invitee early, so the card's own
           display line is the focus. Card is capped so the whole card fits the viewport. */}
       <div className="mx-auto w-full">
         <h1 className="mb-3 text-center text-[0.65rem] font-semibold uppercase tracking-[0.22em] text-muted-foreground/80">
-          You're invited — {party.displayName}
+          You're invited · {party.displayName}
         </h1>
         <div ref={onCardMounted} className="mx-auto w-full">
           <GoldenCallerCard
             card={card}
-            maxWidth="min(100%, calc((100svh - 11rem) * 0.706))"
+            maxWidth="min(100%, calc((100svh - 9rem) * 0.706))"
           />
         </div>
       </div>
@@ -129,7 +129,7 @@ function Rsvp({
 
   return (
     <>
-      {/* Fixed bottom-center on every screen; <main> reserves pb-28 (> button height) so the page scrolls clear of it. */}
+      {/* Fixed bottom-center on every screen; <main> reserves pb-24 (> button height) so the page scrolls clear of it. */}
       <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
         <Button
           size="lg"
