@@ -4,6 +4,9 @@ import { authClient } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/admin/invite/$eventId/$secret")({
   head: () => ({ meta: [{ name: "robots", content: "noindex, nofollow" }] }),
+  // Like the _auth shell, this runs only client-side: the session check + grant +
+  // redirect all happen after hydration.
+  ssr: false,
   beforeLoad: async ({ context, params, location }) => {
     const { data } = await authClient.getSession();
     if (!data?.session) {
