@@ -1,5 +1,6 @@
 import { CARD_PLACEHOLDERS, type Card, cardSchema } from "@invite-me/api/invites/card";
 import { Button } from "@invite-me/ui/components/motion/button/base";
+import { DatePicker } from "@invite-me/ui/components/motion/date-picker";
 import { Input } from "@invite-me/ui/components/motion/input";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
@@ -141,12 +142,12 @@ function Editor({ id, initial }: { id: string; initial: Card }) {
 
           <Section title="When">
             <div className="grid gap-3 sm:grid-cols-3">
-              <Input
+              <DatePicker
                 label="Date"
-                type="date"
                 value={draft.date}
+                placeholder="Pick the date"
                 error={touched.date && !draft.date ? "Pick the date" : undefined}
-                onBlur={() => touch("date")}
+                onClose={() => touch("date")}
                 onChange={(v) => set("date", v)}
               />
               <Text
