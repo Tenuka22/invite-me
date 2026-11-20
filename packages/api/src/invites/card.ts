@@ -29,20 +29,20 @@ export type Card = z.infer<typeof cardSchema>;
 
 /** Template copy from `docs/invite-v1-01.png`, used until the host edits. */
 export const DEFAULT_CARD: Card = {
-  hostLine1: "MR. XXX & MRS. XXXX",
+  hostLine1: "MR. KAMAL PERERA & MRS. NILANI PERERA",
   connector: "TOGETHER WITH",
-  hostLine2: "MR. & MRS. XXXX",
+  hostLine2: "MR. & MRS. SUNIL FERNANDO",
   requestLine: "WARMLY REQUEST THE HONOR OF YOUR PRESENCE",
   occasionLine: "ON THE OCCASION OF THE MARRIAGE OF THEIR CHILDREN",
-  name1: "BINURI",
-  name2: "SAMEERA",
+  name1: "NETHMI",
+  name2: "SADUN",
   date: "2026-01-24",
   timeFrom: "9.30 AM",
   timeTo: "2.30 PM",
   subEvents: [{ label: "PORUWA CEREMONY", time: "9.00 AM" }],
   venueName: "THE KINGSBURY",
   city: "COLOMBO",
-  rsvpContacts: [{ name: "BINURI", phone: "077 1234 567" }],
+  rsvpContacts: [{ name: "NILANI PERERA", phone: "077 123 4567" }],
   rules: "",
 };
 

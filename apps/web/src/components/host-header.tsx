@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { HostDock } from "@/components/host-dock";
+import { Logo } from "@/components/logo";
 
 type SubPage = {
   title: string;
@@ -63,6 +64,9 @@ export function HostShell({ children }: { children: ReactNode }) {
             <ArrowLeft className="size-5" aria-hidden />
           </Link>
           {wide ? <h1 className="font-display text-2xl tracking-[-0.02em]">{sub.title}</h1> : null}
+          <Link to="/" aria-label="Invite Me home" className="ml-auto flex size-9 items-center justify-center rounded-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">
+            <Logo className="size-7" />
+          </Link>
         </header>
         <main className={`mx-auto w-full px-6 ${frame}`}>
           {wide ? null : (
@@ -81,6 +85,15 @@ export function HostShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-svh pt-6 pb-28">
+      <header className="mx-auto flex h-12 w-full max-w-5xl items-center px-6">
+        <Link
+          to="/"
+          aria-label="Invite Me home"
+          className="flex size-9 items-center justify-center rounded-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+        >
+          <Logo className="size-7" />
+        </Link>
+      </header>
       {children}
       <HostDock />
     </div>

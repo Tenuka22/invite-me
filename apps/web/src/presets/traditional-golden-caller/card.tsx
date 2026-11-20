@@ -132,10 +132,10 @@ function Reveal({
       data-in={seen}
       className={[
         "group/reveal",
-        "opacity-0 [transform:translateY(18px)] [filter:blur(4px)]",
-        `transition-[opacity,transform,filter] duration-[900ms] ${EASE_OUT} [transition-delay:var(--d)]`,
-        "data-[in=true]:opacity-100 data-[in=true]:[transform:none] data-[in=true]:[filter:none]",
-        "motion-reduce:[transform:none] motion-reduce:[filter:none] motion-reduce:duration-200 motion-reduce:[transition-delay:0ms]",
+        "opacity-0 [transform:translateY(18px)]",
+        `transition-[opacity,transform] duration-[900ms] ${EASE_OUT} [transition-delay:var(--d)]`,
+        "data-[in=true]:opacity-100 data-[in=true]:[transform:none]",
+        "motion-reduce:[transform:none] motion-reduce:duration-200 motion-reduce:[transition-delay:0ms]",
         className,
       ].join(" ")}
       style={{ "--d": `${delay}ms` } as CSSProperties}
@@ -316,7 +316,7 @@ export function GoldenCallerCard({
             "relative isolate flex min-h-[141.674cqw] flex-col overflow-hidden text-center",
             "border-solid [border-width:2.3cqw] border-[color:var(--frame)] bg-[color:var(--paper)]",
             "px-[4cqw] pb-[2.5cqw] pt-[42.1cqw]",
-            "shadow-[0_30px_60px_-20px_rgb(0_0_0/0.55),inset_0_0_40px_rgb(120_90_30/0.1)]",
+            "shadow-[inset_0_0_40px_rgb(120_90_30/0.1)]",
             "transition-colors duration-[900ms]",
           ].join(" ")}
         >

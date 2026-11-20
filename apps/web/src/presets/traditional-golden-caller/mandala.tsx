@@ -58,7 +58,7 @@ const DOT = [
 ].join(" ");
 
 const SPIN = [
-  "[transform-origin:0_0]",
+  "will-change-transform",
   "motion-safe:group-data-[in=true]/reveal:animate-spin motion-safe:group-data-[in=true]/reveal:[animation-duration:90s]",
 ].join(" ");
 
@@ -121,7 +121,7 @@ export function Mandala({ className = "" }: { className?: string }) {
   );
 
   return (
-    <svg viewBox="-100 -100 200 200" className={`block h-auto w-full overflow-visible ${className}`} aria-hidden="true">
+    <svg viewBox="-100 -100 200 200" className={`block h-auto w-full overflow-visible ${SPIN} ${className}`} aria-hidden="true">
       <defs>
         <linearGradient id={gid} gradientUnits="userSpaceOnUse" x1="-90" y1="-90" x2="90" y2="90">
           <stop offset="0" style={{ stopColor: "var(--gold-hi)" }} />
@@ -130,7 +130,7 @@ export function Mandala({ className = "" }: { className?: string }) {
         </linearGradient>
       </defs>
 
-      <g className={SPIN}>
+      <g>
         {/* 1 · Lotus leaves: outline, inner outline, solid foil leaf */}
         {ring(OUTER_LEAVES).map((i) => (
           <g key={`leaf-${i}`} transform={rot(i, OUTER_LEAVES)}>
