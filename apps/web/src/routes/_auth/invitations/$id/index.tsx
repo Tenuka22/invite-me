@@ -45,7 +45,7 @@ function InvitationDashboard() {
         to="/invitations/$id/edit"
         params={{ id }}
         aria-label="Edit the invitation card"
-        className="mx-auto block w-36 self-start overflow-hidden rounded-lg shadow-xl ring-1 ring-foreground/10 transition-transform hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring lg:mx-0 lg:w-full"
+        className="mx-auto block w-44 self-start overflow-hidden rounded-lg shadow-xl ring-1 ring-foreground/10 transition-transform hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring lg:mx-0 lg:w-full"
       >
         {card ? (
           <CardThumb card={card} />
@@ -58,7 +58,7 @@ function InvitationDashboard() {
         <section>
           {card ? (
             <>
-              <p className="font-display text-3xl tracking-[-0.02em] text-balance">
+              <p className="font-display text-2xl tracking-[-0.02em] text-balance sm:text-3xl">
                 {card.date ? longDate(card.date) : "Date not set"}
               </p>
               <p className="mt-1.5 text-muted-foreground">
