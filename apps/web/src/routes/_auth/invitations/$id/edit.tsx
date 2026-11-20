@@ -141,8 +141,9 @@ function Editor({ id, initial }: { id: string; initial: Card }) {
           </Section>
 
           <Section title="When">
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid grid-cols-2 gap-3">
               <DatePicker
+                className="col-span-2"
                 label="Date"
                 value={draft.date}
                 placeholder="Pick the date"
