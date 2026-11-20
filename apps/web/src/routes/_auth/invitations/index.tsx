@@ -1,10 +1,9 @@
 import { Button } from "@invite-me/ui/components/motion/button/base";
 import { useQuery } from "@tanstack/react-query";
-import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
-import { longDate } from "@/lib/format";
+import { InvitationGallery } from "@/components/invitation-gallery";
 import { InvitationsSkeleton } from "@/components/page-skeletons";
-import { CardThumb } from "@/components/card-thumb";
 import { orpc } from "@/utils/orpc";
 
 export const Route = createFileRoute("/_auth/invitations/")({
@@ -12,8 +11,6 @@ export const Route = createFileRoute("/_auth/invitations/")({
   loader: ({ context }) =>
     context.queryClient.ensureQueryData(context.orpc.invitations.list.queryOptions()),
   pendingComponent: InvitationsSkeleton,
-  pendingMs: 0,
-  pendingMinMs: 250,
   component: InvitationsPage,
 });
 
@@ -24,16 +21,12 @@ function InvitationsPage() {
 
   return (
     <main className="mx-auto w-full max-w-5xl px-6 pt-8 md:pt-12">
-      <div className="flex items-end justify-between gap-4">
-        <div>
-          <h1 className="font-display text-4xl tracking-[-0.03em] md:text-5xl">Invitations</h1>
-          {invitations.isSuccess && (
-            <p className="mt-2 text-sm text-muted-foreground">
-              {items.length === 1 ? "1 invitation" : `${items.length} invitations`}
-            </p>
-          )}
-        </div>
-      </div>
+      <h1 className="font-display text-4xl tracking-[-0.03em] md:text-5xl">Invitations</h1>
+      {invitations.isSuccess && (
+        <p className="mt-2 text-sm text-muted-foreground">
+          {items.length === 1 ? "1 invitation" : `${items.length} invitations`}
+        </p>
+      )}
 
       {invitations.isError ? (
         <div className="mt-12 rounded-2xl border border-border bg-card p-6">
@@ -54,30 +47,9 @@ function InvitationsPage() {
           </Button>
         </div>
       ) : (
-        <ul className="mt-10 grid grid-cols-2 gap-x-5 gap-y-10 sm:grid-cols-3 lg:grid-cols-4">
-          {items.map((invitation) => {
-            const names = [invitation.card.name1, invitation.card.name2].filter(Boolean).join(" & ");
-            return (
-              <li key={invitation.id}>
-                <Link
-                  to="/invitations/$id"
-                  params={{ id: invitation.id }}
-                  className="group block rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
-                >
-                  <div className="overflow-hidden rounded-lg shadow-lg ring-1 ring-foreground/10 transition-transform duration-200 group-hover:-translate-y-1">
-                    <CardThumb card={invitation.card} />
-                  </div>
-                  <p className="mt-4 font-display text-xl leading-tight tracking-[-0.02em] text-balance">
-                    {names || "Untitled"}
-                  </p>
-                  <p className="mt-1 truncate text-sm text-muted-foreground">
-                    {invitation.card.date ? longDate(invitation.card.date, false) : "No date yet"}
-                  </p>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+        <div className="mt-10">
+          <InvitationGallery items={items} />
+        </div>
       )}
     </main>
   );

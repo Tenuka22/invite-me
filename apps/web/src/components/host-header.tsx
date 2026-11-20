@@ -9,7 +9,7 @@ type SubPage = {
   description?: string;
   back: string;
   /** Wide pages (the editor) keep a compact title beside the back button. */
-  width: "narrow" | "wide";
+  width: "narrow" | "medium" | "wide";
 };
 
 /** Pages that open on their own: a back button and a title, no dock. */
@@ -29,7 +29,7 @@ function subPage(pathname: string): SubPage | null {
       title: "Guest",
       description: "Their link, details, and removal.",
       back: `/invitations/${guestPage[1]}`,
-      width: "narrow",
+      width: "medium",
     };
   const match = pathname.match(/^\/invitations\/([^/]+)\/(add-guest|edit)$/);
   if (!match) return null;
@@ -51,7 +51,7 @@ export function HostShell({ children }: { children: ReactNode }) {
 
   if (sub) {
     const wide = sub.width === "wide";
-    const frame = wide ? "max-w-6xl" : "max-w-xl";
+    const frame = wide ? "max-w-6xl" : sub.width === "medium" ? "max-w-3xl" : "max-w-xl";
     return (
       <div className={wide ? "min-h-svh pb-28" : "min-h-svh pb-12"}>
         <header className={`mx-auto flex h-20 w-full items-center gap-4 px-6 ${frame}`}>

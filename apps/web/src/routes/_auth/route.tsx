@@ -3,21 +3,25 @@ import { Outlet, createFileRoute, redirect, useRouterState } from "@tanstack/rea
 import { HostShell } from "@/components/host-header";
 import { HostPageSkeleton } from "@/components/page-skeletons";
 import { authClient } from "@/lib/auth-client";
+import { sessionGate } from "@/lib/session-gate";
 
 export const Route = createFileRoute("/_auth")({
   ssr: false,
   component: HostLayout,
   // A hard load checks the session first; show the real top bar and a page skeleton instead of a blank screen.
   pendingComponent: HostLayoutPending,
-  // Show the skeleton the moment navigation starts, and keep it up at least 250ms so it doesn't flicker.
-  pendingMs: 0,
-  pendingMinMs: 250,
+  // Only show the skeleton when a page is actually slow; a quick change shouldn't flash a placeholder.
+  pendingMs: 400,
+  pendingMinMs: 300,
   beforeLoad: async ({ location }) => {
+    if (sessionGate.isFresh()) return;
     const { data, error } = await authClient.getSession();
     // A failed request (server restarting, network blip) is not a sign-out: only a confirmed empty session redirects.
     if (!data?.session && !error) {
+      sessionGate.clear();
       throw redirect({ to: "/login", search: { next: location.pathname } });
     }
+    if (data?.session) sessionGate.confirm();
   },
 });
 

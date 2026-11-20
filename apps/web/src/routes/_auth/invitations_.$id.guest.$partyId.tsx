@@ -131,6 +131,7 @@ function GuestDetail({ party }: { party: Detail }) {
 
       <GuestShare
         party={party}
+        split
         note={`${party.seats} ${party.seats === 1 ? "seat" : "seats"} · ${party.rsvp} · opened ${party.opens}×`}
       />
 

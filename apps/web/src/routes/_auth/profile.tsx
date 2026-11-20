@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { LogOut } from "lucide-react";
 
 import { authClient } from "@/lib/auth-client";
+import { sessionGate } from "@/lib/session-gate";
 
 export const Route = createFileRoute("/_auth/profile")({
   component: ProfilePage,
@@ -15,6 +16,7 @@ function ProfilePage() {
 
   async function signOut() {
     await authClient.signOut();
+    sessionGate.clear();
     await navigate({ to: "/login" });
   }
 

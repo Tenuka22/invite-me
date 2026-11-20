@@ -15,7 +15,17 @@ export const getRouter = () => {
     defaultPreload: "intent",
     context: { orpc, queryClient },
     defaultPendingComponent: () => <Loader />,
-    defaultNotFoundComponent: () => <div>Not Found</div>,
+    defaultNotFoundComponent: () => (
+      <main className="grid min-h-svh place-items-center px-6 text-center">
+        <div>
+          <p className="font-display text-4xl tracking-[-0.02em]">Page not found</p>
+          <p className="mt-2 text-muted-foreground">That link doesn't lead anywhere.</p>
+          <a href="/" className="mt-6 inline-block font-medium text-primary hover:underline">
+            Back to Invite Me
+          </a>
+        </div>
+      </main>
+    ),
   });
 
   setupRouterSsrQueryIntegration({

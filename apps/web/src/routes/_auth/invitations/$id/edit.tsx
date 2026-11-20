@@ -334,7 +334,7 @@ function Editor({ id, initial }: { id: string; initial: Card }) {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,min(calc((100svh-9rem)*0.706),40vw))] lg:gap-10">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,min(calc((100svh-12.5rem)*0.706),40vw))] lg:gap-10">
         <form
           noValidate
           onSubmit={(e) => e.preventDefault()}
@@ -809,7 +809,7 @@ function Preview({
     <>
       <section
         aria-label="Card preview"
-        className={`min-w-0 lg:sticky lg:top-20 lg:block lg:self-start ${visibleOnMobile ? "" : "hidden"}`}
+        className={`min-w-0 lg:sticky lg:top-20 lg:block lg:self-start lg:max-h-[calc(100svh-6rem)] ${visibleOnMobile ? "" : "hidden"}`}
       >
         <div className="mx-auto flex w-full max-w-[34rem] items-center justify-between gap-4 lg:max-w-none">
           <h2 className="font-display text-base font-semibold tracking-[-0.01em]">Preview</h2>

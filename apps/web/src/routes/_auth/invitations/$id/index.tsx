@@ -1,5 +1,5 @@
 import { Button } from "@invite-me/ui/components/motion/button/base";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Pencil, UserPlus } from "lucide-react";
 
@@ -19,7 +19,13 @@ const RSVP_LABEL = { pending: "Waiting", yes: "Coming", no: "Can't come", maybe:
 function InvitationDashboard() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
-  const invitation = useQuery(orpc.invitations.get.queryOptions({ input: { id } }));
+  const queryClient = useQueryClient();
+  // The list already holds this invitation, so the page can paint at once and refresh behind it.
+  const invitation = useQuery({
+    ...orpc.invitations.get.queryOptions({ input: { id } }),
+    placeholderData: () =>
+      queryClient.getQueryData(orpc.invitations.list.queryKey())?.find((item) => item.id === id),
+  });
   const meter = useQuery({ ...orpc.meter.get.queryOptions({ input: { eventId: id } }), refetchInterval: POLL_MS });
   const parties = useQuery({ ...orpc.parties.list.queryOptions({ input: { eventId: id } }), refetchInterval: POLL_MS });
   const card = invitation.data?.card;

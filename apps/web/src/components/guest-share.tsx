@@ -16,11 +16,14 @@ export function GuestShare({
   note = "Send them their link or let them scan.",
   onDone,
   onAnother,
+  split = false,
 }: {
   party: SharedParty;
   note?: string;
   onDone?: () => void;
   onAnother?: () => void;
+  /** From `md` up, put the QR beside the link and buttons instead of above them. */
+  split?: boolean;
 }) {
   const queryClient = useQueryClient();
   const url = `${window.location.origin}${party.guestPath}`;
@@ -60,8 +63,10 @@ export function GuestShare({
   }
 
   return (
-    <div className="grid gap-6 rounded-2xl border border-border bg-card p-5 sm:p-6">
-      <div className="flex items-center gap-3">
+    <div
+      className={`grid gap-6 rounded-2xl border border-border bg-card p-5 sm:p-6 ${split ? "md:grid-cols-[15rem_minmax(0,1fr)] md:gap-x-8" : ""}`}
+    >
+      <div className="col-span-full flex items-center gap-3">
         <GuestAvatar seed={party.id} size={44} />
         <div className="min-w-0">
           <p className="truncate font-display text-xl">{party.displayName}</p>
@@ -76,35 +81,36 @@ export function GuestShare({
           <span className="text-sm text-muted-foreground">Making QR…</span>
         )}
       </div>
+      <div className="grid content-start gap-6">
+        <div className="grid gap-1.5">
+          <label htmlFor="guest-link" className="text-[0.8125rem] font-medium">
+            Personal link
+          </label>
+          <input
+            id="guest-link"
+            readOnly
+            value={url}
+            onFocus={(e) => e.currentTarget.select()}
+            className="h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          />
+        </div>
 
-      <div className="grid gap-1.5">
-        <label htmlFor="guest-link" className="text-[0.8125rem] font-medium">
-          Personal link
-        </label>
-        <input
-          id="guest-link"
-          readOnly
-          value={url}
-          onFocus={(e) => e.currentTarget.select()}
-          className="h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        />
-      </div>
-
-      <div className={canShare ? "grid grid-cols-2 gap-3" : "grid gap-3"}>
-        <Button size="lg" onClick={copy}>
-          <Copy className="size-4" aria-hidden />
-          Copy link
-        </Button>
-        {canShare ? (
-          <Button size="lg" variant="outline" className="border-foreground/25" onClick={share}>
-            <Share2 className="size-4" aria-hidden />
-            Share
+        <div className={canShare ? "grid grid-cols-2 gap-3" : "grid gap-3"}>
+          <Button size="lg" onClick={copy}>
+            <Copy className="size-4" aria-hidden />
+            Copy link
           </Button>
-        ) : null}
+          {canShare ? (
+            <Button size="lg" variant="outline" className="border-foreground/25" onClick={share}>
+              <Share2 className="size-4" aria-hidden />
+              Share
+            </Button>
+          ) : null}
+        </div>
       </div>
 
       {onDone && onAnother ? (
-        <div className="flex items-center justify-between gap-3 border-t border-border pt-5">
+        <div className="col-span-full flex items-center justify-between gap-3 border-t border-border pt-5">
           <Button variant="ghost" onClick={onAnother}>
             Add another
           </Button>
