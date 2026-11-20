@@ -65,7 +65,7 @@ function Open({ input, party, card }: { input: LinkInput; party: GuestParty; car
   }
 
   return (
-    <main className="mx-auto min-h-dvh w-full px-3 pt-4 pb-32 md:grid md:max-w-5xl md:grid-cols-[auto_minmax(0,1fr)] md:items-center md:gap-14 md:px-8 md:py-12">
+    <main className="mx-auto flex min-h-dvh w-full flex-col justify-center px-3 pt-4 pb-28 md:grid md:max-w-4xl md:grid-cols-[auto_20rem] md:content-center md:justify-center md:items-center md:gap-16 md:px-8 md:py-12">
       {/* Eyebrow above the hero card: names the invitee early, so the card's own
           display line is the focus. Card is capped so the whole card fits the viewport. */}
       <div className="mx-auto w-full md:mx-0">
@@ -79,7 +79,7 @@ function Open({ input, party, card }: { input: LinkInput; party: GuestParty; car
           />
         </div>
       </div>
-      <div className="mx-auto mt-6 grid w-full max-w-md gap-6 md:mx-0 md:mt-0 md:max-w-sm">
+      <div className="mx-auto mt-6 grid w-full max-w-md gap-6 md:mx-0 md:mt-0 md:max-w-none">
         {party.rules ? (
           <div className="rounded-xl border border-border bg-card/60 px-4 py-3 text-sm leading-relaxed whitespace-pre-line text-muted-foreground">
             <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.14em] text-foreground/80">
@@ -130,11 +130,11 @@ function Rsvp({
   return (
     <>
       {/* Fixed on phones so it floats over the card; inline in the right column on desktop. */}
-      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:static md:justify-start md:p-0">
+      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:static md:p-0">
         <Button
           size="lg"
           variant={answered ? "secondary" : "primary"}
-          className="pointer-events-auto h-14 w-full max-w-sm gap-3 text-lg shadow-[0_12px_32px_-8px_oklch(0.26_0.035_40/0.45)]"
+          className="pointer-events-auto h-14 w-full gap-3 text-lg shadow-[0_12px_32px_-8px_oklch(0.26_0.035_40/0.45)] max-md:max-w-sm"
           onClick={() => setOpen(true)}
         >
           {answered ? (
