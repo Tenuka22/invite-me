@@ -65,21 +65,21 @@ function Open({ input, party, card }: { input: LinkInput; party: GuestParty; car
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full flex-col justify-center px-3 pt-4 pb-28 md:grid md:max-w-4xl md:grid-cols-[min(25rem,calc((100svh-10rem)*0.706))_20rem] md:content-center md:justify-center md:items-center md:gap-16 md:px-8 md:py-12">
+    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col items-center justify-center px-3 pt-4 pb-28">
       {/* Eyebrow above the hero card: names the invitee early, so the card's own
           display line is the focus. Card is capped so the whole card fits the viewport. */}
-      <div className="mx-auto w-full md:mx-0">
-        <h1 className="mb-3 text-center text-[0.65rem] font-semibold uppercase tracking-[0.22em] text-muted-foreground/80 md:text-left">
+      <div className="mx-auto w-full">
+        <h1 className="mb-3 text-center text-[0.65rem] font-semibold uppercase tracking-[0.22em] text-muted-foreground/80">
           You're invited — {party.displayName}
         </h1>
-        <div ref={onCardMounted} className="mx-auto w-full md:mx-0">
+        <div ref={onCardMounted} className="mx-auto w-full">
           <GoldenCallerCard
             card={card}
             maxWidth="min(100%, 400px, calc((100svh - 10rem) * 0.706))"
           />
         </div>
       </div>
-      <div className="mx-auto mt-6 grid w-full max-w-md gap-6 md:mx-0 md:mt-0 md:max-w-none">
+      <div className="mx-auto mt-6 grid w-full gap-6">
         {party.rules ? (
           <div className="rounded-xl border border-border bg-card/60 px-4 py-3 text-sm leading-relaxed whitespace-pre-line text-muted-foreground">
             <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.14em] text-foreground/80">
@@ -129,12 +129,12 @@ function Rsvp({
 
   return (
     <>
-      {/* Fixed on phones so it floats over the card; inline in the right column on desktop. */}
-      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:static md:p-0">
+      {/* Fixed bottom-center on every screen; <main> reserves pb-28 (> button height) so the page scrolls clear of it. */}
+      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
         <Button
           size="lg"
           variant={answered ? "secondary" : "primary"}
-          className="pointer-events-auto h-14 w-full gap-3 text-lg shadow-[0_12px_32px_-8px_oklch(0.26_0.035_40/0.45)] max-md:max-w-sm"
+          className="pointer-events-auto h-14 w-full gap-3 max-w-sm text-lg shadow-[0_12px_32px_-8px_oklch(0.26_0.035_40/0.45)]"
           onClick={() => setOpen(true)}
         >
           {answered ? (
