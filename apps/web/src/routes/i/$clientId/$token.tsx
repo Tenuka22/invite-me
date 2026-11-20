@@ -65,7 +65,7 @@ function Open({ input, party, card }: { input: LinkInput; party: GuestParty; car
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full flex-col justify-center px-3 pt-4 pb-28 md:grid md:max-w-4xl md:grid-cols-[auto_20rem] md:content-center md:justify-center md:items-center md:gap-16 md:px-8 md:py-12">
+    <main className="mx-auto flex min-h-dvh w-full flex-col justify-center px-3 pt-4 pb-28 md:grid md:max-w-4xl md:grid-cols-[min(25rem,calc((100svh-10rem)*0.706))_20rem] md:content-center md:justify-center md:items-center md:gap-16 md:px-8 md:py-12">
       {/* Eyebrow above the hero card: names the invitee early, so the card's own
           display line is the focus. Card is capped so the whole card fits the viewport. */}
       <div className="mx-auto w-full md:mx-0">
