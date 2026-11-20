@@ -1,12 +1,13 @@
+import { Checkbox } from "@invite-me/ui/components/motion/checkbox";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { LogOut } from "lucide-react";
 import { useState } from "react";
-
-import { useMutation, type UseMutationResult } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 
 import { authClient } from "@/lib/auth-client";
 import { sessionGate } from "@/lib/session-gate";
 import { orpc } from "@/utils/orpc";
+import { toast } from "@/components/toaster";
 
 export const Route = createFileRoute("/_auth/profile")({
   component: ProfilePage,
@@ -23,6 +24,7 @@ function ProfilePage() {
   const setRole = useMutation(
     orpc.profile.setRole.mutationOptions({
       onSuccess: () => window.location.reload(),
+      onError: (error) => toast.error("Could not save", { description: error.message }),
     }),
   );
 
@@ -47,14 +49,18 @@ function ProfilePage() {
         </div>
       </section>
 
-      <PlannerToggle
-        planner={planner}
-        setRole={setRole}
-        onToggle={(next) => {
-          setPlanner(next);
-          setRole.mutate({ role: next ? "planner" : "host" });
-        }}
-      />
+      <div className="flex items-center justify-between rounded-2xl border border-border bg-card px-5 py-4">
+        <Checkbox
+          checked={planner}
+          onCheckedChange={(next) => {
+            setPlanner(next);
+            setRole.mutate({ role: next ? "planner" : "host" });
+          }}
+          label="Event planner"
+          description="You create invitations for your clients"
+          className="select-none"
+        />
+      </div>
 
       <button
         type="button"
@@ -65,33 +71,5 @@ function ProfilePage() {
         Sign out
       </button>
     </div>
-  );
-}
-
-function PlannerToggle({
-  planner,
-  setRole,
-  onToggle,
-}: {
-  planner: boolean;
-  setRole: UseMutationResult<{ role: "host" | "planner" }, Error, { role: "host" | "planner" }, unknown>;
-  onToggle: (next: boolean) => void;
-}) {
-  return (
-    <label className="flex cursor-pointer items-center gap-4 rounded-2xl border border-border bg-card px-5 py-4">
-      <input
-        type="checkbox"
-        checked={planner}
-        onChange={(e) => onToggle(e.target.checked)}
-        disabled={setRole.isPending}
-        className="size-5 accent-primary"
-      />
-      <span className="flex flex-col">
-        <span className="font-medium">Event planner</span>
-        <span className="text-xs text-muted-foreground">
-          You create invitations for your clients
-        </span>
-      </span>
-    </label>
   );
 }

@@ -7,6 +7,7 @@ import { CardThumb } from "@/components/card-thumb";
 import { GoldenCallerCard } from "@/presets/traditional-golden-caller/card";
 
 import { HostShell } from "@/components/host-header";
+import { InvitationGallery } from "@/components/invitation-gallery";
 import { Logo } from "@/components/logo";
 import { Skeleton } from "@/components/skeleton";
 import { authClient } from "@/lib/auth-client";
@@ -89,6 +90,7 @@ function Landing() {
 
 function Workspace() {
   const templates = useQuery(orpc.invitations.templates.queryOptions());
+  const invitations = useQuery(orpc.invitations.list.queryOptions());
 
   return (
     <main className="mx-auto w-full max-w-5xl px-6 pt-8 md:pt-12">
@@ -123,8 +125,19 @@ function Workspace() {
         )}
       </section>
 
+      <section className="mt-12">
+        <h2 className="font-display text-2xl tracking-[-0.01em]">Your invitations</h2>
+        {invitations.data && invitations.data.length === 0 ? (
+          <p className="mt-2 text-sm text-muted-foreground">
+            You don't have invitations yet. <Link to="/invitations">Create your first one</Link>.
+          </p>
+        ) : invitations.data ? (
+          <InvitationGallery items={invitations.data.slice(-4)} className="mt-6" />
+        ) : null}
+      </section>
+
       <Link to="/invitations" className="mt-10 inline-block text-sm font-medium text-primary hover:underline">
-        Your invitations
+        All invitations
       </Link>
     </main>
   );

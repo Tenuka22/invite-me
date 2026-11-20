@@ -3,7 +3,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Pencil, ShieldCheck, UserPlus } from "lucide-react";
 
-import { AdminControl } from "@/components/admin-control";
+import { AdminControl, InviteSpouseButton } from "@/components/admin-control";
+import { authClient } from "@/lib/auth-client";
 import { GuestAvatar } from "@/components/guest-avatar";
 import { POLL_MS } from "@/lib/poll";
 import { longDate } from "@/lib/format";
@@ -33,8 +34,11 @@ function InvitationDashboard() {
   const m = meter.data;
   const share = m && m.allottedSeats > 0 ? Math.round((m.confirmedSeats / m.allottedSeats) * 100) : 0;
   const guests = parties.data ?? [];
+  const session = authClient.useSession();
   const isOwner = invitation.data?.role === "owner";
   const isAdmin = invitation.data?.role === "admin";
+  // Planners get the link directly; everyone else invites spouse/fiance through a modal.
+  const planner = (session.data?.user as { role?: string } | undefined)?.role === "planner";
 
   const names = card ? [card.name1, card.name2].filter(Boolean).join(" & ") || "Untitled" : null;
 
@@ -109,7 +113,9 @@ function InvitationDashboard() {
               You have admin access — see the card, guests and replies. The owner edits the card and adds guests.
             </p>
           ) : null}
-          {(isOwner || isAdmin) ? <AdminControl eventId={id} /> : null}
+          {(isOwner || isAdmin) ? (
+            planner ? <AdminControl eventId={id} /> : <InviteSpouseButton eventId={id} />
+          ) : null}
         </section>
 
         <section aria-labelledby="replies">

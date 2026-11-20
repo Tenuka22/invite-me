@@ -6,9 +6,9 @@ import { CardThumb } from "@/components/card-thumb";
 import { longDate } from "@/lib/format";
 
 /** Invitations as the cards guests will see, with a tile at the end to start another. */
-export function InvitationGallery({ items }: { items: InvitationView[] }) {
+export function InvitationGallery({ items, className = "" }: { items: InvitationView[]; className?: string }) {
   return (
-    <ul className="grid grid-cols-2 gap-x-5 gap-y-10 sm:grid-cols-3 lg:grid-cols-4">
+    <ul className={`grid grid-cols-2 gap-x-5 gap-y-10 sm:grid-cols-3 lg:grid-cols-4 ${className}`}>
       {items.map((invitation) => {
         const names = [invitation.card.name1, invitation.card.name2].filter(Boolean).join(" & ");
         return (
