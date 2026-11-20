@@ -18,14 +18,14 @@ export const cardSchema = z.object({
   subEvents: z.array(z.object({ label: line(60), time: line(20) })).max(5),
   venueName: line(80),
   city: line(60),
-  rsvpContacts: z.array(z.object({ name: line(40), phone: line(24) })).min(1).max(5),
+  rsvpContacts: z
+    .array(z.object({ name: line(40), phone: line(24) }))
+    .min(1)
+    .max(5),
   rules: line(400),
 });
 
 export type Card = z.infer<typeof cardSchema>;
-
-/** Card plus the couple photo's R2 key (null when none uploaded). Served to the editor and guest page. */
-export type CardView = Card & { couplePhotoKey: string | null };
 
 /** Template copy from `docs/invite-v1-01.png`, used until the host edits. */
 export const DEFAULT_CARD: Card = {
@@ -46,8 +46,74 @@ export const DEFAULT_CARD: Card = {
   rules: "",
 };
 
+/** What a new invitation starts as: nothing is filled in for the host. */
+export const EMPTY_CARD: Card = {
+  hostLine1: "",
+  connector: "",
+  hostLine2: "",
+  requestLine: "",
+  occasionLine: "",
+  name1: "",
+  name2: "",
+  date: "",
+  timeFrom: "",
+  timeTo: "",
+  subEvents: [],
+  venueName: "",
+  city: "",
+  rsvpContacts: [{ name: "", phone: "" }],
+  rules: "",
+};
+
+/** Hints shown in empty fields and, for display only, in empty parts of the card. */
+export const CARD_PLACEHOLDERS = {
+  hostLine1: "MR. XXX & MRS. XXXX",
+  connector: "TOGETHER WITH",
+  hostLine2: "MR. & MRS. XXXX",
+  requestLine: "WARMLY REQUEST THE HONOR OF YOUR PRESENCE",
+  occasionLine: "ON THE OCCASION OF THE MARRIAGE OF THEIR CHILDREN",
+  name1: "Name",
+  name2: "Name",
+  date: "2026-01-24",
+  timeFrom: "9.30 AM",
+  timeTo: "2.30 PM",
+  venueName: "VENUE",
+  city: "CITY",
+  contactName: "NAME",
+  contactPhone: "077 000 0000",
+} as const;
+
+/** The card as it is drawn: empty text falls back to its placeholder. Never saved. */
+export function withPlaceholders(card: Card): Card {
+  const fill = (value: string, placeholder: string) => (value.trim() ? value : placeholder);
+  return {
+    ...card,
+    hostLine1: fill(card.hostLine1, CARD_PLACEHOLDERS.hostLine1),
+    connector: fill(card.connector, CARD_PLACEHOLDERS.connector),
+    hostLine2: fill(card.hostLine2, CARD_PLACEHOLDERS.hostLine2),
+    requestLine: fill(card.requestLine, CARD_PLACEHOLDERS.requestLine),
+    occasionLine: fill(card.occasionLine, CARD_PLACEHOLDERS.occasionLine),
+    name1: fill(card.name1, CARD_PLACEHOLDERS.name1),
+    name2: fill(card.name2, CARD_PLACEHOLDERS.name2),
+    date: Number.isNaN(new Date(`${card.date}T00:00:00Z`).getTime()) ? CARD_PLACEHOLDERS.date : card.date,
+    timeFrom: fill(card.timeFrom, CARD_PLACEHOLDERS.timeFrom),
+    timeTo: fill(card.timeTo, CARD_PLACEHOLDERS.timeTo),
+    venueName: fill(card.venueName, CARD_PLACEHOLDERS.venueName),
+    city: fill(card.city, CARD_PLACEHOLDERS.city),
+    rsvpContacts: card.rsvpContacts.map((c) => ({
+      name: fill(c.name, CARD_PLACEHOLDERS.contactName),
+      phone: fill(c.phone, CARD_PLACEHOLDERS.contactPhone),
+    })),
+  };
+}
+
 /** Month, day, weekday and year for the date line, in English and UTC so no timezone shifts it. */
-export function cardDateParts(iso: string): { month: string; day: string; weekday: string; year: string } {
+export function cardDateParts(iso: string): {
+  month: string;
+  day: string;
+  weekday: string;
+  year: string;
+} {
   const d = new Date(`${iso}T00:00:00Z`);
   return {
     month: d.toLocaleString("en-US", { month: "long", timeZone: "UTC" }).toUpperCase(),

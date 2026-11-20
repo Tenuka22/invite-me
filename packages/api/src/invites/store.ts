@@ -3,7 +3,7 @@ import { and, eq } from "drizzle-orm";
 import type { Database } from "@invite-me/db";
 import { event, party as partyTable } from "@invite-me/db/schema/invites";
 
-import { type Card, type CardView, DEFAULT_CARD, cardSchema } from "./card";
+import { type Card, EMPTY_CARD, cardSchema } from "./card";
 import {
   type CreatePartyInput,
   InviteError,
@@ -32,7 +32,7 @@ export type InvitationView = {
   id: string;
   template: string;
   createdAt: number;
-  card: CardView;
+  card: Card;
 };
 
 export type PartyView = Party & {
@@ -47,11 +47,18 @@ export type PartyView = Party & {
 /** Fields a guest may see. No link, no host bookkeeping. */
 export type GuestParty = Pick<
   Party,
-  "displayName" | "invitedAs" | "seats" | "seatLabel" | "rules" | "locale" | "rsvp" | "confirmedSeats"
+  | "displayName"
+  | "invitedAs"
+  | "seats"
+  | "seatLabel"
+  | "rules"
+  | "locale"
+  | "rsvp"
+  | "confirmedSeats"
 >;
 
 /** `closed` covers wrong secret, unknown party, revoked, and no invitation alike, so nothing leaks. */
-export type GuestResult = { state: "open"; party: GuestParty; card: CardView } | { state: "closed" };
+export type GuestResult = { state: "open"; party: GuestParty; card: Card } | { state: "closed" };
 
 const CLOSED: GuestResult = { state: "closed" };
 
@@ -100,13 +107,40 @@ function toGuest(p: Party): GuestParty {
 }
 
 function toInvitation(row: EventRow): InvitationView {
-  const card = row.card ? cardSchema.parse(JSON.parse(row.card)) : DEFAULT_CARD;
   return {
     id: row.id,
     template: row.preset,
     createdAt: row.createdAt.getTime(),
-    card: { ...card, couplePhotoKey: row.coupleImageKey },
+    card: row.card ? cardSchema.parse(JSON.parse(row.card)) : EMPTY_CARD,
   };
+}
+
+export async function getParty(
+  db: Database,
+  key: string,
+  clientId: string,
+  partyId: string,
+): Promise<PartyView> {
+  return toView(key, clientId, await loadParty(db, clientId, partyId));
+}
+
+export async function updatePartyFor(
+  db: Database,
+  key: string,
+  clientId: string,
+  input: { id: string; displayName: string; seatLabel: string | null; rules: string | null },
+): Promise<PartyView> {
+  await loadParty(db, clientId, input.id);
+  await db
+    .update(partyTable)
+    .set({ displayName: input.displayName, seatLabel: input.seatLabel, rules: input.rules })
+    .where(and(eq(partyTable.id, input.id), eq(partyTable.clientId, clientId)));
+  return toView(key, clientId, await loadParty(db, clientId, input.id));
+}
+
+export async function deletePartyFor(db: Database, clientId: string, partyId: string): Promise<void> {
+  await loadParty(db, clientId, partyId);
+  await db.delete(partyTable).where(and(eq(partyTable.id, partyId), eq(partyTable.clientId, clientId)));
 }
 
 /** Owner-checked read. Every host write goes through here first. */
@@ -130,23 +164,40 @@ async function loadParty(db: Database, clientId: string, partyId: string): Promi
   return rows[0];
 }
 
-export async function createInvitation(db: Database, clientId: string, template: string): Promise<InvitationView> {
+export async function createInvitation(
+  db: Database,
+  clientId: string,
+  template: string,
+): Promise<InvitationView> {
   const id = randomToken();
   await db.insert(event).values({ id, clientId, eventType: "wedding", preset: template });
   return toInvitation(await loadEvent(db, clientId, id));
 }
 
 export async function listInvitations(db: Database, clientId: string): Promise<InvitationView[]> {
-  const rows = await db.select().from(event).where(eq(event.clientId, clientId)).orderBy(event.createdAt);
+  const rows = await db
+    .select()
+    .from(event)
+    .where(eq(event.clientId, clientId))
+    .orderBy(event.createdAt);
   return rows.map(toInvitation);
 }
 
-export async function getInvitation(db: Database, clientId: string, eventId: string): Promise<InvitationView> {
+export async function getInvitation(
+  db: Database,
+  clientId: string,
+  eventId: string,
+): Promise<InvitationView> {
   return toInvitation(await loadEvent(db, clientId, eventId));
 }
 
 /** Persists the card for one invitation. Returns the card as stored. */
-export async function saveCard(db: Database, clientId: string, eventId: string, card: Card): Promise<Card> {
+export async function saveCard(
+  db: Database,
+  clientId: string,
+  eventId: string,
+  card: Card,
+): Promise<Card> {
   await loadEvent(db, clientId, eventId);
   await db
     .update(event)
@@ -155,17 +206,8 @@ export async function saveCard(db: Database, clientId: string, eventId: string, 
   return card;
 }
 
-/** Records the couple photo key on one invitation. */
-export async function setCouplePhotoKey(db: Database, clientId: string, eventId: string, key: string): Promise<void> {
-  await loadEvent(db, clientId, eventId);
-  await db
-    .update(event)
-    .set({ coupleImageKey: key })
-    .where(and(eq(event.id, eventId), eq(event.clientId, clientId)));
-}
-
 /** Guest-side read of an invitation's card. Only used after the party's link secret checks out. */
-async function getCard(db: Database, eventId: string): Promise<CardView> {
+async function getCard(db: Database, eventId: string): Promise<Card> {
   const rows = await db.select().from(event).where(eq(event.id, eventId)).limit(1);
   if (!rows[0]) throw new InviteError("NOT_FOUND", "Invitation not found");
   return toInvitation(rows[0]).card;
@@ -196,11 +238,17 @@ export async function createPartyFor(
   return toView(key, clientId, await loadParty(db, clientId, domain.id));
 }
 
-export async function listParties(db: Database, key: string, clientId: string): Promise<PartyView[]> {
+export async function listParties(
+  db: Database,
+  key: string,
+  clientId: string,
+  eventId: string,
+): Promise<PartyView[]> {
+  await loadEvent(db, clientId, eventId);
   const rows = await db
     .select()
     .from(partyTable)
-    .where(eq(partyTable.clientId, clientId))
+    .where(and(eq(partyTable.clientId, clientId), eq(partyTable.eventId, eventId)))
     .orderBy(partyTable.createdAt);
   return Promise.all(rows.map((row) => toView(key, clientId, row)));
 }
@@ -269,7 +317,11 @@ async function persistGuestState(db: Database, clientId: string, next: Party): P
 }
 
 /** Parties created before invitations existed have no eventId and cannot be opened. */
-async function openResult(db: Database, eventId: string | null, party: Party): Promise<GuestResult> {
+async function openResult(
+  db: Database,
+  eventId: string | null,
+  party: Party,
+): Promise<GuestResult> {
   if (!eventId) return CLOSED;
   return { state: "open", party: toGuest(party), card: await getCard(db, eventId) };
 }

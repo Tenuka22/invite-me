@@ -1,10 +1,13 @@
-import { type CardView } from "@invite-me/api/invites/card";
+import { type Card } from "@invite-me/api/invites/card";
 import { parseLinkToken } from "@invite-me/api/invites/token";
+import { Button } from "@invite-me/ui/components/motion/button/base";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@invite-me/ui/components/motion/dialog";
+import { Check, Heart, Minus, Plus } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 
-import { couplePhotoUrl } from "@/components/couple-photo-field";
+import { GuestInviteSkeleton } from "@/components/page-skeletons";
 import { toast } from "@/components/toaster";
 import { GoldenCallerCard } from "@/presets/traditional-golden-caller/card";
 import { orpc } from "@/utils/orpc";
@@ -27,7 +30,7 @@ function GuestInvite() {
 function GuestLoader({ input }: { input: LinkInput }) {
   const invite = useQuery(orpc.invite.resolve.queryOptions({ input }));
 
-  if (invite.isPending) return <p className="p-6 text-center text-sm">Loading invitation…</p>;
+  if (invite.isPending) return <GuestInviteSkeleton />;
   if (!invite.data || invite.data.state === "closed") return <Closed />;
 
   return <Open input={input} party={invite.data.party} card={invite.data.card} />;
@@ -41,7 +44,7 @@ type GuestParty = {
   rsvp: string;
 };
 
-function Open({ input, party, card }: { input: LinkInput; party: GuestParty; card: CardView }) {
+function Open({ input, party, card }: { input: LinkInput; party: GuestParty; card: Card }) {
   const recordOpen = useMutation(orpc.invite.recordOpen.mutationOptions());
   const counted = useRef(false);
 
@@ -53,18 +56,25 @@ function Open({ input, party, card }: { input: LinkInput; party: GuestParty; car
   }
 
   return (
-    <main className="mx-auto min-h-dvh w-full max-w-md px-3 py-4 lg:max-w-none">
-      <p className="mb-3 text-center text-sm text-muted-foreground">For {party.displayName}</p>
-      <div ref={onCardMounted}>
-        <GoldenCallerCard card={card} photoUrl={couplePhotoUrl(card.couplePhotoKey)} />
+    <main className="mx-auto min-h-dvh w-full px-3 pt-4 pb-32">
+      <p className="mb-4 text-center font-display text-xl text-muted-foreground">For {party.displayName}</p>
+      <div ref={onCardMounted} className="mx-auto w-full" style={{ maxWidth: "min(100%, 56rem)" }}>
+        <GoldenCallerCard card={card} maxWidth="100%" />
       </div>
+      {card.rules ? <p className="mx-auto mt-6 max-w-md text-base whitespace-pre-line">{card.rules}</p> : null}
+      {party.rules ? <p className="mx-auto mt-3 max-w-md text-base whitespace-pre-line">{party.rules}</p> : null}
       <Rsvp input={input} seats={party.seats} seatLabel={party.seatLabel} current={party.rsvp} />
-      {card.rules ? <p className="mt-4 text-sm whitespace-pre-line">{card.rules}</p> : null}
-      {party.rules ? <p className="mt-2 text-sm whitespace-pre-line">{party.rules}</p> : null}
     </main>
   );
 }
 
+const REPLY_LABEL: Record<string, string> = {
+  yes: "You're coming",
+  maybe: "Maybe",
+  no: "Can't make it",
+};
+
+/** A floating "Will you attend?" button; the answer is chosen in a sheet and then shown on the button. */
 function Rsvp({
   input,
   seats,
@@ -76,54 +86,118 @@ function Rsvp({
   seatLabel: string | null;
   current: string;
 }) {
+  const [status, setStatus] = useState(current);
   const [headCount, setHeadCount] = useState(seats);
+  const [open, setOpen] = useState(false);
   const rsvp = useMutation(
     orpc.invite.rsvp.mutationOptions({
-      onSuccess: () => toast.success("Thank you, your response is recorded"),
+      onSuccess: (_result, sent) => {
+        setStatus(sent.status);
+        setOpen(false);
+        toast.success("Thank you, your response is recorded");
+      },
       onError: (error) => toast.error("Could not record response", { description: error.message }),
     }),
   );
+  const answered = status !== "pending";
 
   return (
-    <section className="mt-6 grid gap-3 rounded-lg border p-4">
-      <p className="text-sm font-medium">
-        Will you attend? {current !== "pending" ? `(now: ${current})` : ""}
-      </p>
-      <label className="grid gap-1 text-sm">
-        {seatLabel ?? "Number attending"}
-        <input
-          type="number"
-          min={1}
-          max={seats}
-          className="rounded-md border bg-background px-3 py-2"
-          value={headCount}
-          onChange={(e) => setHeadCount(Number(e.target.value))}
-        />
-      </label>
-      <div className="grid grid-cols-3 gap-2">
-        <button
-          type="button"
-          className="rounded-md border px-3 py-2"
-          onClick={() => rsvp.mutate({ ...input, status: "yes", headCount })}
+    <>
+      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <Button
+          size="lg"
+          variant={answered ? "secondary" : "primary"}
+          className="pointer-events-auto h-14 w-full max-w-sm gap-3 text-lg shadow-[0_12px_32px_-8px_oklch(0.26_0.035_40/0.45)]"
+          onClick={() => setOpen(true)}
         >
-          Yes
-        </button>
-        <button
-          type="button"
-          className="rounded-md border px-3 py-2"
-          onClick={() => rsvp.mutate({ ...input, status: "maybe" })}
-        >
-          Maybe
-        </button>
-        <button
-          type="button"
-          className="rounded-md border px-3 py-2"
-          onClick={() => rsvp.mutate({ ...input, status: "no" })}
-        >
-          No
-        </button>
+          {answered ? (
+            <>
+              <Check className="size-5 text-primary" aria-hidden />
+              {REPLY_LABEL[status] ?? status}
+              <span className="text-muted-foreground">· Change</span>
+            </>
+          ) : (
+            <>
+              <Heart className="size-5" aria-hidden />
+              Will you attend?
+            </>
+          )}
+        </Button>
       </div>
-    </section>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <div className="grid gap-6">
+            <div>
+              <DialogTitle className="font-display text-3xl tracking-[-0.02em]">Will you attend?</DialogTitle>
+              <DialogDescription className="mt-1 text-base text-muted-foreground">
+                Let the hosts know. You can change your answer later.
+              </DialogDescription>
+            </div>
+
+            {seats > 1 ? (
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-base font-medium">{seatLabel ?? "Number attending"}</span>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    className="size-12 p-0"
+                    aria-label="One fewer"
+                    disabled={headCount <= 1}
+                    onClick={() => setHeadCount((n) => n - 1)}
+                  >
+                    <Minus className="size-5" aria-hidden />
+                  </Button>
+                  <span className="w-8 text-center text-xl font-semibold tabular-nums" aria-live="polite">
+                    {headCount}
+                  </span>
+                  <Button
+                    variant="outline"
+                    className="size-12 p-0"
+                    aria-label="One more"
+                    disabled={headCount >= seats}
+                    onClick={() => setHeadCount((n) => n + 1)}
+                  >
+                    <Plus className="size-5" aria-hidden />
+                  </Button>
+                </div>
+              </div>
+            ) : null}
+
+            <div className="grid gap-3">
+              <Button
+                size="lg"
+                className="h-14 text-lg"
+                disabled={rsvp.isPending}
+                onClick={() => rsvp.mutate({ ...input, status: "yes", headCount })}
+              >
+                Yes, I'll be there
+              </Button>
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="h-14 text-lg"
+                  disabled={rsvp.isPending}
+                  onClick={() => rsvp.mutate({ ...input, status: "maybe" })}
+                >
+                  Maybe
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="h-14 text-lg"
+                  disabled={rsvp.isPending}
+                  onClick={() => rsvp.mutate({ ...input, status: "no" })}
+                >
+                  Can't make it
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 

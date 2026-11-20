@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" role="img" aria-labelledby="invite-me-mark">
+  <title id="invite-me-mark">Invite Me</title>
+  <g fill="none" stroke="#141414" stroke-width="1.6" stroke-linejoin="round">
+    <path d="M12 3.6 20.4 12 12 20.4 3.6 12Z" />
+    <path d="M12 8.4 15.6 12 12 15.6 8.4 12Z" />
+  </g>
+</svg>

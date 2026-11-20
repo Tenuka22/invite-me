@@ -9,7 +9,7 @@ import {
   useState,
 } from "react";
 
-import { type Card, cardDateParts } from "@invite-me/api/invites/card";
+import { type Card, cardDateParts, withPlaceholders } from "@invite-me/api/invites/card";
 
 import { Mandala } from "./mandala";
 
@@ -90,7 +90,7 @@ function useInView<T extends Element>(enabled: boolean) {
 
 /**
  * Fades/blurs its children in. It is also the `group/reveal` that every
- * descendant animation (mandala, rule, date frame, photo) keys off via
+ * descendant animation (mandala, rule, date frame) keys off via
  * `group-data-[in=true]/reveal:`; `--d` is the stagger delay they inherit.
  */
 function Reveal({
@@ -167,11 +167,26 @@ function PaperTexture() {
 
 /* ---- the card ---------------------------------------------------------- */
 
-/** Renders the golden-caller invitation from card data. `photoUrl` is optional; no frame when absent. */
-export function GoldenCallerCard({ card, photoUrl }: { card: Card; photoUrl?: string }) {
+/**
+ * Renders the golden-caller invitation from card data.
+ *
+ * `forceOpen` skips the cover so the editor and template picker show the written card straight away
+ * (the cover only opens, it never closes again). `maxWidth` overrides the width cap, which is derived
+ * from the viewport height so the portrait card always fits on screen.
+ */
+export function GoldenCallerCard({
+  card: rawCard,
+  forceOpen = false,
+  maxWidth,
+}: {
+  card: Card;
+  forceOpen?: boolean;
+  maxWidth?: string;
+}) {
+  const card = withPlaceholders(rawCard);
   const rootRef = useRef<HTMLDivElement>(null);
-  const [open, setOpen] = useState(false);
-  const [revealed, setRevealed] = useState(false);
+  const [open, setOpen] = useState(forceOpen);
+  const [revealed, setRevealed] = useState(forceOpen);
   const sheenFrame = useRef(0);
   const date = cardDateParts(card.date);
   const hosts = [card.hostLine1, card.connector, card.hostLine2];
@@ -237,11 +252,14 @@ export function GoldenCallerCard({ card, photoUrl }: { card: Card; photoUrl?: st
       ref={rootRef}
       data-open={open}
       onPointerMove={onPointerMove}
+      style={maxWidth ? { maxWidth } : undefined}
       className={[
         ROOT_VARS,
         FONT_CAPS,
         "group/card relative mx-auto w-full max-w-[min(900px,calc((100svh-1.5rem)*0.706))] text-[color:var(--ink)]",
         "[container-type:inline-size] [perspective:1400px]",
+        // Forced-open previews are static: resolve the reveal animations in a single frame.
+        forceOpen ? "!duration-0 [&_*]:!duration-0 [&_*]:!delay-0" : "",
       ].join(" ")}
     >
       <div className="relative">
@@ -307,23 +325,6 @@ export function GoldenCallerCard({ card, photoUrl }: { card: Card; photoUrl?: st
               </p>
             </Reveal>
 
-            {/* Optional photo: oval morphs into an arch */}
-            {photoUrl ? (
-              <Reveal enabled={revealed} delay={850} className="mt-[2cqw]">
-                <div
-                  className={[
-                    "mx-auto aspect-[4/5] w-[38cqw] overflow-hidden border border-solid border-[color:var(--gold)]",
-                    "[border-radius:50%_50%_50%_50%/60%_60%_40%_40%]",
-                    `transition-[border-radius] duration-[1400ms] ${EASE_OUT} [transition-delay:var(--d)]`,
-                    "group-data-[in=true]/reveal:[border-radius:999px_999px_14px_14px]",
-                    "motion-reduce:[border-radius:999px_999px_14px_14px] motion-reduce:[transition-delay:0ms]",
-                  ].join(" ")}
-                >
-                  <img src={photoUrl} alt="" className="h-full w-full object-cover" />
-                </div>
-              </Reveal>
-            ) : null}
-
             {/* Names, with AND flanked by two gold rules as wide as the longest name */}
             <Reveal enabled={revealed} delay={1000} className="mt-[0.4cqw]">
               <div className="mx-auto w-fit text-[6.4cqw] leading-none tracking-[0.03em]">
@@ -361,7 +362,9 @@ export function GoldenCallerCard({ card, photoUrl }: { card: Card; photoUrl?: st
                   </div>
                 ))}
                 <div className="col-start-2 row-start-1 flex items-center justify-center whitespace-nowrap">
-                  <span className={`${FONT_NUM} ${GOLD_TEXT} text-[9.3cqw] leading-none`}>{date.day}</span>
+                  <span className={`${FONT_NUM} ${GOLD_TEXT} text-[9.3cqw] leading-none`}>
+                    {date.day}
+                  </span>
                 </div>
               </div>
               <div className="mt-[0.8cqw] text-[max(10px,2.2cqw)] leading-[1.3] tracking-[0.2em] text-[color:var(--gold)] opacity-85">
@@ -389,9 +392,11 @@ export function GoldenCallerCard({ card, photoUrl }: { card: Card; photoUrl?: st
             </Reveal>
 
             {/* RSVP */}
-            <Reveal enabled={revealed} delay={1600} className="mt-[1.6cqw]">
+            <Reveal enabled={revealed} delay={1600} className="mt-[1.6cqw] pb-[8cqw]">
               <p className="uppercase tracking-[0.1em]">
-                <span className="block text-[max(10px,2.05cqw)] leading-[1.3] tracking-[0.12em]">RSVP</span>
+                <span className="block text-[max(10px,2.05cqw)] leading-[1.3] tracking-[0.12em]">
+                  RSVP
+                </span>
                 {card.rsvpContacts.map((contact, i) => (
                   <span key={i} className="block text-[max(10px,1.95cqw)] leading-[1.3]">
                     {contact.name}-
@@ -406,10 +411,26 @@ export function GoldenCallerCard({ card, photoUrl }: { card: Card; photoUrl?: st
               </p>
             </Reveal>
           </div>
+
+          {/* Rules: small print pinned to the bottom of the sheet */}
+          {card.rules ? (
+            <Reveal
+              enabled={revealed}
+              delay={1800}
+              className="absolute inset-x-[18cqw] bottom-[3.4cqw] z-[1]"
+            >
+              <p className="text-center text-[max(8px,1.55cqw)] uppercase leading-[1.5] tracking-[0.12em] whitespace-pre-line opacity-80">
+                {card.rules}
+              </p>
+            </Reveal>
+          ) : null}
         </div>
 
         {/* Cover: flat gold panel, cream hairline frame and a mandala ornament; swings open and shut on a hinge */}
-        <div className="pointer-events-none absolute inset-0 z-[2] overflow-y-clip">
+        <div
+          hidden={forceOpen}
+          className="pointer-events-none absolute inset-0 z-[2] overflow-y-clip"
+        >
           <div
             role="button"
             tabIndex={open ? -1 : 0}
@@ -437,8 +458,12 @@ export function GoldenCallerCard({ card, photoUrl }: { card: Card; photoUrl?: st
             >
               <Mandala />
             </div>
-            <span className="text-[max(16px,4.4cqw)] uppercase leading-none tracking-[0.4em] text-[#fff3c9]">Open</span>
-            <span className="text-[max(11px,2.2cqw)] uppercase tracking-[0.3em] text-[#fff3c9]/85">Tap to open</span>
+            <span className="text-[max(16px,4.4cqw)] uppercase leading-none tracking-[0.4em] text-[#fff3c9]">
+              Open
+            </span>
+            <span className="text-[max(11px,2.2cqw)] uppercase tracking-[0.3em] text-[#fff3c9]/85">
+              Tap to open
+            </span>
           </div>
         </div>
       </div>

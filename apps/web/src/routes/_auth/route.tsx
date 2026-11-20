@@ -1,37 +1,39 @@
-import { Link, Outlet, createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { Outlet, createFileRoute, redirect, useRouterState } from "@tanstack/react-router";
 
+import { HostShell } from "@/components/host-header";
+import { HostPageSkeleton } from "@/components/page-skeletons";
 import { authClient } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/_auth")({
   ssr: false,
   component: HostLayout,
-  beforeLoad: async () => {
-    const { data } = await authClient.getSession();
-    if (!data?.session) throw redirect({ to: "/login" });
+  // A hard load checks the session first; show the real top bar and a page skeleton instead of a blank screen.
+  pendingComponent: HostLayoutPending,
+  // Show the skeleton the moment navigation starts, and keep it up at least 250ms so it doesn't flicker.
+  pendingMs: 0,
+  pendingMinMs: 250,
+  beforeLoad: async ({ location }) => {
+    const { data, error } = await authClient.getSession();
+    // A failed request (server restarting, network blip) is not a sign-out: only a confirmed empty session redirects.
+    if (!data?.session && !error) {
+      throw redirect({ to: "/login", search: { next: location.pathname } });
+    }
   },
 });
 
 function HostLayout() {
-  const navigate = useNavigate();
-  async function logOut() {
-    await authClient.signOut();
-    await navigate({ to: "/login" });
-  }
   return (
-    <div className="min-h-svh">
-      <nav className="flex items-center gap-4 border-b p-4 text-sm">
-        <span className="font-semibold">InviteMe</span>
-        <Link to="/invitations" className="hover:underline" activeProps={{ className: "font-semibold" }}>
-          Invitations
-        </Link>
-        <Link to="/parties" className="hover:underline" activeProps={{ className: "font-semibold" }}>
-          Guests
-        </Link>
-        <button type="button" onClick={logOut} className="ml-auto hover:underline">
-          Log out
-        </button>
-      </nav>
+    <HostShell>
       <Outlet />
-    </div>
+    </HostShell>
+  );
+}
+
+function HostLayoutPending() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  return (
+    <HostShell>
+      <HostPageSkeleton pathname={pathname} />
+    </HostShell>
   );
 }

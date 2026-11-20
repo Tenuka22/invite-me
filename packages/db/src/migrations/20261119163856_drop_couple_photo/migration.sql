@@ -1,0 +1,1 @@
+ALTER TABLE `event` DROP COLUMN `couple_image_key`;

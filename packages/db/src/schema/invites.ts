@@ -30,7 +30,6 @@ export const event = sqliteTable(
     preset: text("preset").notNull(),
     /** JSON card content, validated by the API. Null means template defaults. */
     card: text("card"),
-    coupleImageKey: text("couple_image_key"),
     createdAt: integer("created_at", { mode: "timestamp_ms" }).default(now).notNull(),
   },
   (table) => [index("event_clientId_idx").on(table.clientId)],

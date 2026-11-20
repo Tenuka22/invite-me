@@ -1,6 +1,3 @@
-import { clientIdForUser } from "@invite-me/api/invites/host";
-import { InviteError } from "@invite-me/api/invites/party";
-import { COUPLE_KEY, PHOTO_MAX_BYTES, storeCouplePhoto } from "@invite-me/api/invites/photo";
 import { appRouter } from "@invite-me/api/routers/index";
 import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
@@ -14,6 +11,7 @@ import { logger } from "hono/logger";
 import { createContext } from "./context";
 import { ENV } from "./env.server";
 import { createAuth } from "./services";
+import { signInMethods } from "@invite-me/auth";
 
 const app = new Hono();
 
@@ -39,38 +37,10 @@ const requireWebOrigin: MiddlewareHandler = async (c, next) => {
 app.use("/rpc/*", requireWebOrigin);
 app.use("/api/*", requireWebOrigin);
 
+/** Which sign-in methods are on, so the login page offers only those that work. */
+app.get("/api/methods", (c) => c.json(signInMethods(ENV)));
+
 app.on(["POST", "GET"], "/api/auth/*", async (c) => (await createAuth()).handler(c.req.raw));
-
-/** Host uploads the processed couple photo as raw WebP bytes for one invitation the host owns. */
-app.post("/api/photo/couple", async (c) => {
-  const context = await createContext({ context: c });
-  if (!context.userId) return c.json({ message: "Log in first" }, 401);
-  const clientId = await clientIdForUser(context.db, context.userId);
-  const eventId = c.req.query("invitation");
-  if (!eventId) return c.json({ message: "Missing invitation" }, 400);
-  if (Number(c.req.header("content-length") ?? 0) > PHOTO_MAX_BYTES) {
-    return c.json({ message: "Photo must be under 2 MB" }, 413);
-  }
-  const bytes = new Uint8Array(await c.req.arrayBuffer());
-  try {
-    const key = await storeCouplePhoto(context.db, ENV.PHOTOS, clientId, eventId, bytes);
-    return c.json({ key });
-  } catch (error) {
-    if (error instanceof InviteError) return c.json({ message: error.message }, 400);
-    throw error;
-  }
-});
-
-/** Public couple photo. Keys carry a random id and change on re-upload, so responses are immutable. */
-app.get("/photos/couple/:clientId/:file", async (c) => {
-  const key = `couple/${c.req.param("clientId")}/${c.req.param("file")}`;
-  if (!COUPLE_KEY.test(key)) return c.notFound();
-  const object = await ENV.PHOTOS.get(key);
-  if (!object) return c.notFound();
-  return new Response(object.body, {
-    headers: { "Content-Type": "image/webp", "Cache-Control": "public, max-age=31536000, immutable" },
-  });
-});
 
 export const apiHandler = new OpenAPIHandler(appRouter, {
   plugins: [
