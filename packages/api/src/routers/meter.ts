@@ -1,16 +1,18 @@
 import { z } from "zod";
 
+import { requireAccess } from "../invites/access";
 import { computeMeter } from "../invites/meter";
 import { listParties } from "../invites/store";
-import { hostProcedure } from "../index";
+import { publicProcedure } from "../index";
 import { guard } from "./errors";
 
 export const meterRouter = {
-  get: hostProcedure.input(z.object({ eventId: z.string().min(1) })).handler(({ context, input }) =>
-    guard(() =>
-      listParties(context.db, context.inviteLinkKey, context.clientId, input.eventId).then(
-        computeMeter,
-      ),
+  get: publicProcedure
+    .input(z.object({ eventId: z.string().min(1) }))
+    .handler(async ({ context, input }) =>
+      guard(async () => {
+        await requireAccess(context.db, input.eventId, context.userId);
+        return listParties(context.db, context.inviteLinkKey, input.eventId).then(computeMeter);
+      }),
     ),
-  ),
 };

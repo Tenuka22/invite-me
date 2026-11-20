@@ -115,6 +115,8 @@ export function cardDateParts(iso: string): {
   year: string;
 } {
   const d = new Date(`${iso}T00:00:00Z`);
+  // Unpicked date: show nothing rather than a placeholder.
+  if (Number.isNaN(d.getTime())) return { month: "", day: "", weekday: "", year: "" };
   return {
     month: d.toLocaleString("en-US", { month: "long", timeZone: "UTC" }).toUpperCase(),
     day: String(d.getUTCDate()),

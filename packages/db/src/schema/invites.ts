@@ -61,6 +61,27 @@ export const party = sqliteTable(
   (table) => [index("party_clientId_idx").on(table.clientId)],
 );
 
+/**
+ * Who holds access to an invitation. The `role="owner"` row is the creator;
+ * `role="admin"` rows are brides/grooms (and other spouses) granted via an
+ * admin invite link. One row per (event, user); an event has at most one owner.
+ */
+export const eventAdmin = sqliteTable(
+  "event_admin",
+  {
+    id: text("id").primaryKey(),
+    eventId: text("event_id")
+      .notNull()
+      .references(() => event.id),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id),
+    role: text("role").notNull().default("admin"),
+    grantedAt: integer("granted_at", { mode: "timestamp_ms" }).default(now).notNull(),
+  },
+  (table) => [uniqueIndex("event_admin_event_user_uq").on(table.eventId, table.userId)],
+);
+
 /** Fixed-window request counters for abuse limits. `bucket` is a hash; raw client addresses are never stored. */
 export const rateLimits = sqliteTable("rate_limits", {
   bucket: text("bucket").primaryKey(),

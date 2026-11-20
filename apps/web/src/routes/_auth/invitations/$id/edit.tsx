@@ -31,8 +31,8 @@ const LARGE_PREVIEW_MAX_WIDTH = "min(100%, calc((100svh - 8rem) * 0.706))";
  * (The card itself falls back to CARD_PLACEHOLDERS, drawn on the card only.)
  */
 const HINT = {
-  name1: "e.g. Binuri",
-  name2: "e.g. Sameera",
+  name1: "e.g. Nethmi",
+  name2: "e.g. Sadun",
   hostLine1: "e.g. Mr. & Mrs. Perera",
   hostLine2: "e.g. Mr. & Mrs. Silva",
   timeFrom: "e.g. 9.30 AM",
@@ -824,6 +824,7 @@ function Preview({
             maxWidth="100%"
             activeField={activeField}
             onFieldClick={onFieldClick}
+            hideUnpicked
           />
         </div>
         <p className="mt-3 text-center text-xs text-muted-foreground">
@@ -853,7 +854,7 @@ function Preview({
                 <span className="text-sm font-medium">Preview</span>
               </div>
               <div className="grid place-items-center overflow-y-auto rounded-lg shadow-2xl">
-                <GoldenCallerCard card={card} forceOpen maxWidth={LARGE_PREVIEW_MAX_WIDTH} />
+                <GoldenCallerCard card={card} forceOpen maxWidth={LARGE_PREVIEW_MAX_WIDTH} hideUnpicked />
               </div>
             </div>
           </div>

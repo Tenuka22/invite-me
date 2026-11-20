@@ -31,6 +31,25 @@ export function parseLinkToken(token: string): { id: string; secret: string } | 
 }
 
 /**
+ * Deterministic admin-invite secret for one invitation: `/admin/invite/<eventId>.<secret>`.
+ * HMAC-SHA256 under the server key, base64url — same construction as guest links,
+ * recomputed on every request so no secret needs storing. Rotating the key revokes all links.
+ */
+export async function deriveAdminInviteSecret(key: string, eventId: string): Promise<string> {
+  const cryptoKey = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(key),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const mac = await crypto.subtle.sign("HMAC", cryptoKey, encoder.encode(`admin:${eventId}`));
+  let binary = "";
+  for (const b of new Uint8Array(mac)) binary += String.fromCharCode(b);
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+/**
  * Deterministic guest-link secret for one party. HMAC-SHA256 under the server
  * key, base64url. Recomputed on every request, so no per-party secret is stored
  * and the QR can be rebuilt from the list. Rotating the key revokes all links.

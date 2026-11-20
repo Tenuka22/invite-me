@@ -9,7 +9,8 @@ import {
   revokeParty,
   updatePartyFor,
 } from "../invites/store";
-import { hostProcedure } from "../index";
+import { requireAccess } from "../invites/access";
+import { publicProcedure } from "../index";
 import { guard } from "./errors";
 
 const partyInput = z.object({
@@ -32,25 +33,28 @@ const partyUpdate = z.object({
 });
 
 export const partiesRouter = {
-  list: hostProcedure.input(z.object({ eventId: z.string().min(1) })).handler(({ context, input }) =>
-    guard(() => listParties(context.db, context.inviteLinkKey, context.clientId, input.eventId)),
+  list: publicProcedure.input(z.object({ eventId: z.string().min(1) })).handler(({ context, input }) =>
+    guard(async () => {
+      await requireAccess(context.db, input.eventId, context.userId);
+      return listParties(context.db, context.inviteLinkKey, input.eventId);
+    }),
   ),
-  get: hostProcedure.input(partyId).handler(({ context, input }) =>
-    guard(() => getParty(context.db, context.inviteLinkKey, context.clientId, input.id)),
+  get: publicProcedure.input(partyId).handler(({ context, input }) =>
+    guard(() => getParty(context.db, context.inviteLinkKey, context.userId, input.id)),
   ),
-  update: hostProcedure.input(partyUpdate).handler(({ context, input }) =>
-    guard(() => updatePartyFor(context.db, context.inviteLinkKey, context.clientId, input)),
+  update: publicProcedure.input(partyUpdate).handler(({ context, input }) =>
+    guard(() => updatePartyFor(context.db, context.inviteLinkKey, context.userId, input)),
   ),
-  delete: hostProcedure.input(partyId).handler(({ context, input }) =>
-    guard(() => deletePartyFor(context.db, context.clientId, input.id)),
+  delete: publicProcedure.input(partyId).handler(({ context, input }) =>
+    guard(() => deletePartyFor(context.db, context.userId, input.id)),
   ),
-  create: hostProcedure.input(partyInput).handler(({ context, input }) =>
-    guard(() => createPartyFor(context.db, context.inviteLinkKey, context.clientId, input)),
+  create: publicProcedure.input(partyInput).handler(({ context, input }) =>
+    guard(() => createPartyFor(context.db, context.inviteLinkKey, context.userId, input)),
   ),
-  markShared: hostProcedure.input(partyId).handler(({ context, input }) =>
-    guard(() => markPartyShared(context.db, context.inviteLinkKey, context.clientId, input.id)),
+  markShared: publicProcedure.input(partyId).handler(({ context, input }) =>
+    guard(() => markPartyShared(context.db, context.inviteLinkKey, context.userId, input.id)),
   ),
-  revoke: hostProcedure.input(partyId).handler(({ context, input }) =>
-    guard(() => revokeParty(context.db, context.inviteLinkKey, context.clientId, input.id)),
+  revoke: publicProcedure.input(partyId).handler(({ context, input }) =>
+    guard(() => revokeParty(context.db, context.inviteLinkKey, context.userId, input.id)),
   ),
 };

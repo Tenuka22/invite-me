@@ -202,6 +202,7 @@ export function GoldenCallerCard({
   flow = false,
   activeField,
   onFieldClick,
+  hideUnpicked = false,
 }: {
   card: Card;
   forceOpen?: boolean;
@@ -212,8 +213,10 @@ export function GoldenCallerCard({
   activeField?: CardField | null;
   /** Editor only: called with the tapped card part. */
   onFieldClick?: (field: CardField) => void;
+  /** Editor only: show nothing for values the host hasn't picked yet. */
+  hideUnpicked?: boolean;
 }) {
-  const card = withPlaceholders(rawCard);
+  const card = hideUnpicked ? rawCard : withPlaceholders(rawCard);
   const rootRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(forceOpen);
   const [revealed, setRevealed] = useState(forceOpen);

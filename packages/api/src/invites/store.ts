@@ -1,8 +1,9 @@
 import { and, eq } from "drizzle-orm";
 
 import type { Database } from "@invite-me/db";
-import { event, party as partyTable } from "@invite-me/db/schema/invites";
+import { event, eventAdmin, party as partyTable } from "@invite-me/db/schema/invites";
 
+import { requireAccess, requireOwner, type AccessRole } from "./access";
 import { type Card, EMPTY_CARD, cardSchema } from "./card";
 import {
   type CreatePartyInput,
@@ -18,7 +19,8 @@ import {
   setRsvp,
   statusOf,
 } from "./party";
-import { deriveLinkSecret, randomToken, timingSafeEqual } from "./token";
+import { clientIdForUser } from "./host";
+import { deriveAdminInviteSecret, deriveLinkSecret, randomToken, timingSafeEqual } from "./token";
 
 type PartyRow = typeof partyTable.$inferSelect;
 type EventRow = typeof event.$inferSelect;
@@ -33,6 +35,8 @@ export type InvitationView = {
   template: string;
   createdAt: number;
   card: Card;
+  /** This caller's access: the owner, or a bride/groom granted admin. */
+  role: AccessRole;
 };
 
 export type PartyView = Party & {
@@ -106,41 +110,32 @@ function toGuest(p: Party): GuestParty {
   };
 }
 
-function toInvitation(row: EventRow): InvitationView {
+function toInvitation(row: EventRow, role: AccessRole): InvitationView {
   return {
     id: row.id,
     template: row.preset,
     createdAt: row.createdAt.getTime(),
     card: row.card ? cardSchema.parse(JSON.parse(row.card)) : EMPTY_CARD,
+    role,
   };
-}
-
-export async function getParty(
-  db: Database,
-  key: string,
-  clientId: string,
-  partyId: string,
-): Promise<PartyView> {
-  return toView(key, clientId, await loadParty(db, clientId, partyId));
 }
 
 export async function updatePartyFor(
   db: Database,
   key: string,
-  clientId: string,
+  userId: string | null,
   input: { id: string; displayName: string; seatLabel: string | null; rules: string | null },
 ): Promise<PartyView> {
-  await loadParty(db, clientId, input.id);
-  await db
-    .update(partyTable)
-    .set({ displayName: input.displayName, seatLabel: input.seatLabel, rules: input.rules })
-    .where(and(eq(partyTable.id, input.id), eq(partyTable.clientId, clientId)));
-  return toView(key, clientId, await loadParty(db, clientId, input.id));
+  const row = await loadPartyRow(db, input.id);
+  await requireOwner(db, row.eventId ?? "", userId);
+  await db.update(partyTable).set({ displayName: input.displayName, seatLabel: input.seatLabel, rules: input.rules }).where(eq(partyTable.id, input.id));
+  return toView(key, row.clientId, await loadPartyRow(db, input.id));
 }
 
-export async function deletePartyFor(db: Database, clientId: string, partyId: string): Promise<void> {
-  await loadParty(db, clientId, partyId);
-  await db.delete(partyTable).where(and(eq(partyTable.id, partyId), eq(partyTable.clientId, clientId)));
+export async function deletePartyFor(db: Database, userId: string | null, partyId: string): Promise<void> {
+  const row = await loadPartyRow(db, partyId);
+  await requireOwner(db, row.eventId ?? "", userId);
+  await db.delete(partyTable).where(eq(partyTable.id, partyId));
 }
 
 /** Owner-checked read. Every host write goes through here first. */
@@ -154,11 +149,23 @@ async function loadEvent(db: Database, clientId: string, eventId: string): Promi
   return rows[0];
 }
 
-async function loadParty(db: Database, clientId: string, partyId: string): Promise<PartyRow> {
+/** Owner-side load by invitation id. */
+async function loadEventRow(db: Database, eventId: string): Promise<EventRow> {
+  const rows = await db
+    .select()
+    .from(event)
+    .where(eq(event.id, eventId))
+    .limit(1);
+  if (!rows[0]) throw new InviteError("NOT_FOUND", "Invitation not found");
+  return rows[0];
+}
+
+/** Owner-side load by party id. */
+async function loadPartyRow(db: Database, partyId: string): Promise<PartyRow> {
   const rows = await db
     .select()
     .from(partyTable)
-    .where(and(eq(partyTable.id, partyId), eq(partyTable.clientId, clientId)))
+    .where(eq(partyTable.id, partyId))
     .limit(1);
   if (!rows[0]) throw new InviteError("NOT_FOUND", "Party not found");
   return rows[0];
@@ -166,66 +173,105 @@ async function loadParty(db: Database, clientId: string, partyId: string): Promi
 
 export async function createInvitation(
   db: Database,
-  clientId: string,
   template: string,
+  ownerId: string,
 ): Promise<InvitationView> {
   const id = randomToken();
+  const clientId = await clientIdForUser(db, ownerId);
   await db.insert(event).values({ id, clientId, eventType: "wedding", preset: template });
-  return toInvitation(await loadEvent(db, clientId, id));
+  await db.insert(eventAdmin).values({
+    id: randomToken(),
+    eventId: id,
+    userId: ownerId,
+    role: "owner",
+  });
+  return toInvitation(await loadEvent(db, clientId, id), "owner");
 }
 
-export async function listInvitations(db: Database, clientId: string): Promise<InvitationView[]> {
+/** All invitations where the caller is owner or admin (themselves or brides/grooms granted control). */
+export async function listInvitations(db: Database, userId: string): Promise<InvitationView[]> {
   const rows = await db
-    .select()
-    .from(event)
-    .where(eq(event.clientId, clientId))
+    .select({ event: event, role: eventAdmin.role })
+    .from(eventAdmin)
+    .innerJoin(event, eq(event.id, eventAdmin.eventId))
+    .where(eq(eventAdmin.userId, userId))
     .orderBy(event.createdAt);
-  return rows.map(toInvitation);
+  return rows.map(({ event: row, role }) => toInvitation(row, role as AccessRole));
 }
 
 export async function getInvitation(
   db: Database,
-  clientId: string,
+  userId: string | null,
   eventId: string,
 ): Promise<InvitationView> {
-  return toInvitation(await loadEvent(db, clientId, eventId));
+  await requireAccess(db, eventId, userId);
+  const rows = await db
+    .select({ event: event, role: eventAdmin.role })
+    .from(eventAdmin)
+    .innerJoin(event, eq(event.id, eventAdmin.eventId))
+    .where(and(eq(eventAdmin.eventId, eventId), eq(eventAdmin.userId, userId!)))
+    .limit(1);
+  if (!rows[0]) throw new InviteError("NOT_FOUND", "Invitation not found");
+  return toInvitation(rows[0].event, rows[0].role as AccessRole);
 }
 
-/** Persists the card for one invitation. Returns the card as stored. */
+/** Persists the card for one invitation. Returns the card as stored. Owner only. */
 export async function saveCard(
   db: Database,
-  clientId: string,
+  userId: string | null,
   eventId: string,
   card: Card,
 ): Promise<Card> {
-  await loadEvent(db, clientId, eventId);
+  await requireOwner(db, eventId, userId);
+  await loadEvent(db, (await loadEventRow(db, eventId)).clientId, eventId);
   await db
     .update(event)
     .set({ card: JSON.stringify(card) })
-    .where(and(eq(event.id, eventId), eq(event.clientId, clientId)));
+    .where(eq(event.id, eventId));
   return card;
+}
+
+/** Grants a user admin access to an invitation (bridges them into the event's admin list). */
+export async function grantAdmin(db: Database, eventId: string, userId: string): Promise<void> {
+  await db
+    .insert(eventAdmin)
+    .values({ id: randomToken(), eventId, userId, role: "admin" })
+    .onConflictDoNothing({ target: [eventAdmin.eventId, eventAdmin.userId] });
+}
+
+/** The admin invite URL for others to take admin: `/admin/invite/<eventId>.<secret>`. */
+export async function adminInviteLinks(
+  db: Database,
+  key: string,
+  userId: string | null,
+  eventId: string,
+): Promise<{ eventId: string; secret: string }> {
+  await requireAccess(db, eventId, userId);
+  const secret = await deriveAdminInviteSecret(key, eventId);
+  return { eventId, secret };
 }
 
 /** Guest-side read of an invitation's card. Only used after the party's link secret checks out. */
 async function getCard(db: Database, eventId: string): Promise<Card> {
   const rows = await db.select().from(event).where(eq(event.id, eventId)).limit(1);
   if (!rows[0]) throw new InviteError("NOT_FOUND", "Invitation not found");
-  return toInvitation(rows[0]).card;
+  return toInvitation(rows[0], "admin").card;
 }
 
-/** The invitation must belong to the caller; the party's guest card comes from it. */
+/** The invitation must belong to the caller; the party's guest card comes from it. Owner only. */
 export async function createPartyFor(
   db: Database,
   key: string,
-  clientId: string,
+  userId: string | null,
   input: Omit<CreatePartyInput, "id"> & { eventId: string },
 ): Promise<PartyView> {
+  await requireOwner(db, input.eventId, userId);
   const { eventId, ...partyInput } = input;
-  await loadEvent(db, clientId, eventId);
+  const row = await loadEventRow(db, eventId);
   const domain = createParty({ ...partyInput, id: randomToken() });
-  const row: typeof partyTable.$inferInsert = {
+  const insert: typeof partyTable.$inferInsert = {
     id: domain.id,
-    clientId,
+    clientId: row.clientId,
     eventId,
     displayName: domain.displayName,
     invitedAs: domain.invitedAs,
@@ -234,51 +280,61 @@ export async function createPartyFor(
     rules: domain.rules,
     locale: domain.locale,
   };
-  await db.insert(partyTable).values(row);
-  return toView(key, clientId, await loadParty(db, clientId, domain.id));
+  await db.insert(partyTable).values(insert);
+  return toView(key, row.clientId, await loadPartyRow(db, domain.id));
 }
 
-export async function listParties(
-  db: Database,
-  key: string,
-  clientId: string,
-  eventId: string,
-): Promise<PartyView[]> {
-  await loadEvent(db, clientId, eventId);
+export async function listParties(db: Database, key: string, eventId: string): Promise<PartyView[]> {
+  const clientId = (await loadEventRow(db, eventId)).clientId;
   const rows = await db
     .select()
     .from(partyTable)
-    .where(and(eq(partyTable.clientId, clientId), eq(partyTable.eventId, eventId)))
+    .where(eq(partyTable.eventId, eventId))
     .orderBy(partyTable.createdAt);
   return Promise.all(rows.map((row) => toView(key, clientId, row)));
+}
+
+export async function getParty(
+  db: Database,
+  key: string,
+  userId: string | null,
+  partyId: string,
+): Promise<PartyView> {
+  const row = await loadPartyRow(db, partyId);
+  await requireAccess(db, row.eventId ?? "", userId);
+  return toView(key, row.clientId, row);
 }
 
 export async function markPartyShared(
   db: Database,
   key: string,
-  clientId: string,
+  userId: string | null,
   partyId: string,
 ): Promise<PartyView> {
-  const next = markShared(toDomain(await loadParty(db, clientId, partyId)));
+  const row = await loadPartyRow(db, partyId);
+  await requireOwner(db, row.eventId ?? "", userId);
+  const next = markShared(toDomain(row));
   await db
     .update(partyTable)
     .set({ shared: next.shared })
-    .where(and(eq(partyTable.id, partyId), eq(partyTable.clientId, clientId)));
-  return toView(key, clientId, await loadParty(db, clientId, partyId));
+    .where(eq(partyTable.id, partyId));
+  return toView(key, row.clientId, await loadPartyRow(db, partyId));
 }
 
 export async function revokeParty(
   db: Database,
   key: string,
-  clientId: string,
+  userId: string | null,
   partyId: string,
 ): Promise<PartyView> {
-  const next = revoke(toDomain(await loadParty(db, clientId, partyId)));
+  const row = await loadPartyRow(db, partyId);
+  await requireOwner(db, row.eventId ?? "", userId);
+  const next = revoke(toDomain(row));
   await db
     .update(partyTable)
     .set({ revoked: next.revoked })
-    .where(and(eq(partyTable.id, partyId), eq(partyTable.clientId, clientId)));
-  return toView(key, clientId, await loadParty(db, clientId, partyId));
+    .where(eq(partyTable.id, partyId));
+  return toView(key, row.clientId, await loadPartyRow(db, partyId));
 }
 
 /**
