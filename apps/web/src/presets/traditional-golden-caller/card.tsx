@@ -5,6 +5,7 @@ import {
   type PointerEvent,
   type ReactNode,
   Fragment,
+  memo,
   useEffect,
   useRef,
   useState,
@@ -173,7 +174,7 @@ const PAPER_MOTTLE = svgUrl(
 );
 
 /** Ivory paper: a faint gold lattice, fine grain and soft mottling. */
-function PaperTexture() {
+const PaperTexture = memo(function PaperTexture() {
   return (
     <div
       aria-hidden="true"
@@ -184,7 +185,7 @@ function PaperTexture() {
       }}
     />
   );
-}
+});
 
 /* ---- the card ---------------------------------------------------------- */
 

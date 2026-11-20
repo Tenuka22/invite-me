@@ -1,4 +1,4 @@
-import { type CSSProperties, useId } from "react";
+import { memo, type CSSProperties, useId } from "react";
 
 /*
  * Procedural traditional mandala, rebuilt to follow the printed reference card.
@@ -100,7 +100,7 @@ function star(points: number, outer: number, inner: number) {
   return `M${pts.join(" L")}Z`;
 }
 
-export function Mandala({ className = "" }: { className?: string }) {
+export const Mandala = memo(function Mandala({ className = "" }: { className?: string }) {
   const uid = useId().replace(/[^a-zA-Z0-9]/g, "");
   const gid = `gc-foil-${uid}`;
   const foil = `url(#${gid})`;
@@ -214,4 +214,4 @@ export function Mandala({ className = "" }: { className?: string }) {
       </g>
     </svg>
   );
-}
+});

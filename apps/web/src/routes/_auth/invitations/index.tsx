@@ -76,6 +76,8 @@ function InvitationsPage() {
   const navigate = useNavigate();
   const invitations = useQuery(orpc.invitations.list.queryOptions());
   const items = invitations.data ?? [];
+  // Show the last 3–4 to keep the gallery light.
+  const gallery = items.slice(-4);
 
   return (
     <main className="mx-auto w-full max-w-5xl px-6 pt-8 md:pt-12">
@@ -106,7 +108,7 @@ function InvitationsPage() {
         </div>
       ) : (
         <div className="mt-10 grid gap-8">
-          <InvitationGallery items={items} />
+          <InvitationGallery items={gallery} />
           <Leaderboard />
         </div>
       )}

@@ -1,11 +1,12 @@
 import { Dock, DockItem } from "@invite-me/ui/components/motion/dock";
 import { Link, useMatchRoute } from "@tanstack/react-router";
-import { MailOpen, Plus, UserRound } from "lucide-react";
+import { Home, MailOpen, Plus, UserRound } from "lucide-react";
 
 /** Bottom navigation for the top-level signed-in pages. Everything else opens as its own sub page. */
 export function HostDock() {
   const matchRoute = useMatchRoute();
   const onList = Boolean(matchRoute({ to: "/invitations", fuzzy: true }));
+  const onHome = Boolean(matchRoute({ to: "/", fuzzy: false }));
 
   return (
     <nav
@@ -14,6 +15,16 @@ export function HostDock() {
     >
       <div className="pointer-events-auto">
         <Dock size={48}>
+          <DockItem active={onHome} aria-label="Home">
+            <Link
+              to="/"
+              aria-label="Home"
+              aria-current={onHome ? "page" : undefined}
+              className="flex size-full items-center justify-center rounded-full"
+            >
+              <Home className="size-5" aria-hidden />
+            </Link>
+          </DockItem>
           <DockItem active={onList} aria-label="Invitations">
             <Link
               to="/invitations"
