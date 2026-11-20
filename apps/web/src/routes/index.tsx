@@ -57,20 +57,18 @@ function Landing() {
       </header>
 
       <main className="grid flex-1 content-center gap-10 py-8 md:grid-cols-[minmax(0,1fr)_minmax(0,300px)] md:items-center md:gap-16 md:py-20">
-        <section className="grid gap-8">
+        <section className="grid justify-items-center gap-8 text-center">
           <div className="grid gap-5">
             <h1 className="font-display text-5xl leading-[1.05] tracking-[-0.03em] text-balance md:text-6xl">
               Invitations that feel like the celebration.
             </h1>
-            <p className="max-w-xl text-lg text-muted-foreground">
+            <p className="mx-auto max-w-xl text-lg text-muted-foreground">
               Create one card per event, send each guest their own link, and collect RSVPs in one place.
             </p>
           </div>
-          <div>
-            <Button variant="primary" size="sm" onClick={signIn}>
-              Sign in to start
-            </Button>
-          </div>
+          <Button variant="primary" size="lg" className="h-14 px-10 text-lg" onClick={signIn}>
+            Sign in to start
+          </Button>
         </section>
         <div className="mx-auto w-full px-4 md:px-0">
           <GoldenCallerCard card={DEFAULT_CARD} forceOpen maxWidth="min(100%, 340px)" />
