@@ -65,7 +65,7 @@ function Open({ input, party, card }: { input: LinkInput; party: GuestParty; car
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col items-center justify-center px-3 pt-4 pb-28">
+    <main className="mx-auto flex min-h-dvh w-full max-w-4xl flex-col items-center justify-center px-3 pt-4 pb-28">
       {/* Eyebrow above the hero card: names the invitee early, so the card's own
           display line is the focus. Card is capped so the whole card fits the viewport. */}
       <div className="mx-auto w-full">
@@ -75,7 +75,7 @@ function Open({ input, party, card }: { input: LinkInput; party: GuestParty; car
         <div ref={onCardMounted} className="mx-auto w-full">
           <GoldenCallerCard
             card={card}
-            maxWidth="min(100%, 400px, calc((100svh - 10rem) * 0.706))"
+            maxWidth="min(100%, calc((100svh - 11rem) * 0.706))"
           />
         </div>
       </div>
