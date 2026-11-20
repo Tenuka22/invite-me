@@ -1,6 +1,7 @@
 import {
   type CSSProperties,
   type KeyboardEvent,
+  type MouseEvent,
   type PointerEvent,
   type ReactNode,
   Fragment,
@@ -61,6 +62,25 @@ const EASE_OUT = "ease-[cubic-bezier(0.2,0.7,0.2,1)]";
 /* ---- reveal helpers ---------------------------------------------------- */
 
 /** Observes once; `seen` latches true the first time the element is 10% visible. */
+/** Card parts the editor can point at; each is a `data-field` on the card. */
+export type CardField =
+  | "hostLine1"
+  | "connector"
+  | "hostLine2"
+  | "requestLine"
+  | "occasionLine"
+  | "name1"
+  | "name2"
+  | "date"
+  | "timeFrom"
+  | "subEvents"
+  | "venueName"
+  | "city"
+  | "rsvpContacts"
+  | "rules";
+
+const HOST_FIELDS = ["hostLine1", "connector", "hostLine2"] as const;
+
 function useInView<T extends Element>(enabled: boolean) {
   const ref = useRef<T>(null);
   const [seen, setSeen] = useState(false);
@@ -178,10 +198,16 @@ export function GoldenCallerCard({
   card: rawCard,
   forceOpen = false,
   maxWidth,
+  activeField,
+  onFieldClick,
 }: {
   card: Card;
   forceOpen?: boolean;
   maxWidth?: string;
+  /** Editor only: the card part (a `data-field` value) to outline. */
+  activeField?: CardField | null;
+  /** Editor only: called with the tapped card part. */
+  onFieldClick?: (field: CardField) => void;
 }) {
   const card = withPlaceholders(rawCard);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -247,10 +273,21 @@ export function GoldenCallerCard({
     }
   };
 
+  const onFieldTap = onFieldClick
+    ? (e: MouseEvent<HTMLDivElement>) => {
+        const hit = (e.target as Element).closest<HTMLElement>("[data-field]");
+        if (hit) {
+          e.preventDefault();
+          onFieldClick(hit.dataset.field as CardField);
+        }
+      }
+    : undefined;
+
   return (
     <div
       ref={rootRef}
       data-open={open}
+      onClick={onFieldTap}
       onPointerMove={onPointerMove}
       style={maxWidth ? { maxWidth } : undefined}
       className={[
@@ -262,6 +299,12 @@ export function GoldenCallerCard({
         forceOpen ? "!duration-0 [&_*]:!duration-0 [&_*]:!delay-0" : "",
       ].join(" ")}
     >
+      {activeField ? (
+        <style>{`[data-field="${activeField}"]{outline:max(2px,0.5cqw) solid var(--ring);outline-offset:0.6cqw;border-radius:0.6cqw}`}</style>
+      ) : null}
+      {onFieldClick ? (
+        <style>{`[data-field]{cursor:pointer}[data-field]:hover{outline:max(1px,0.25cqw) dashed var(--ring);outline-offset:0.6cqw}`}</style>
+      ) : null}
       <div className="relative">
         {/* Sheet: thick frame, ivory paper, 1075:1523 portrait */}
         <div
@@ -299,11 +342,13 @@ export function GoldenCallerCard({
             <Reveal enabled={revealed} delay={250}>
               <p className="text-[max(10px,2.6cqw)] uppercase leading-[1.5] tracking-[0.08em]">
                 {hosts.map((line, i) => (
-                  <span key={i} className="block">
+                  <span key={i} data-field={HOST_FIELDS[i]} className="block">
                     <Amp text={line} />
                   </span>
                 ))}
-                <span className="block">{card.requestLine}</span>
+                <span data-field="requestLine" className="block">
+                  {card.requestLine}
+                </span>
               </p>
             </Reveal>
 
@@ -320,7 +365,10 @@ export function GoldenCallerCard({
 
             {/* Occasion (wraps to "… OF THEIR / CHILDREN" at the rule width) */}
             <Reveal enabled={revealed} delay={700} className="mt-[1.5cqw]">
-              <p className="mx-auto max-w-[71.9cqw] text-[max(10px,2.5cqw)] uppercase leading-[1.45] tracking-[0.08em]">
+              <p
+                data-field="occasionLine"
+                className="mx-auto max-w-[71.9cqw] text-[max(10px,2.5cqw)] uppercase leading-[1.45] tracking-[0.08em]"
+              >
                 {card.occasionLine}
               </p>
             </Reveal>
@@ -329,7 +377,9 @@ export function GoldenCallerCard({
             <Reveal enabled={revealed} delay={1000} className="mt-[0.4cqw]">
               <div className="mx-auto w-fit text-[6.4cqw] leading-none tracking-[0.03em]">
                 <div>
-                  <span className={GOLD_TEXT}>{names[0]}</span>
+                  <span data-field="name1" className={GOLD_TEXT}>
+                    {names[0]}
+                  </span>
                 </div>
                 <div className="flex h-[2.9cqw] items-center gap-[1.4cqw] text-[max(10px,2.4cqw)] leading-[1.2] tracking-[0.12em] text-[color:var(--gold)]">
                   <span className="h-[max(1px,0.18cqw)] flex-1 -translate-y-[0.55cqw] bg-[color:var(--gold)]" />
@@ -337,14 +387,19 @@ export function GoldenCallerCard({
                   <span className="h-[max(1px,0.18cqw)] flex-1 -translate-y-[0.55cqw] bg-[color:var(--gold)]" />
                 </div>
                 <div>
-                  <span className={GOLD_TEXT}>{names[1]}</span>
+                  <span data-field="name2" className={GOLD_TEXT}>
+                    {names[1]}
+                  </span>
                 </div>
               </div>
             </Reveal>
 
             {/* Date: framed month / big day / weekday. Frame lines reveal from the centre outward */}
             <Reveal enabled={revealed} delay={1200} className="mt-[3.3cqw]">
-              <div className="mx-auto grid w-[57cqw] grid-cols-[1fr_9.3cqw_1fr] grid-rows-[4.5cqw]">
+              <div
+                data-field="date"
+                className="mx-auto grid w-[57cqw] grid-cols-[1fr_9.3cqw_1fr] grid-rows-[4.5cqw]"
+              >
                 {(["month", "weekday"] as const).map((key) => (
                   <div
                     key={key}
@@ -375,19 +430,26 @@ export function GoldenCallerCard({
             {/* Time, sub events, venue */}
             <Reveal enabled={revealed} delay={1400} className="mt-[0.6cqw]">
               <p className="text-[max(10px,2.5cqw)] uppercase leading-[1.45] tracking-[0.08em]">
-                <span className="block">{`FROM ${card.timeFrom} TO ${card.timeTo}`}</span>
+                <span
+                  data-field="timeFrom"
+                  className="block"
+                >{`FROM ${card.timeFrom} TO ${card.timeTo}`}</span>
                 {card.subEvents.map((sub, i) => (
-                  <span key={i} className="block">
+                  <span key={i} data-field="subEvents" className="block">
                     {`(${sub.label} AT ${sub.time})`}
                   </span>
                 ))}
                 <span className="block">AT</span>
               </p>
               <p className="mt-[0.3cqw] text-[3.5cqw] uppercase leading-[1.2] tracking-[0.05em]">
-                <span className={GOLD_TEXT}>{card.venueName}</span>
+                <span data-field="venueName" className={GOLD_TEXT}>
+                  {card.venueName}
+                </span>
               </p>
               <p className="mt-[0.5cqw] text-[max(10px,2.5cqw)] uppercase leading-[1.4] tracking-[0.1em]">
-                <span className={GOLD_TEXT}>{card.city}</span>
+                <span data-field="city" className={GOLD_TEXT}>
+                  {card.city}
+                </span>
               </p>
             </Reveal>
 
@@ -398,7 +460,11 @@ export function GoldenCallerCard({
                   RSVP
                 </span>
                 {card.rsvpContacts.map((contact, i) => (
-                  <span key={i} className="block text-[max(10px,1.95cqw)] leading-[1.3]">
+                  <span
+                    key={i}
+                    data-field="rsvpContacts"
+                    className="block text-[max(10px,1.95cqw)] leading-[1.3]"
+                  >
                     {contact.name}-
                     <a
                       href={`tel:${contact.phone.replace(/\s/g, "")}`}
@@ -419,7 +485,10 @@ export function GoldenCallerCard({
               delay={1800}
               className="absolute inset-x-[18cqw] bottom-[3.4cqw] z-[1]"
             >
-              <p className="text-center text-[max(8px,1.55cqw)] uppercase leading-[1.5] tracking-[0.12em] whitespace-pre-line opacity-80">
+              <p
+                data-field="rules"
+                className="text-center text-[max(8px,1.55cqw)] uppercase leading-[1.5] tracking-[0.12em] whitespace-pre-line opacity-80"
+              >
                 {card.rules}
               </p>
             </Reveal>
