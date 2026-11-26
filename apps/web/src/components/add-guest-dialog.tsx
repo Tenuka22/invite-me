@@ -161,12 +161,12 @@ function AddGuestContent({ eventId }: { eventId: string }) {
             aria-labelledby="who-label"
             value={ageGroup}
             onValueChange={(v) => setAgeGroup(v as AgeGroup)}
-            columns={3}
+            tiles
             options={AGE_GROUPS.map((group) => ({
               value: group,
               label: AGE_LABELS[group],
               description: group === "elder" ? "Gets larger text" : undefined,
-              leading: <AgeFigure group={group} name={displayName} className="size-10 shrink-0" />,
+              leading: <AgeFigure group={group} name={displayName} className="size-10 shrink-0 sm:size-14" />,
             }))}
           />
         </div>

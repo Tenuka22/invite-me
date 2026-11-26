@@ -149,3 +149,19 @@
     scroll-behavior: auto !important;
   }
 }
+
+/*
+ * Bigger screens get a bigger rem, so everything built in rem (type, targets, spacing, dialogs)
+ * grows together on tablets and desktops. Only the host app: the shell's <main id="main"> marks it,
+ * so guest invitation pages keep their own scale.
+ */
+@media (min-width: 48rem) {
+  html:has(#main) {
+    font-size: 112.5%;
+  }
+}
+@media (min-width: 80rem) {
+  html:has(#main) {
+    font-size: 125%;
+  }
+}

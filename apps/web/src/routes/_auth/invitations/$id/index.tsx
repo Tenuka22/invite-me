@@ -157,11 +157,11 @@ function InvitationPage() {
         }
       />
 
-      <div className="grid items-start gap-8 md:grid-cols-[minmax(0,12rem)_minmax(0,1fr)] lg:gap-10">
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,16rem)_minmax(0,1fr)] lg:gap-10">
         <Dialog>
           <DialogTrigger
             aria-label="Open full preview"
-            className="mx-auto block w-full max-w-[12rem] overflow-hidden rounded-2xl shadow-raised outline-none transition-transform duration-(--duration-fast) active:scale-[0.98] md:mx-0"
+            className="block w-full max-w-[9rem] overflow-hidden rounded-2xl shadow-raised outline-none transition-transform duration-(--duration-fast) active:scale-[0.98] sm:max-w-[11rem] lg:max-w-none"
           >
             <InvitationCard card={card} />
           </DialogTrigger>
