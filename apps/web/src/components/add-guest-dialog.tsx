@@ -110,6 +110,7 @@ function AddGuestContent({ eventId }: { eventId: string }) {
 
   return (
     <DialogContent
+      size="lg"
       title="Add guest"
       description="Each guest gets their own private link."
       footer={

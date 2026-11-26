@@ -1,7 +1,7 @@
 import type { Card, PresetId } from "@invite-me/api/invites/card";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { CalendarDays, CheckCircle2, Copy, MailOpen, MapPin, MoreHorizontal, Pencil, Printer, Send, TriangleAlert, Trash2, UserPlus, Users } from "lucide-react";
+import { CheckCircle2, Copy, MailOpen, MoreHorizontal, Pencil, Printer, Send, TriangleAlert, Trash2, UserPlus, Users } from "lucide-react";
 import { useState } from "react";
 
 import { useNewInvitation } from "@/components/host-shell";
@@ -13,6 +13,7 @@ import {
   AlertDialog,
   AlertDialogContent,
   Badge,
+  buttonStyles,
   Button,
   EmptyState,
   Menu,
@@ -120,39 +121,38 @@ export function InvitationTile({ invitation }: { invitation: Invitation }) {
   }
 
   return (
-    <li className="relative">
-      <Link
-        to="/invitations/$id"
-        params={{ id }}
-        className="grid h-full grid-cols-[6rem_1fr] gap-4 rounded-2xl border border-border bg-surface-raised p-3 pr-14 shadow-raised transition-colors duration-(--duration-fast) hover:border-border-strong"
-      >
-        <InvitationCard card={card} className="rounded-xl" />
-        <span className="grid min-w-0 content-start gap-1.5 py-1">
+    <li className="relative grid content-start gap-3 rounded-2xl border border-border bg-surface-raised p-3 shadow-raised transition-shadow duration-(--duration-fast) hover:shadow-overlay">
+      <Link to="/invitations/$id" params={{ id }} className="group grid gap-3 rounded-xl outline-offset-4">
+        <InvitationCard card={card} className="mx-auto max-w-60 rounded-xl sm:max-w-none" />
+        <span className="grid min-w-0 gap-1.5 px-1">
           <span className="text-section break-words">{title}</span>
-          <span className="flex items-start gap-1.5 text-text-muted">
-            <CalendarDays className="mt-1 size-4 shrink-0" aria-hidden />
-            <span className="min-w-0">{invitationDate(card)}</span>
+          <span className="text-label text-text-muted">
+            {invitationDate(card)}
+            {venue ? ` · ${venue}` : ""}
           </span>
-          {venue ? (
-            <span className="flex items-start gap-1.5 text-text-muted">
-              <MapPin className="mt-1 size-4 shrink-0" aria-hidden />
-              <span className="min-w-0 break-words">{venue}</span>
-            </span>
-          ) : null}
-          <span className="flex items-start gap-1.5 text-text-muted">
-            <Users className="mt-1 size-4 shrink-0" aria-hidden />
-            <span className="min-w-0">
+          <span className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-2">
+            <StatusBadge {...summary} />
+            <span className="flex items-center gap-1.5 text-label text-text-muted">
+              <Users className="size-4 shrink-0" aria-hidden />
               {summary.loading ? "Counting replies…" : summary.total === 0 ? "No guests yet" : `${summary.replied} of ${summary.total} replied`}
             </span>
-          </span>
-          <span className="mt-1">
-            <StatusBadge {...summary} />
           </span>
         </span>
       </Link>
 
+      <div className="grid grid-cols-2 gap-2 border-t border-border pt-3">
+        <Link to="/invitations/$id" params={{ id }} className={buttonStyles({ variant: "secondary", className: "w-full" })}>
+          <UserPlus className="size-5" aria-hidden />
+          Add guest
+        </Link>
+        <Link to="/invitations/$id/edit" params={{ id }} className={buttonStyles({ variant: "secondary", className: "w-full" })}>
+          <Pencil className="size-5" aria-hidden />
+          Edit
+        </Link>
+      </div>
+
       <Menu>
-        <MenuTrigger render={<Button variant="ghost" size="icon" aria-label="More actions" className="absolute right-2 top-2" disabled={duplicating} />}>
+        <MenuTrigger render={<Button variant="secondary" size="icon" aria-label="More actions" className="absolute right-5 top-5 bg-surface-raised/95 shadow-overlay" disabled={duplicating} />}>
           <MoreHorizontal className="size-5" aria-hidden />
         </MenuTrigger>
         <MenuContent>
@@ -244,7 +244,7 @@ export function InvitationList({ title }: { title: string }) {
       ) : empty ? (
         <FirstInvitation />
       ) : (
-        <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {list.data.map((inv) => (
             <InvitationTile key={inv.id} invitation={inv} />
           ))}
