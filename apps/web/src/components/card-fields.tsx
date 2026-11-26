@@ -38,7 +38,7 @@ export function Text({
 export function Group({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
   return (
     <fieldset className="grid gap-3">
-      <legend className="mb-1 text-lg font-[Fraunces_Variable,Fraunces,Georgia,serif]">{title}</legend>
+      <legend className="mb-2 text-xl font-[Fraunces_Variable,Fraunces,Georgia,serif]">{title}</legend>
       {hint ? <p className="-mt-2 text-sm text-muted-foreground">{hint}</p> : null}
       {children}
     </fieldset>
@@ -71,7 +71,7 @@ export function HostFields({ card, set }: { card: Card; set: <K extends keyof Ca
           aria-label="Who is inviting"
           value={mode}
           onValueChange={(v) => set("hostMode", v as HostMode)}
-          className="gap-2"
+          className="gap-3"
         >
           {HOST_MODES.map((m) => (
             <RadioGroupItem key={m} value={m} label={HOST_CHOICES[m].label} description={HOST_CHOICES[m].hint} />

@@ -89,7 +89,7 @@ function Editor({ id, initial }: { id: string; initial: Card }) {
       <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,24rem)]">
         <div className="grid min-w-0 gap-6">
           <Tabs variant="pill" value={step} onValueChange={(v) => setStep(v as StepId)}>
-            <TabsList aria-label="Card sections" className="w-full [&_[role=tab]]:flex-1 [&_[role=tab]]:justify-center">
+            <TabsList aria-label="Card sections" className="w-full bg-muted/60 p-1 [&_[role=tab]]:flex-1 [&_[role=tab]]:justify-center">
               {STEPS.map((s) => (
                 <TabsTrigger key={s.id} value={s.id}>
                   {s.label}
@@ -222,8 +222,8 @@ function Editor({ id, initial }: { id: string; initial: Card }) {
         </section>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t bg-background/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl gap-3">
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t bg-background/95 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur">
+        <div className="mx-auto flex w-full max-w-6xl gap-3 px-5">
           <Button
             size="lg"
             variant="outline"
@@ -248,7 +248,7 @@ function Editor({ id, initial }: { id: string; initial: Card }) {
           ) : null}
           <StatefulButton
             size="lg"
-            className="btn-xl flex-1 px-4 sm:flex-none"
+            className="btn-xl flex-1 px-4 sm:ml-auto sm:min-w-40 sm:flex-none"
             state={save.isPending ? "loading" : "idle"}
             loadingText="Saving"
             onClick={onSave}
