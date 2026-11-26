@@ -8,9 +8,13 @@ import { HostShell } from "@/components/host-shell";
 import { InvitationCard } from "@/components/invitation-card";
 import { HomeSkeleton } from "@/components/skeletons";
 import { TemplateModal } from "@/components/template-modal";
-import { authClient } from "@/lib/auth-client";
-import { presetFor } from "@/presets";
+import { getSession } from "@/lib/auth-client";
+import { PRESETS, presetFor } from "@/presets";
+import { sampleCard } from "@/presets/sample";
 import { orpc } from "@/utils/orpc";
+
+/** The designs are bundled with the app, so listing them needs no request. */
+const TEMPLATES = (Object.keys(PRESETS) as PresetId[]).map((preset) => ({ preset, card: sampleCard(preset) }));
 
 export const Route = createFileRoute("/")({
   component: HomePage,
@@ -21,16 +25,16 @@ export const Route = createFileRoute("/")({
   ),
   ssr: false,
   beforeLoad: async () => {
-    const session = await authClient.getSession();
+    const session = await getSession();
     if (!session.data) throw redirect({ to: "/login" });
   },
 });
 
 function HomePage() {
-  const templates = useQuery(orpc.invitations.templates.queryOptions());
+
   const list = useQuery(orpc.invitations.list.queryOptions());
   const [picked, setPicked] = useState<PresetId | null>(null);
-  if (!templates.data || !list.data) {
+  if (!list.data) {
     return (
       <HostShell>
         <HomeSkeleton />
@@ -47,7 +51,7 @@ function HomePage() {
           Templates
         </h2>
         <ul className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
-          {templates.data?.map(({ preset, card }) => {
+          {TEMPLATES.map(({ preset, card }) => {
             const { Thumb, name } = presetFor(preset);
             return (
               <li key={preset}>

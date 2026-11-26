@@ -1,4 +1,4 @@
-import type { Card } from "@invite-me/api/invites/card";
+import { type Card, timeRange } from "@invite-me/api/invites/card";
 
 function icsEscape(text: string) {
   return text.replace(/([,;\\])/g, "\\$1").replace(/\n/g, "\\n");
@@ -21,7 +21,7 @@ export function downloadCalendar(card: Card) {
     `DTEND;VALUE=DATE:${end}`,
     `SUMMARY:${icsEscape(`${card.name1} & ${card.name2}`)}`,
     `LOCATION:${icsEscape(`${card.venueName}, ${card.city}`)}`,
-    `DESCRIPTION:${icsEscape(`From ${card.timeFrom} to ${card.timeTo}`)}`,
+    `DESCRIPTION:${icsEscape(`From ${timeRange(card)}`)}`,
     "END:VEVENT",
     "END:VCALENDAR",
   ];

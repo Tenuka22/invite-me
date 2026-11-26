@@ -19,6 +19,7 @@ app.use(logger());
 app.use(
   "/*",
   cors({
+    maxAge: 86_400,
     origin: ENV.CORS_ORIGIN,
     allowMethods: ["GET", "POST", "OPTIONS"],
     allowHeaders: ["Content-Type", "Authorization"],

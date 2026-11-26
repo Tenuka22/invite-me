@@ -3,7 +3,7 @@ import { Card, CardContent } from "@invite-me/ui/components/motion/card";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 import { PageTitle } from "@/components/host-shell";
-import { authClient } from "@/lib/auth-client";
+import { authClient, clearSession } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/_auth/profile")({
   component: ProfileComponent,
@@ -16,6 +16,7 @@ function ProfileComponent() {
 
   async function signOut() {
     await authClient.signOut();
+    clearSession();
     await navigate({ to: "/login" });
   }
 

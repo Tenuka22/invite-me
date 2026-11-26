@@ -1,7 +1,7 @@
 import "@fontsource/gloock/latin-400.css";
 import "@fontsource/hanken-grotesk/latin-400.css";
 import "@fontsource/hanken-grotesk/latin-600.css";
-import { cardDateParts } from "@invite-me/api/invites/card";
+import { cardDateParts, hostBlock, timeRange } from "@invite-me/api/invites/card";
 import { Button } from "@invite-me/ui/components/motion/button/base";
 import { Music2, VolumeX } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -57,6 +57,7 @@ export function BeiraGuestPage(props: GuestPageProps) {
   const { card, party, lite = false } = props;
   const look = resolveLook(card.look);
   const date = cardDateParts(card.date);
+  const host = hostBlock(card);
 
   return (
     <GuestStage
@@ -68,12 +69,12 @@ export function BeiraGuestPage(props: GuestPageProps) {
         <div className="bd-words">
           <p className="bd-hello">{salutation(party.displayName, party.ageGroup)}</p>
           <p className="bd-hosts">
-            <span>{card.hostLine1}</span>
-            <span className="bd-join">{card.connector}</span>
-            <span>{card.hostLine2}</span>
+            {host.hosts[0] ? <span>{host.hosts[0]}</span> : null}
+            {host.connector ? <span className="bd-join">{host.connector}</span> : null}
+            {host.hosts[1] ? <span>{host.hosts[1]}</span> : null}
           </p>
           <p className="bd-request">
-            {card.requestLine} {card.occasionLine}
+            {host.request} {host.occasion}
           </p>
         </div>
 
@@ -88,7 +89,7 @@ export function BeiraGuestPage(props: GuestPageProps) {
             {titleCase(date.weekday)}, {date.day} {titleCase(date.month)} {date.year}
           </p>
           <p>
-            {card.timeFrom} to {card.timeTo} · {titleCase(card.venueName)}, {titleCase(card.city)}
+            {[timeRange(card), [titleCase(card.venueName), titleCase(card.city)].filter(Boolean).join(", ")].filter(Boolean).join(" · ")}
           </p>
         </div>
 

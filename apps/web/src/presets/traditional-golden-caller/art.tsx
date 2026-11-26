@@ -1,6 +1,6 @@
 import "@fontsource/cormorant-garamond/latin-400.css";
 import "@fontsource/cormorant-garamond/latin-500.css";
-import { cardDateParts } from "@invite-me/api/invites/card";
+import { cardDateParts, hostBlock, timeRange } from "@invite-me/api/invites/card";
 import { useEffect, useState } from "react";
 
 import { GuestStage } from "../stage";
@@ -27,6 +27,7 @@ export function GoldenGuestPage(props: GuestPageProps) {
   const { card, party, lite = false } = props;
   const look = resolveLook(card.look);
   const date = cardDateParts(card.date);
+  const host = hostBlock(card);
   const drawn = useDrawn(lite);
 
   return (
@@ -45,11 +46,11 @@ export function GoldenGuestPage(props: GuestPageProps) {
 
         <header className="ga-hosts ga-caps">
           <p className="ga-for">For {party.displayName}</p>
-          <p>{card.hostLine1}</p>
-          <p className="ga-soft">{card.connector}</p>
-          <p>{card.hostLine2}</p>
-          <p className="ga-request">{card.requestLine}</p>
-          <p className="ga-soft ga-occasion">{card.occasionLine}</p>
+          {host.hosts[0] ? <p>{host.hosts[0]}</p> : null}
+          {host.connector ? <p className="ga-soft">{host.connector}</p> : null}
+          {host.hosts[1] ? <p>{host.hosts[1]}</p> : null}
+          <p className="ga-request">{host.request}</p>
+          <p className="ga-soft ga-occasion">{host.occasion}</p>
         </header>
 
         <h1 className="ga-names">
@@ -65,7 +66,7 @@ export function GoldenGuestPage(props: GuestPageProps) {
             <span>{date.weekday}</span>
           </div>
           <p>
-            {date.year} · {card.timeFrom} to {card.timeTo}
+            {[date.year, timeRange(card)].filter(Boolean).join(" · ")}
           </p>
           {card.subEvents.map((s, i) => (
             <p key={i} className="ga-soft">

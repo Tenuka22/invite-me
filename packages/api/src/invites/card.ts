@@ -2,11 +2,16 @@ import { z } from "zod";
 
 const line = (max: number) => z.string().max(max);
 
+/** Who is named as inviting: both parents together, one parent, two families, a single host or family, or nobody. */
+export const HOST_MODES = ["parents", "parent", "families", "host", "none"] as const;
+export type HostMode = (typeof HOST_MODES)[number];
+
 export const PRESETS = ["traditional-golden-caller", "beira-dusk"] as const;
 export type PresetId = (typeof PRESETS)[number];
 
 /** Card content for one wedding event. Text is stored as typed; layout handles case. */
 export const cardSchema = z.object({
+  hostMode: z.enum(HOST_MODES).default("families"),
   hostLine1: line(80),
   connector: line(40),
   hostLine2: line(80),
@@ -40,6 +45,7 @@ export type Card = z.infer<typeof cardSchema>;
 
 /** Template copy from `docs/invite-v1-01.png`, used until the host edits. */
 export const DEFAULT_CARD: Card = {
+  hostMode: "families",
   hostLine1: "MR. XXX & MRS. XXXX",
   connector: "TOGETHER WITH",
   hostLine2: "MR. & MRS. XXXX",
@@ -70,4 +76,40 @@ export function cardDateParts(iso: string): { month: string; day: string; weekda
     weekday: d.toLocaleString("en-US", { weekday: "long", timeZone: "UTC" }).toUpperCase(),
     year: String(d.getUTCFullYear()),
   };
+}
+
+/** Wording the editor offers, and the fallbacks used when a line is left blank. */
+export const REQUEST_PHRASES = [
+  "WARMLY REQUEST THE HONOR OF YOUR PRESENCE",
+  "JOYFULLY INVITE YOU",
+  "REQUEST THE PLEASURE OF YOUR COMPANY",
+] as const;
+export const OCCASION_PHRASES = [
+  "ON THE OCCASION OF THE MARRIAGE OF THEIR CHILDREN",
+  "ON THE OCCASION OF THE MARRIAGE OF THEIR SON",
+  "ON THE OCCASION OF THE MARRIAGE OF THEIR DAUGHTER",
+  "TO CELEBRATE THE WEDDING OF",
+] as const;
+export const CONNECTORS = ["TOGETHER WITH", "AND", "WITH"] as const;
+
+/**
+ * The lines of the host block, ready to print. Blank lines are dropped, and a card with no host
+ * (or one whose host lines are all blank) falls back to a wording that reads right without one.
+ */
+export function hostBlock(card: Pick<Card, "hostMode" | "hostLine1" | "hostLine2" | "connector" | "requestLine" | "occasionLine">) {
+  const one = card.hostLine1.trim();
+  const two = card.hostLine2.trim();
+  const names = card.hostMode === "none" ? [] : card.hostMode === "families" ? [one, two].filter(Boolean) : [one].filter(Boolean);
+  const hosted = names.length > 0;
+  return {
+    hosts: names,
+    connector: card.hostMode === "families" && names.length === 2 ? card.connector.trim() : "",
+    request: card.requestLine.trim() || (hosted ? REQUEST_PHRASES[0] : "WARMLY INVITE YOU"),
+    occasion: card.occasionLine.trim() || (hosted ? OCCASION_PHRASES[0] : OCCASION_PHRASES[3]),
+  };
+}
+
+/** "9.30 AM to 2.30 PM", or just the start when no end time is given. */
+export function timeRange(card: Pick<Card, "timeFrom" | "timeTo">): string {
+  return [card.timeFrom.trim(), card.timeTo.trim()].filter(Boolean).join(" to ");
 }

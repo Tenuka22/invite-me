@@ -1,5 +1,5 @@
 import "@fontsource/cormorant-garamond/latin-500.css";
-import type { Card } from "@invite-me/api/invites/card";
+import { type Card, hostBlock } from "@invite-me/api/invites/card";
 import type { CSSProperties } from "react";
 
 import { Mandala } from "./mandala";
@@ -25,7 +25,7 @@ export function GoldenThumb({ card }: { card: Card }) {
         className="absolute inset-x-0 top-[38%] grid justify-items-center gap-[0.4em] px-[8%] text-center"
         style={{ fontSize: "clamp(8px, 2.6cqw, 14px)" }}
       >
-        <span className="tracking-[0.18em]">{card.hostLine1}</span>
+        {hostBlock(card).hosts[0] ? <span className="tracking-[0.18em]">{hostBlock(card).hosts[0]}</span> : null}
         <span className="mt-1 text-[1.9em] leading-none tracking-[0.06em]" style={{ color: "#8a6a22" }}>
           {card.name1}
         </span>

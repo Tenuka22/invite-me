@@ -1,4 +1,4 @@
-import { type Card, cardDateParts } from "@invite-me/api/invites/card";
+import { type Card, cardDateParts, timeRange } from "@invite-me/api/invites/card";
 import { Button, ButtonLink } from "@invite-me/ui/components/motion/button/base";
 import { StatefulButton } from "@invite-me/ui/components/motion/button/stateful";
 import { AnimatedBadge } from "@invite-me/ui/components/motion/animated-badge";
@@ -211,7 +211,7 @@ export function GuestStage({
                     {titleCase(date.weekday)}, {date.day} {titleCase(date.month)} {date.year}
                   </p>
                   <p>
-                    {card.timeFrom} to {card.timeTo}
+                    {timeRange(card)}
                   </p>
                 </section>
                 <section className="stage-block">
@@ -258,10 +258,12 @@ export function GuestStage({
                   <time>{card.timeFrom}</time>
                   <span>Celebration begins at {titleCase(card.venueName)}</span>
                 </li>
-                <li>
-                  <time>{card.timeTo}</time>
-                  <span>Celebration ends</span>
-                </li>
+                {card.timeTo.trim() ? (
+                  <li>
+                    <time>{card.timeTo}</time>
+                    <span>Celebration ends</span>
+                  </li>
+                ) : null}
               </ol>
             </TabsContent>
 

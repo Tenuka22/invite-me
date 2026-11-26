@@ -6,7 +6,7 @@ import { BrandMark } from "@/components/brand";
 import { PageSkeleton as LoginSkeleton } from "@/components/skeletons";
 import { toast } from "@/components/toaster";
 import { ENV } from "@/env.public";
-import { authClient } from "@/lib/auth-client";
+import { authClient, getSession } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/login")({
   ssr: false,
@@ -18,7 +18,7 @@ export const Route = createFileRoute("/login")({
         : undefined,
   }),
   beforeLoad: async ({ search }) => {
-    const { data } = await authClient.getSession();
+    const { data } = await getSession();
     if (data?.session) throw redirect({ href: search.next ?? "/invitations" });
   },
   component: LoginPage,
