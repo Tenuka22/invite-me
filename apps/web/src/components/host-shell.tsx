@@ -30,7 +30,7 @@ function TopBar() {
     <motion.header
       animate={{ y: hidden ? "-110%" : "0%" }}
       transition={{ type: "spring", stiffness: 380, damping: 36 }}
-      className="fixed inset-x-0 top-0 z-30 border-b bg-background/85 backdrop-blur-xl"
+      className="fixed inset-x-0 top-0 z-30 border-b bg-background"
     >
       <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-5">
         <Brand />

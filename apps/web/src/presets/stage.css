@@ -117,7 +117,6 @@
   color: var(--st-ink);
   background: color-mix(in oklab, var(--st-bg) 82%, transparent);
   border: 1.5px solid color-mix(in oklab, var(--st-ink) 40%, transparent);
-  backdrop-filter: blur(10px);
 }
 .stage .stage-cta:focus-visible,
 .stage .stage-more:focus-visible {
@@ -436,4 +435,38 @@
 
 .stage-bar[hidden] {
   display: none;
+}
+
+/* The main button sits dead centre; the info button hangs off its right edge. */
+.stage-bar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 26rem) minmax(0, 1fr);
+  justify-content: stretch;
+  align-items: center;
+}
+.stage .stage-cta {
+  grid-column: 2;
+  flex: none;
+  width: 100%;
+}
+.stage .stage-more {
+  grid-column: 3;
+  justify-self: start;
+}
+@media (max-width: 34rem) {
+  .stage-bar {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .stage .stage-cta {
+    grid-column: 1;
+  }
+  .stage .stage-more {
+    grid-column: 2;
+  }
+}
+.tone-golden-ivory .stage-bar,
+.tone-golden-rose .stage-bar,
+.tone-golden-midnight .stage-bar,
+.tone-golden-emerald .stage-bar {
+  padding-bottom: calc(2.2rem + env(safe-area-inset-bottom));
 }

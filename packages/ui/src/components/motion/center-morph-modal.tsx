@@ -296,7 +296,7 @@ export function CenterMorphModalContent({
                 }}
                 onClick={() => context.setOpen(false)}
                 className={cn(
-                  "pointer-events-auto fixed inset-0 z-[100] h-full w-full cursor-default bg-background/10 backdrop-blur-sm",
+                  "pointer-events-auto fixed inset-0 z-[100] h-full w-full cursor-default bg-foreground/25",
                   backdropClassName,
                 )}
               />

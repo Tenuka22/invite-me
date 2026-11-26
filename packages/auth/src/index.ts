@@ -33,6 +33,8 @@ export function createAuth(
     session: {
       expiresIn: 60 * 60 * 24 * 30,
       updateAge: 60 * 60 * 24,
+      // A signed cookie carries the session for five minutes, so most requests skip the database lookup.
+      cookieCache: { enabled: true, maxAge: 60 * 5 },
     },
     // A provider is enabled only when both of its values are set.
     socialProviders: {

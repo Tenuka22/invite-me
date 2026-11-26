@@ -10,7 +10,7 @@ export type CreateContextOptions = {
 
 export async function createContext({ context }: CreateContextOptions): Promise<ApiContext> {
   const db = await getDb();
-  const auth = await createAuth(db);
+  const auth = await createAuth();
   const session = await auth.api.getSession({ headers: context.req.raw.headers });
   return {
     db,

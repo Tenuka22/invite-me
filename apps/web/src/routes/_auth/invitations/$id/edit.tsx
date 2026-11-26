@@ -231,7 +231,7 @@ function Editor({ id, initial }: { id: string; initial: Card }) {
         </section>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t bg-background/95 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur">
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t bg-background pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
         <div className="mx-auto grid w-full max-w-6xl grid-flow-col auto-cols-fr gap-2 px-4 sm:flex sm:gap-3 sm:px-5">
           <Button
             size="lg"

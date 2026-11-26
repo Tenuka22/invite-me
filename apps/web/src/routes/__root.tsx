@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import "@fontsource-variable/dm-sans";
-import "@fontsource-variable/geist-mono";
 import { Toaster } from "@/components/toaster";
 import type { QueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
