@@ -1,14 +1,15 @@
 import type { PresetId } from "@invite-me/api/invites/card";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo } from "react";
 
 import { HostShell } from "@/components/host-shell";
-import { InvitationList } from "@/components/invitation-tile";
-import { TemplatePicker } from "@/components/new-invitation-dialog";
+import { InvitationCard } from "@/components/invitation-card";
+import { useCreateInvitation } from "@/components/invitation-tile";
 import { PageSkeleton } from "@/components/skeletons";
-import { PageHeader, buttonStyles } from "@/components/ui";
+import { Button, PageHeader, buttonStyles } from "@/components/ui";
 import { getSession } from "@/lib/auth-client";
-import { orpc } from "@/utils/orpc";
+import { PRESETS } from "@/presets";
+import { sampleCard } from "@/presets/sample";
 
 export const Route = createFileRoute("/")({
   component: HomePage,
@@ -18,45 +19,64 @@ export const Route = createFileRoute("/")({
     </HostShell>
   ),
   ssr: false,
-  // Public page: visitors can browse and preview every design. Only the visitor's own invitations
-  // and "Use this design" need an account.
-  beforeLoad: async ({ context }) => {
-    // If the account service cannot be reached, the visitor can still browse the designs.
+  // Public page: anyone can look at every design. Only "Use this design" needs an account.
+  beforeLoad: async () => {
     let signedIn = false;
     try {
       signedIn = Boolean((await getSession()).data);
     } catch {
-      // browse as a visitor
+      // The account service is unreachable: browse as a visitor.
     }
-    if (signedIn) void context.queryClient.prefetchQuery(orpc.invitations.list.queryOptions());
     return { signedIn };
   },
 });
 
+const IDS = Object.keys(PRESETS) as PresetId[];
+
+/** Home is the showroom: your own invitations live on their own page. */
 function HomePage() {
   const { signedIn } = Route.useRouteContext();
-  return (
-    <HostShell signedIn={signedIn}>{signedIn ? <InvitationList title="Your invitations" /> : <Browse />}</HostShell>
-  );
-}
+  const create = useCreateInvitation();
+  const designs = useMemo(() => IDS.map((id) => ({ id, card: sampleCard(id) })), []);
 
-/** Signed-out visitors: look at every design, sign in to use one. */
-function Browse() {
-  const [picked, setPicked] = useState<PresetId | null>(null);
   return (
-    <>
+    <HostShell signedIn={signedIn}>
       <PageHeader
-        title="Invitations, made simple"
-        description="Browse the designs and see how each looks. Sign in when you want to make one."
+        title="Pick a design"
+        description="Four ways to say you're invited. Choose one, then make every word your own."
+        actions={
+          signedIn ? (
+            <Link to="/invitations" className={buttonStyles({ variant: "secondary" })}>
+              Your invitations
+            </Link>
+          ) : undefined
+        }
       />
-      <div className="grid gap-5">
-        <TemplatePicker value={picked} onChange={setPicked} />
-        <div>
-          <Link to="/login" className={buttonStyles({ variant: "primary", size: "lg" })}>
-            Sign in to use this design
-          </Link>
-        </div>
-      </div>
-    </>
+      <ul className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
+        {designs.map(({ id, card }) => (
+          <li key={id} className="grid content-start gap-4">
+            <InvitationCard card={card} className="rounded-3xl shadow-overlay" label={`${PRESETS[id].name} preview`} />
+            <div className="grid gap-1">
+              <h2 className="text-section">{PRESETS[id].name}</h2>
+              <p className="text-text-muted">{PRESETS[id].blurb}</p>
+            </div>
+            {signedIn ? (
+              <Button
+                variant="primary"
+                loading={create.isPending && create.variables?.preset === id}
+                disabled={create.isPending}
+                onClick={() => create.mutate({ preset: id })}
+              >
+                Use this design
+              </Button>
+            ) : (
+              <Link to="/login" className={buttonStyles({ variant: "primary" })}>
+                Sign in to use this design
+              </Link>
+            )}
+          </li>
+        ))}
+      </ul>
+    </HostShell>
   );
 }
