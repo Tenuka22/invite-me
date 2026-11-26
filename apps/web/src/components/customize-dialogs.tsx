@@ -27,7 +27,7 @@ function CustomizeRow({
   summary: string;
   dialogTitle?: string;
   description?: string;
-  size?: "md" | "lg";
+  size?: "md" | "lg" | "xl";
   children: ReactNode;
 }) {
   return (
@@ -152,9 +152,9 @@ export function CustomizeList({ draft, set, patch }: { draft: Card; set: Set; pa
       </CustomizeRow>
 
       {preset.lookOptions.length ? (
-        <CustomizeRow icon={Sparkles} title="Look" summary={lookSummary} dialogTitle={`Look of ${preset.name}`} description="Card colour, fonts and decorations.">
-          <div className="grid gap-6 sm:grid-cols-[11rem_minmax(0,1fr)] sm:items-start">
-            <InvitationCard card={draft} className="mx-auto w-44 rounded-2xl border border-border sm:sticky sm:top-0 sm:w-full" />
+        <CustomizeRow icon={Sparkles} title="Look" size="xl" summary={lookSummary} dialogTitle={`Look of ${preset.name}`} description="Card colour, fonts and decorations.">
+          <div className="grid gap-6 md:grid-cols-[minmax(0,19rem)_minmax(0,1fr)] md:items-start md:gap-8">
+            <InvitationCard card={draft} className="mx-auto w-56 rounded-2xl border border-border md:sticky md:top-0 md:w-full" />
             <LookPicker options={preset.lookOptions} look={draft.look} onChange={(look) => set("look", look)} />
           </div>
         </CustomizeRow>
