@@ -157,11 +157,11 @@
  */
 @media (min-width: 48rem) {
   html:has(#main) {
-    font-size: 112.5%;
+    font-size: 106.25%;
   }
 }
-@media (min-width: 80rem) {
+@media (min-width: 90rem) {
   html:has(#main) {
-    font-size: 125%;
+    font-size: 112.5%;
   }
 }

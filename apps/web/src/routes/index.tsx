@@ -52,22 +52,22 @@ function HomePage() {
           ) : undefined
         }
       />
-      <ul className="grid gap-6 lg:grid-cols-2">
+      <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {designs.map(({ id, card }) => (
           <li
             key={id}
-            className="group grid gap-5 rounded-3xl border border-border bg-surface-raised p-4 shadow-raised transition-[transform,box-shadow] duration-(--duration-base) ease-(--ease-out) hover:-translate-y-1 hover:shadow-overlay sm:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] sm:p-5"
+            className="group flex flex-col gap-3 rounded-3xl border border-border bg-surface-raised p-3 shadow-raised transition-[transform,box-shadow] duration-(--duration-base) ease-(--ease-out) hover:-translate-y-1 hover:shadow-overlay"
           >
-            <InvitationCard card={card} className="mx-auto max-w-72 rounded-2xl shadow-raised sm:max-w-none" label={`${PRESETS[id].name} preview`} />
-            <div className="flex min-w-0 flex-col justify-end gap-5">
+            <InvitationCard card={card} className="mx-auto max-w-60 rounded-2xl shadow-raised sm:max-w-none" label={`${PRESETS[id].name} preview`} />
+            <div className="flex min-w-0 flex-1 flex-col justify-between gap-3 px-1">
               <div className="grid gap-2">
-                <h2 className="text-display">{PRESETS[id].name}</h2>
+                <h2 className="text-section">{PRESETS[id].name}</h2>
                 <p className="text-text-muted">{PRESETS[id].blurb}</p>
               </div>
               {signedIn ? (
                 <Button
                   variant="primary"
-                  size="lg"
+                  size="md"
                   loading={create.isPending && create.variables?.preset === id}
                   disabled={create.isPending}
                   onClick={() => create.mutate({ preset: id })}
@@ -75,7 +75,7 @@ function HomePage() {
                   Use this design
                 </Button>
               ) : (
-                <Link to="/login" className={buttonStyles({ variant: "primary", size: "lg" })}>
+                <Link to="/login" className={buttonStyles({ variant: "primary", size: "md" })}>
                   Use this design
                 </Link>
               )}
