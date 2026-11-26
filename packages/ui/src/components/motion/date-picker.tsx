@@ -75,12 +75,12 @@ export function DatePicker({
           aria-label={`${label}: ${shown ?? "not set"}`}
           aria-describedby={error ? errorId : undefined}
           className={cn(
-            "h-14 w-full justify-between gap-3 rounded-full border-foreground/25 bg-card px-5 text-lg font-normal hover:bg-card",
+            "!h-14 w-full justify-between gap-3 !rounded-full !border !border-foreground/25 bg-card !px-5 text-lg font-normal hover:bg-card",
             error && "border-destructive",
           )}
         >
           <CalendarDays className="size-5 shrink-0 text-muted-foreground" aria-hidden />
-          <span className={cn("min-w-0 flex-1 truncate text-left", !shown && "text-muted-foreground")}>
+          <span className={cn("min-w-0 flex-1 truncate pl-1 text-left", !shown && "text-muted-foreground")}>
             {shown ?? placeholder}
           </span>
           <ChevronDown className={cn("size-5 shrink-0 text-muted-foreground", open && "rotate-180")} aria-hidden />

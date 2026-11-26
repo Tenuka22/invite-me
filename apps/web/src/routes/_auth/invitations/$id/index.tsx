@@ -5,9 +5,9 @@ import { WorkspaceSkeleton } from "@/components/skeletons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Pencil, UserPlus } from "lucide-react";
-import { useRef, useState } from "react";
+import { useState } from "react";
 
-import { AddGuestForm, GuestList } from "@/components/guest-manager";
+import { AddGuestDialog, GuestList } from "@/components/guest-manager";
 import { HostMeter } from "@/components/host-meter";
 import { PageTitle } from "@/components/host-shell";
 import { invitationDate, invitationTitle } from "@/components/invitation-card";
@@ -26,7 +26,6 @@ function InvitationPage() {
   const invitation = useQuery(orpc.invitations.get.queryOptions({ input: { id } }));
   const [adding, setAdding] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const formRef = useRef<HTMLDivElement>(null);
   const remove = useMutation(
     orpc.invitations.remove.mutationOptions({
       onSuccess: async () => {
@@ -48,7 +47,6 @@ function InvitationPage() {
 
   function openAdd() {
     setAdding(true);
-    requestAnimationFrame(() => formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
   }
 
   return (
@@ -84,12 +82,7 @@ function InvitationPage() {
             </h2>
             <HostMeter eventId={id} />
           </section>
-
-          {adding ? (
-            <div ref={formRef} className="scroll-mt-6">
-              <AddGuestForm eventId={id} onDone={() => setAdding(false)} />
-            </div>
-          ) : null}
+          <AddGuestDialog eventId={id} open={adding} onClose={() => setAdding(false)} />
 
           <section aria-labelledby="guests">
             <h2 id="guests" className="mb-3 text-2xl">

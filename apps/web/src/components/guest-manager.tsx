@@ -11,9 +11,9 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardHeader,
   CardTitle,
 } from "@invite-me/ui/components/motion/card";
+import { CenterMorphModal, CenterMorphModalContent } from "@invite-me/ui/components/motion/center-morph-modal";
 import { Input } from "@invite-me/ui/components/motion/input";
 import { Skeleton } from "@/components/skeletons";
 import { RadioGroup, RadioGroupItem } from "@invite-me/ui/components/motion/radio";
@@ -22,6 +22,7 @@ import { type FormEvent, useState } from "react";
 import { AGE_GROUPS, type AgeGroup } from "@invite-me/api/invites/party";
 
 import { AGE_LABELS, AgeFigure } from "@/components/age-figure";
+import { LARGE, OPTION_ROW } from "@/components/card-fields";
 import { POLL_MS } from "@/components/host-meter";
 import { toast } from "@/components/toaster";
 import { orpc } from "@/utils/orpc";
@@ -72,16 +73,16 @@ export function AddGuestForm({ eventId, onDone }: { eventId: string; onDone: () 
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle as="h2">Add guest</CardTitle>
-        <CardDescription>Each guest gets their own private link.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={onSubmit} className="grid gap-4">
+    <div className="grid gap-5">
+      <header className="grid gap-1 pr-12">
+        <h2 className="text-3xl">Add guest</h2>
+        <p className="text-base text-muted-foreground">Each guest gets their own private link.</p>
+      </header>
+        <form onSubmit={onSubmit} className="grid gap-5">
           <Input
             label="Name"
             placeholder="Nimal Perera"
+            classNames={LARGE}
             autoComplete="off"
             maxLength={80}
             value={displayName}
@@ -93,9 +94,9 @@ export function AddGuestForm({ eventId, onDone }: { eventId: string; onDone: () 
             aria-label="Invited as"
             className="gap-2"
           >
-            <RadioGroupItem value="single" label="Single" description="1 seat" />
-            <RadioGroupItem value="couple" label="Couple" description="2 seats" />
-            <RadioGroupItem value="group" label="Group" description="Choose how many seats" />
+            <RadioGroupItem value="single" label="Single" description="1 seat" className={OPTION_ROW} />
+            <RadioGroupItem value="couple" label="Couple" description="2 seats" className={OPTION_ROW} />
+            <RadioGroupItem value="group" label="Group" description="Choose how many seats" className={OPTION_ROW} />
           </RadioGroup>
           <fieldset className="grid gap-2">
             <legend className="px-1 text-sm font-medium">Who are they?</legend>
@@ -137,6 +138,7 @@ export function AddGuestForm({ eventId, onDone }: { eventId: string; onDone: () 
           <Input
             label="Seat label (optional)"
             placeholder="Table 4"
+            classNames={LARGE}
             maxLength={60}
             value={seatLabel}
             onChange={setSeatLabel}
@@ -144,13 +146,15 @@ export function AddGuestForm({ eventId, onDone }: { eventId: string; onDone: () 
           <Input
             label="Note for this guest (optional)"
             placeholder="No whites"
+            classNames={LARGE}
             maxLength={400}
             value={rules}
             onChange={setRules}
           />
           <StatefulButton
             type="submit"
-            className="w-full"
+            size="lg"
+            className="btn-xl w-full"
             disabled={!displayName.trim()}
             state={create.isPending ? "loading" : "idle"}
             loadingText="Adding"
@@ -158,8 +162,7 @@ export function AddGuestForm({ eventId, onDone }: { eventId: string; onDone: () 
             Add guest
           </StatefulButton>
         </form>
-      </CardContent>
-    </Card>
+    </div>
   );
 }
 
@@ -290,5 +293,19 @@ export function GuestList({ eventId, onAddFirst }: { eventId: string; onAddFirst
         );
       })}
     </ul>
+  );
+}
+
+/** Adding a guest happens in a dialog over the page, so the guest list stays where it is. */
+export function AddGuestDialog({ eventId, open, onClose }: { eventId: string; open: boolean; onClose: () => void }) {
+  return (
+    <CenterMorphModal open={open} onOpenChange={(next) => (next ? undefined : onClose())}>
+      <CenterMorphModalContent
+        ariaLabel="Add guest"
+        className="host-app max-h-[calc(100svh-2rem)] w-full max-w-xl overflow-y-auto rounded-[2rem] border bg-background p-6 sm:p-8"
+      >
+        <AddGuestForm eventId={eventId} onDone={onClose} />
+      </CenterMorphModalContent>
+    </CenterMorphModal>
   );
 }
