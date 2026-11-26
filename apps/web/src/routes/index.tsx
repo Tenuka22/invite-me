@@ -54,14 +54,14 @@ function HomePage() {
       />
       <ul className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
         {designs.map(({ id, card }) => (
-          <li key={id} className="grid content-start gap-4">
-            <InvitationCard card={card} className="rounded-3xl shadow-overlay" label={`${PRESETS[id].name} preview`} />
-            <div className="grid gap-1">
+          <li key={id} className="group flex flex-col gap-4 rounded-3xl border border-border bg-surface-raised p-3 shadow-raised transition-[transform,box-shadow] duration-(--duration-base) ease-(--ease-out) hover:-translate-y-1 hover:shadow-overlay">
+            <InvitationCard card={card} className="rounded-2xl" label={`${PRESETS[id].name} preview`} />
+            <div className="grid gap-1 px-2">
               <h2 className="text-section">{PRESETS[id].name}</h2>
               <p className="text-text-muted">{PRESETS[id].blurb}</p>
             </div>
             {signedIn ? (
-              <Button
+              <Button className="mt-auto"
                 variant="primary"
                 loading={create.isPending && create.variables?.preset === id}
                 disabled={create.isPending}
@@ -70,7 +70,7 @@ function HomePage() {
                 Use this design
               </Button>
             ) : (
-              <Link to="/login" className={buttonStyles({ variant: "primary" })}>
+              <Link to="/login" className={buttonStyles({ variant: "primary", className: "mt-auto" })}>
                 Sign in to use this design
               </Link>
             )}

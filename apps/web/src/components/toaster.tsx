@@ -11,7 +11,12 @@ type ToastOptions = {
 
 const manager = Toast.createToastManager();
 
+const shown = new Map<string, string>();
+
 function push(type: "info" | "success" | "error", title: string, options?: ToastOptions) {
+  // Pressing the same button again replaces its toast instead of stacking copies.
+  const earlier = shown.get(title);
+  if (earlier) manager.close(earlier);
   const id = manager.add({
     title,
     description: options?.description,
@@ -27,6 +32,7 @@ function push(type: "info" | "success" | "error", title: string, options?: Toast
         }
       : undefined,
   });
+  shown.set(title, id);
   return id;
 }
 
@@ -49,14 +55,14 @@ function ToastList() {
       <Toast.Root
         key={t.id}
         toast={t}
-        className="pointer-events-auto flex items-start gap-3 rounded-2xl border border-border bg-surface-raised p-4 text-text shadow-overlay transition-[transform,opacity] duration-(--duration-slow) ease-(--ease-out) data-[starting-style]:-translate-y-3 data-[starting-style]:opacity-0 data-[ending-style]:opacity-0"
+        className="pointer-events-auto flex items-center gap-3 rounded-2xl border border-border bg-surface-raised py-2 pl-4 pr-2 text-text shadow-overlay transition-[transform,opacity] duration-(--duration-slow) ease-(--ease-out) data-[starting-style]:-translate-y-3 data-[starting-style]:opacity-0 data-[ending-style]:opacity-0"
       >
         <Icon className={`mt-0.5 size-5 shrink-0 ${TINT[type]}`} aria-hidden />
         <Toast.Content className="grid min-w-0 flex-1 gap-0.5">
-          <Toast.Title className="font-semibold" />
-          <Toast.Description className="text-label text-text-muted" />
+          <Toast.Title render={<div />} className="font-semibold" />
+          {t.description ? <Toast.Description render={<div />} className="text-label text-text-muted" /> : null}
         </Toast.Content>
-        <Toast.Action className="min-h-11 shrink-0 rounded-pill px-3 font-semibold text-primary outline-none hover:bg-primary-soft" />
+        {t.actionProps ? <Toast.Action className="min-h-11 shrink-0 rounded-pill px-3 font-semibold text-primary outline-none hover:bg-primary-soft" /> : null}
         <Toast.Close aria-label="Dismiss" className="grid size-11 shrink-0 place-items-center rounded-pill outline-none hover:bg-primary-soft">
           <X className="size-4" aria-hidden />
         </Toast.Close>
