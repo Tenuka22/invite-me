@@ -423,3 +423,10 @@
 .ga[data-age="elder"] .ga-when {
   zoom: calc(var(--fit, 1) * 1.14);
 }
+
+/* Desktop reads small at the designed scale: grow the whole unit; the fit hook still keeps it on one screen. */
+@media (orientation: landscape) and (min-aspect-ratio: 5/4) {
+  .ga {
+    --u: min(2.45svh, 1.45vw);
+  }
+}
