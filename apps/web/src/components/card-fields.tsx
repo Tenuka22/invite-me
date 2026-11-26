@@ -19,7 +19,7 @@ import { orpc } from "@/utils/orpc";
 /** Big, clearly bordered fields: easy to hit on a phone and easy to read. */
 export const LARGE = {
   field: "h-14 border-foreground/25 bg-card",
-  input: "pl-5 pr-5 text-lg",
+  input: "pl-5 pr-5 text-lg placeholder:text-muted-foreground",
   label: "text-base font-semibold",
 };
 

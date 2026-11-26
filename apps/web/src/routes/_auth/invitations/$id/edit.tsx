@@ -1,6 +1,7 @@
 import { type Card, PRESETS as PRESET_IDS, type PresetId, cardSchema } from "@invite-me/api/invites/card";
 import { Button } from "@invite-me/ui/components/motion/button/base";
 import { StatefulButton } from "@invite-me/ui/components/motion/button/stateful";
+import { DatePicker } from "@invite-me/ui/components/motion/date-picker";
 import { RadioGroup, RadioGroupItem } from "@invite-me/ui/components/motion/radio";
 import { Tabs, TabsList, TabsTrigger } from "@invite-me/ui/components/motion/tabs";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -87,7 +88,7 @@ function Editor({ id, initial }: { id: string; initial: Card }) {
       <PageTitle back={{ to: "/invitations/$id", params: { id } }} title="Edit card" />
 
       <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,24rem)]">
-        <div className="grid min-w-0 gap-6">
+        <div className="mx-auto grid w-full min-w-0 max-w-2xl gap-6 lg:mx-0">
           <Tabs variant="pill" value={step} onValueChange={(v) => setStep(v as StepId)}>
             <TabsList aria-label="Card sections" className="w-full bg-muted/60 p-1 [&_[role=tab]]:flex-1 [&_[role=tab]]:justify-center">
               {STEPS.map((s) => (
@@ -99,11 +100,6 @@ function Editor({ id, initial }: { id: string; initial: Card }) {
           </Tabs>
 
           <header className="grid gap-3">
-            <div className="flex gap-1.5" aria-hidden>
-              {STEPS.map((s, i) => (
-                <span key={s.id} className={`h-1.5 flex-1 rounded-full transition-colors ${i <= index ? "bg-primary" : "bg-border"}`} />
-              ))}
-            </div>
             <p className="text-sm font-medium text-muted-foreground">
               Step {index + 1} of {STEPS.length}
             </p>
@@ -121,7 +117,7 @@ function Editor({ id, initial }: { id: string; initial: Card }) {
                   <Text label="Second name" value={draft.name2} max={40} onChange={(v) => set("name2", v)} />
                 </Group>
                 <Group title="The day">
-                  <Text label="Date" type="date" value={draft.date} max={10} onChange={(v) => set("date", v)} />
+                  <DatePicker label="Date" value={draft.date} onChange={(v) => set("date", v)} />
                   <div className="grid gap-3 sm:grid-cols-2">
                     <Text label="Starts" placeholder="9.30 AM" value={draft.timeFrom} max={20} onChange={(v) => set("timeFrom", v)} />
                     <Text label="Ends (optional)" placeholder="2.30 PM" value={draft.timeTo} max={20} onChange={(v) => set("timeTo", v)} />
@@ -236,11 +232,11 @@ function Editor({ id, initial }: { id: string; initial: Card }) {
       </div>
 
       <div className="fixed inset-x-0 bottom-0 z-30 border-t bg-background/95 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-6xl gap-3 px-5">
+        <div className="mx-auto grid w-full max-w-6xl grid-flow-col auto-cols-fr gap-2 px-4 sm:flex sm:gap-3 sm:px-5">
           <Button
             size="lg"
             variant="outline"
-            className="btn-xl btn-xl-outline flex-1 px-4 sm:flex-none"
+            className="btn-xl btn-xl-outline px-2 text-base sm:flex-none sm:px-6 sm:text-[1.0625rem]"
             disabled={index === 0}
             onClick={() => setStep(STEPS[index - 1]!.id)}
           >
@@ -249,19 +245,19 @@ function Editor({ id, initial }: { id: string; initial: Card }) {
           <Button
             size="lg"
             variant="outline"
-            className="btn-xl btn-xl-outline flex-1 px-4 lg:hidden"
+            className="btn-xl btn-xl-outline px-2 text-base sm:px-6 sm:text-[1.0625rem] lg:hidden"
             onClick={() => setShowPreview((v) => !v)}
           >
             {showPreview ? "Edit" : "Preview"}
           </Button>
           {index < STEPS.length - 1 ? (
-            <Button size="lg" variant="outline" className="btn-xl btn-xl-outline flex-1 px-4 sm:flex-none" onClick={() => setStep(STEPS[index + 1]!.id)}>
+            <Button size="lg" variant="outline" className="btn-xl btn-xl-outline px-2 text-base sm:flex-none sm:px-6 sm:text-[1.0625rem]" onClick={() => setStep(STEPS[index + 1]!.id)}>
               Next
             </Button>
           ) : null}
           <StatefulButton
             size="lg"
-            className="btn-xl flex-1 px-4 sm:ml-auto sm:min-w-40 sm:flex-none"
+            className="btn-xl px-2 text-base sm:ml-auto sm:min-w-40 sm:px-6 sm:text-[1.0625rem]"
             state={save.isPending ? "loading" : "idle"}
             loadingText="Saving"
             onClick={onSave}

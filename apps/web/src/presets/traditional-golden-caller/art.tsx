@@ -33,6 +33,7 @@ export function GoldenGuestPage(props: GuestPageProps) {
   return (
     <GuestStage {...props} toneClass={`tone-golden-${look.backdrop}`}>
       <article className={`ga ${drawn ? "is-in" : ""}`} aria-label={`Invitation for ${party.displayName}`}>
+        <div className="ga-glow" aria-hidden />
         <div className="ga-frame" aria-hidden />
         <div className="ga-top" aria-hidden>
           <Mandala />

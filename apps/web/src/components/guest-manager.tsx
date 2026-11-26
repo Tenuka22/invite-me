@@ -112,7 +112,7 @@ export function AddGuestForm({ eventId, onDone }: { eventId: string; onDone: () 
                   className="h-auto flex-col gap-1 rounded-2xl px-1 pb-2 pt-3 text-xs"
                   onClick={() => setAgeGroup(group)}
                 >
-                  <AgeFigure group={group} className="size-14" />
+                  <AgeFigure group={group} name={displayName} className="size-14" />
                   {AGE_LABELS[group]}
                 </Button>
               ))}
@@ -231,7 +231,7 @@ export function GuestList({ eventId, onAddFirst }: { eventId: string; onAddFirst
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex min-w-0 items-center gap-3">
                     <span className="grid size-12 shrink-0 place-items-center overflow-hidden rounded-full bg-muted">
-                      <AgeFigure group={party.ageGroup ?? "adult"} className="size-11" />
+                      <AgeFigure group={party.ageGroup ?? "adult"} name={party.displayName} className="size-11" />
                     </span>
                     <p className="min-w-0 truncate font-medium">{party.displayName}</p>
                   </div>

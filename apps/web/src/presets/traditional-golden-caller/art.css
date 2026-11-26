@@ -357,3 +357,27 @@
     font-size: calc(var(--u) * 2.2);
   }
 }
+
+/* Soft colour fields and small circles behind the text. Gradients only, so they cost nothing to paint. */
+.ga {
+  isolation: isolate;
+}
+.ga-glow {
+  --g: color-mix(in oklab, var(--st-gold) 55%, transparent);
+  --a: color-mix(in oklab, var(--st-accent) 35%, transparent);
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(46% 34% at 10% 24%, color-mix(in oklab, var(--st-gold) 26%, transparent), transparent 72%),
+    radial-gradient(44% 32% at 92% 68%, color-mix(in oklab, var(--st-accent) 18%, transparent), transparent 72%),
+    radial-gradient(34% 26% at 72% 10%, color-mix(in oklab, var(--st-gold) 18%, transparent), transparent 72%),
+    radial-gradient(circle at 5% 52%, var(--g) 0 0.3rem, transparent calc(0.3rem + 1px)),
+    radial-gradient(circle at 84% 34%, var(--g) 0 0.45rem, transparent calc(0.45rem + 1px)),
+    radial-gradient(circle at 8% 80%, transparent 0 0.75rem, var(--g) calc(0.75rem + 1px) calc(0.75rem + 2px), transparent calc(0.75rem + 3px)),
+    radial-gradient(circle at 90% 88%, transparent 0 1.1rem, var(--a) calc(1.1rem + 1px) calc(1.1rem + 2px), transparent calc(1.1rem + 3px)),
+    radial-gradient(circle at 93% 22%, var(--a) 0 0.25rem, transparent calc(0.25rem + 1px)),
+    radial-gradient(circle at 60% 90%, var(--g) 0 0.2rem, transparent calc(0.2rem + 1px)),
+    radial-gradient(circle at 94% 14%, transparent 0 0.6rem, var(--g) calc(0.6rem + 1px) calc(0.6rem + 2px), transparent calc(0.6rem + 3px));
+}

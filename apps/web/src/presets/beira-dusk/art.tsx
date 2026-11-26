@@ -66,6 +66,7 @@ export function BeiraGuestPage(props: GuestPageProps) {
       infoExtra={look.music === "offer" && !lite ? <MusicToggle /> : null}
     >
       <article className="bd" data-hour={look.hour} data-age={party.ageGroup ?? "adult"} aria-label={`Invitation for ${party.displayName}`}>
+        <div className="bd-glow" aria-hidden />
         <div className="bd-words">
           <p className="bd-hello">{salutation(party.displayName, party.ageGroup)}</p>
           <p className="bd-hosts">

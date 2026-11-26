@@ -1,2 +1,3 @@
 Age group illustrations: "Open Peeps" by Pablo Stanley (https://www.openpeeps.com), CC0 1.0 public domain.
 Rendered with DiceBear (https://www.dicebear.com/styles/open-peeps/) and saved as static files.
+adult-f, forties-f, teen-m and elder-m are the same style, rendered with DiceBear's open-peeps options.

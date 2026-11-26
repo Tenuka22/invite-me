@@ -193,3 +193,24 @@
     font-size: calc(var(--u) * 9);
   }
 }
+
+/* Sky glow and small circles behind the words: gradients only. */
+.bd {
+  isolation: isolate;
+}
+.bd-glow {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 36% at 78% 62%, color-mix(in srgb, var(--sun) 55%, transparent), transparent 70%),
+    radial-gradient(46% 30% at 12% 20%, rgb(255 244 214 / 0.5), transparent 72%),
+    radial-gradient(50% 34% at 92% 30%, rgb(223 122 95 / 0.35), transparent 72%),
+    radial-gradient(circle at 14% 46%, rgb(255 244 214 / 0.7) 0 0.3rem, transparent calc(0.3rem + 1px)),
+    radial-gradient(circle at 88% 16%, rgb(255 244 214 / 0.6) 0 0.45rem, transparent calc(0.45rem + 1px)),
+    radial-gradient(circle at 72% 40%, transparent 0 0.8rem, rgb(255 244 214 / 0.7) calc(0.8rem + 1px) calc(0.8rem + 2px), transparent calc(0.8rem + 3px)),
+    radial-gradient(circle at 6% 70%, transparent 0 1.1rem, rgb(255 244 214 / 0.55) calc(1.1rem + 1px) calc(1.1rem + 2px), transparent calc(1.1rem + 3px)),
+    radial-gradient(circle at 36% 8%, rgb(255 244 214 / 0.65) 0 0.22rem, transparent calc(0.22rem + 1px)),
+    radial-gradient(circle at 94% 52%, rgb(255 244 214 / 0.6) 0 0.26rem, transparent calc(0.26rem + 1px));
+}

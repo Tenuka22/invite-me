@@ -1,5 +1,7 @@
 import type { AgeGroup } from "@invite-me/api/invites/party";
 
+import { guessGender } from "@/lib/guess-gender";
+
 /** Open Peeps by Pablo Stanley (CC0), saved under `public/age/`; see CREDITS.txt there. */
 export const AGE_LABELS: Record<AgeGroup, string> = {
   teen: "Teen",
@@ -9,7 +11,19 @@ export const AGE_LABELS: Record<AgeGroup, string> = {
   family: "Family",
 };
 
-export function AgeFigure({ group, className = "size-16" }: { group: AgeGroup; className?: string }) {
+/** Which saved figure fits this age and (guessed) gender. The first drawing of each age is the neutral default. */
+const FIGURE: Record<Exclude<AgeGroup, "family">, { female: string; male: string; unknown: string }> = {
+  teen: { female: "teen", male: "teen-m", unknown: "teen" },
+  adult: { female: "adult-f", male: "adult", unknown: "adult" },
+  forties: { female: "forties-f", male: "forties", unknown: "forties" },
+  elder: { female: "elder", male: "elder-m", unknown: "elder" },
+};
+
+/**
+ * `name` is the guest's display name; the figure's gender is guessed from it so a woman's name
+ * does not get a man's picture.
+ */
+export function AgeFigure({ group, name = "", className = "size-16" }: { group: AgeGroup; name?: string; className?: string }) {
   if (group === "family") {
     return (
       <span className={`relative inline-block ${className}`} aria-hidden>
@@ -19,5 +33,7 @@ export function AgeFigure({ group, className = "size-16" }: { group: AgeGroup; c
       </span>
     );
   }
-  return <img src={`/age/${group}.svg`} alt="" aria-hidden className={`${className} object-contain object-bottom`} />;
+  const gender = guessGender(name);
+  const file = FIGURE[group][gender ?? "unknown"];
+  return <img src={`/age/${file}.svg`} alt="" aria-hidden className={`${className} object-contain object-bottom`} />;
 }
