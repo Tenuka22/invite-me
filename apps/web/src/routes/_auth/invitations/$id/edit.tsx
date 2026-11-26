@@ -7,7 +7,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 
-import { Group, HostFields, ListEditor, MapsLinkField, Text } from "@/components/card-fields";
+import { Group, HostFields, ListEditor, MapsLinkField, OPTION_ROW, Text } from "@/components/card-fields";
 import { PageTitle } from "@/components/host-shell";
 import { EditorSkeleton } from "@/components/skeletons";
 import { toast } from "@/components/toaster";
@@ -191,7 +191,7 @@ function Editor({ id, initial }: { id: string; initial: Card }) {
                     className="gap-2"
                   >
                     {PRESET_IDS.map((p) => (
-                      <RadioGroupItem key={p} value={p} label={PRESETS[p].name} description={PRESETS[p].blurb} />
+                      <RadioGroupItem key={p} value={p} label={PRESETS[p].name} description={PRESETS[p].blurb} className={OPTION_ROW} />
                     ))}
                   </RadioGroup>
                 </Group>

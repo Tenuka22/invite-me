@@ -46,7 +46,7 @@ export function Group({ title, hint, children }: { title: string; hint?: string;
   return (
     <fieldset className="grid gap-3">
       <legend className="mb-2 text-xl font-[Fraunces_Variable,Fraunces,Georgia,serif]">{title}</legend>
-      {hint ? <p className="-mt-2 text-sm text-muted-foreground">{hint}</p> : null}
+      {hint ? <p className="-mt-1 text-base text-muted-foreground">{hint}</p> : null}
       {children}
     </fieldset>
   );
@@ -81,7 +81,7 @@ export function HostFields({ card, set }: { card: Card; set: <K extends keyof Ca
           className="gap-3"
         >
           {HOST_MODES.map((m) => (
-            <RadioGroupItem key={m} value={m} label={HOST_CHOICES[m].label} description={HOST_CHOICES[m].hint} />
+            <RadioGroupItem key={m} value={m} label={HOST_CHOICES[m].label} description={HOST_CHOICES[m].hint} className={OPTION_ROW} />
           ))}
         </RadioGroup>
       </Group>
@@ -172,7 +172,7 @@ function Choice({
           }
         }}
       >
-        <SelectTrigger className="h-auto min-h-14 justify-between rounded-full border-foreground/25 bg-card px-5 py-2 text-left text-lg [&_span]:text-left">
+        <SelectTrigger className="h-auto min-h-14 justify-between !rounded-full border-foreground/25 bg-card px-5 py-2 text-left text-lg [&_span]:text-left">
           <SelectValue placeholder={label} />
         </SelectTrigger>
         <SelectContent>
@@ -288,3 +288,7 @@ export function ListEditor<T>({
     </div>
   );
 }
+
+/** Option rows that match the large fields: a bordered card with roomy text, accented when chosen. */
+export const OPTION_ROW =
+  "gap-4 rounded-2xl border border-foreground/25 bg-card px-5 py-4 has-[[aria-checked=true]]:border-primary has-[[aria-checked=true]]:ring-2 has-[[aria-checked=true]]:ring-primary/30 [&_[id$='-label']]:text-lg [&_[id$='-description']]:text-base [&_[role=radio]]:size-6";
