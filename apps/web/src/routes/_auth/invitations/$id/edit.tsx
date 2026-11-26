@@ -210,7 +210,7 @@ function Editor({ id, initial }: { id: string; initial: Card }) {
         </div>
 
         <section aria-label="Live preview" className="hidden lg:sticky lg:top-20 lg:block">
-          <div className="mx-auto h-[78svh] w-full max-w-[24rem] overflow-hidden rounded-[1.6rem] border bg-card shadow-[0_18px_40px_-18px_rgb(60_30_10/0.5)]">
+          <div className="mx-auto h-[calc(100svh-12rem)] max-h-[46rem] min-h-[28rem] w-full max-w-[24rem] overflow-hidden rounded-[1.6rem] border bg-card shadow-[0_18px_40px_-18px_rgb(60_30_10/0.5)]">
             <iframe
               ref={showPreview ? undefined : frameRef}
               key={`d-${draft.preset}`}

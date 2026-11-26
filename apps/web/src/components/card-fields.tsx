@@ -169,7 +169,7 @@ function Choice({
           <SelectValue placeholder={label} />
         </SelectTrigger>
         <SelectContent>
-          {allowCustom ? <SelectItem value={AUTO}>Automatic</SelectItem> : null}
+          <SelectItem value={AUTO}>{allowCustom ? "Automatic" : "Nothing"}</SelectItem>
           {options.map((o) => (
             <SelectItem key={o} value={o}>
               {sentence(o)}
