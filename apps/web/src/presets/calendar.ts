@@ -1,4 +1,4 @@
-import { type Card, timeRange } from "@invite-me/api/invites/card";
+import { type Card, joinPlace, timeRange } from "@invite-me/api/invites/card";
 
 function icsEscape(text: string) {
   return text.replace(/([,;\\])/g, "\\$1").replace(/\n/g, "\\n");
@@ -33,7 +33,7 @@ export function downloadCalendar(card: Card) {
 
 /** Where the venue is, as one line; blank parts are dropped. */
 export function placeLine(card: Card): string {
-  return [card.venueName, card.city].map((s) => s.trim()).filter(Boolean).join(", ");
+  return joinPlace(card.venueName, card.city);
 }
 
 /** Link that opens the venue in Google Maps: the host's own link when given, else a search; "" when there is neither. */

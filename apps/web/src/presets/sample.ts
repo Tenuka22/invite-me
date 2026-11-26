@@ -6,6 +6,8 @@ export function sampleCard(preset: PresetId, look: Record<string, string> = {}) 
     ...DEFAULT_CARD,
     preset,
     look,
+    hostLine1: "Mr. & Mrs. Perera",
+    hostLine2: "Mr. & Mrs. Silva",
     date: "2027-01-23",
     mapsUrl: "https://maps.google.com/?q=6.9295,79.8433",
     venueGeo: { lat: 6.9295, lng: 79.8433 },

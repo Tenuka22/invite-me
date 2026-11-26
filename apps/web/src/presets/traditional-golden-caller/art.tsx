@@ -1,12 +1,13 @@
 import "@fontsource/cormorant-garamond/latin-400.css";
 import "@fontsource/cormorant-garamond/latin-500.css";
-import { cardDateParts, hostBlock, timeRange } from "@invite-me/api/invites/card";
+import { cardDateParts, formatTime, hostBlock, tidyText } from "@invite-me/api/invites/card";
 import { type CSSProperties, useEffect, useRef, useState } from "react";
 
 import { useFit } from "../fit";
 import { Invited } from "../invited";
 import { GuestStage } from "../stage";
 import type { GuestPageProps } from "../types";
+import { TimeRange } from "../time-range";
 import "./art.css";
 import { resolveLook } from "./config";
 import { Mandala } from "./mandala";
@@ -52,7 +53,7 @@ export function GoldenGuestPage(props: GuestPageProps) {
 
   return (
     <GuestStage {...props} toneClass={`tone-golden-${look.backdrop}`}>
-      <article ref={root} className={`ga ${drawn ? "is-in" : ""}`} data-age={party.ageGroup ?? "adult"} aria-label={`Invitation for ${party.displayName}`}>
+      <article ref={root} className={`ga ${drawn ? "is-in" : ""} ${props.print ? "is-print" : ""}`} data-age={party.ageGroup ?? "adult"} aria-label={`Invitation for ${party.displayName}`}>
         <div className="ga-glow" aria-hidden />
         <div className="ga-frame" aria-hidden />
         <div className="ga-top" aria-hidden>
@@ -87,16 +88,16 @@ export function GoldenGuestPage(props: GuestPageProps) {
             <span>{date.weekday}</span>
           </div>
           <p>
-            {[date.year, timeRange(card)].filter(Boolean).join(" · ")}
+            <TimeRange card={card} lead={date.year} />
           </p>
           {card.subEvents.slice(0, CARD_EVENTS).map((s, i) => (
             <p key={i} className="ga-soft">
-              {[s.label, s.time].filter(Boolean).join(" at ")}
+              {[s.label, formatTime(s.time)].filter(Boolean).join(" at ")}
             </p>
           ))}
           {card.subEvents.length > CARD_EVENTS ? <p className="ga-soft">+ {card.subEvents.length - CARD_EVENTS} more in the schedule</p> : null}
-          {card.venueName.trim() ? <p className="ga-venue">{card.venueName}</p> : null}
-          {card.city.trim() ? <p className="ga-soft">{card.city}</p> : null}
+          {tidyText(card.venueName) ? <p className="ga-venue">{tidyText(card.venueName)}</p> : null}
+          {tidyText(card.city) ? <p className="ga-soft">{tidyText(card.city)}</p> : null}
           <Invited party={party} print={props.print} />
         </section>
       </article>

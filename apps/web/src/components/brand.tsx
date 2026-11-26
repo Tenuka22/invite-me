@@ -12,7 +12,7 @@ export function BrandMark({ className = "size-7" }: { className?: string }) {
 
 export function Brand({ withName = true, size = "text-lg" }: { withName?: boolean; size?: string }) {
   return (
-    <Link to="/" aria-label="Invite Me home" className="inline-flex items-center gap-2.5 text-foreground">
+    <Link to="/" aria-label="Invite Me home" className="inline-flex min-h-11 items-center gap-2.5 text-text">
       <BrandMark />
       {withName ? <span className={`font-[Fraunces_Variable,Fraunces,Georgia,serif] ${size}`}>Invite Me</span> : null}
     </Link>

@@ -1,0 +1,151 @@
+/*
+ * Design tokens for the host app. Values are the ones the app already used (warm ivory paper,
+ * dark-brown ink, terracotta primary, gold card accents, Fraunces + Inter), named by role.
+ * Only two values moved, both to reach WCAG AA: the primary is 0.02 darker so white text on it
+ * passes 4.5:1, and muted/placeholder/gold text have their own AA-safe roles.
+ * Guest invitation pages are not under .host-app and keep their own looks.
+ */
+.host-app {
+  /* Colour roles */
+  --background: oklch(0.975 0.014 85);
+  --surface: oklch(0.99 0.008 85);
+  --surface-raised: oklch(0.997 0.004 85);
+  --border: oklch(0.9 0.02 75);
+  --border-strong: oklch(0.62 0.03 60); /* 3:1 on the surface: input and control outlines */
+  --text: oklch(0.26 0.035 40);
+  --text-muted: oklch(0.47 0.03 50);
+  --text-placeholder: oklch(0.52 0.025 50);
+  --primary: oklch(0.54 0.16 35);
+  --primary-hover: oklch(0.49 0.16 35);
+  --primary-foreground: oklch(0.985 0.01 85);
+  --primary-soft: oklch(0.94 0.03 55);
+  --accent-gold: oklch(0.66 0.11 85);
+  --accent-gold-text: oklch(0.5 0.09 80);
+  --success: oklch(0.45 0.1 150);
+  --success-soft: oklch(0.94 0.04 150);
+  --warning: oklch(0.48 0.11 70);
+  --warning-soft: oklch(0.95 0.05 85);
+  --danger: oklch(0.5 0.17 27);
+  --danger-soft: oklch(0.95 0.03 27);
+  --focus-ring: oklch(0.45 0.13 35);
+  --overlay: oklch(0.2 0.03 40 / 0.45);
+
+  /* Legacy names the older components still read; they alias the roles above. */
+  --foreground: var(--text);
+  --card: var(--surface);
+  --card-foreground: var(--text);
+  --popover: var(--surface-raised);
+  --popover-foreground: var(--text);
+  --muted: oklch(0.94 0.02 80);
+  --muted-foreground: var(--text-muted);
+  --input: var(--border);
+  --accent: oklch(0.94 0.03 70);
+  --accent-foreground: var(--text);
+  --ring: var(--focus-ring);
+
+  /* Layout: the shell owns every fixed bar and publishes its height here. */
+  --header-h: 3.5rem;
+  --page-gutter: 1rem;
+
+}
+
+/* Paint lives in the base layer so utilities (bg-surface-raised on a popup that is also .host-app) win. */
+@layer base {
+  .host-app {
+    background: var(--background);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 1rem;
+    line-height: 1.55;
+    /* Sinhala and Tamil fall back to system fonts that carry them; never clip long words. */
+    overflow-wrap: anywhere;
+    hyphens: manual;
+  }
+  .host-app :is(h1, h2, h3) {
+    font-family: var(--font-display);
+    font-weight: 450;
+    letter-spacing: -0.01em;
+  }
+}
+@media (min-width: 48rem) {
+  .host-app {
+    --header-h: 4rem;
+    --page-gutter: 1.5rem;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-text-placeholder: var(--text-placeholder);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-soft: var(--primary-soft);
+  --color-accent-gold: var(--accent-gold);
+  --color-accent-gold-text: var(--accent-gold-text);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-focus-ring: var(--focus-ring);
+  --color-overlay: var(--overlay);
+}
+
+@theme {
+  /* Radii: pill (buttons, chips, tabs), xl (inputs, selects), 2xl (cards), 3xl (dialogs, sheets). */
+  --radius-pill: 9999px;
+  --radius-xl: 0.875rem;
+  --radius-2xl: 1.25rem;
+  --radius-3xl: 1.75rem;
+
+  /* Shadows */
+  --shadow-raised: 0 1px 2px oklch(0.26 0.035 40 / 0.06), 0 6px 16px -10px oklch(0.26 0.035 40 / 0.25);
+  --shadow-overlay: 0 10px 30px -12px oklch(0.26 0.035 40 / 0.35), 0 2px 6px oklch(0.26 0.035 40 / 0.08);
+  --shadow-sheet: 0 -12px 40px -16px oklch(0.26 0.035 40 / 0.4);
+
+  /* Type: serif display only for the page title and section titles; Inter 16px minimum for body. */
+  --font-display: "Fraunces Variable", Fraunces, ui-serif, Georgia, serif;
+  --font-body: "Inter Variable", Inter, ui-sans-serif, system-ui, "Noto Sans Sinhala", "Noto Sans Tamil", sans-serif;
+  --text-display: clamp(1.75rem, 1.5rem + 1vw, 2.25rem);
+  --text-display--line-height: 1.15;
+  --text-section: 1.375rem;
+  --text-section--line-height: 1.25;
+  --text-body: 1rem;
+  --text-body--line-height: 1.55;
+  --text-label: 0.875rem;
+  --text-label--line-height: 1.35;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+  --duration-slow: 250ms;
+}
+
+.host-app ::selection {
+  background: oklch(0.54 0.16 35 / 0.25);
+}
+.host-app :focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* Every animation and transition in the host app respects reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  .host-app *,
+  .host-app *::before,
+  .host-app *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

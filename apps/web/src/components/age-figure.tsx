@@ -37,3 +37,12 @@ export function AgeFigure({ group, name = "", className = "size-16" }: { group: 
   const file = FIGURE[group][gender ?? "unknown"];
   return <img src={`/age/${file}.svg`} alt="" aria-hidden className={`${className} object-contain object-bottom`} />;
 }
+
+/** The cartoon figure on a soft round plate, for lists. `size` is the plate's tailwind size class. */
+export function AgeAvatar({ group, name, className = "size-12" }: { group: AgeGroup; name: string; className?: string }) {
+  return (
+    <span className={`grid shrink-0 place-items-end justify-items-center overflow-hidden rounded-pill bg-primary-soft ${className}`} aria-hidden>
+      <AgeFigure group={group} name={name} className="size-[88%]" />
+    </span>
+  );
+}

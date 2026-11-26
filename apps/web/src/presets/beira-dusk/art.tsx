@@ -1,7 +1,7 @@
 import "@fontsource/gloock/latin-400.css";
 import "@fontsource/hanken-grotesk/latin-400.css";
 import "@fontsource/hanken-grotesk/latin-600.css";
-import { cardDateParts, hostBlock, timeRange } from "@invite-me/api/invites/card";
+import { cardDateParts, hostBlock, joinPlace, timeRange } from "@invite-me/api/invites/card";
 import { Button } from "@invite-me/ui/components/motion/button/base";
 import { Music2, VolumeX } from "lucide-react";
 import { type CSSProperties, useEffect, useRef, useState } from "react";
@@ -10,6 +10,7 @@ import { useFit } from "../fit";
 import { Invited } from "../invited";
 import { GuestStage } from "../stage";
 import type { GuestPageProps } from "../types";
+import { TimeRange } from "../time-range";
 import "./beira.css";
 import { resolveLook } from "./config";
 import { type Music, startMusic } from "./music";
@@ -104,10 +105,15 @@ export function BeiraGuestPage(props: GuestPageProps) {
 
         <div className="bd-when">
           <p className="bd-date">
-            {titleCase(date.weekday)}, {date.day} {titleCase(date.month)} {date.year}
+            {titleCase(date.weekday)},{" "}
+            <span style={{ whiteSpace: "nowrap" }}>
+              {date.day} {titleCase(date.month)} {date.year}
+            </span>
           </p>
           <p>
-            {[timeRange(card), [titleCase(card.venueName), titleCase(card.city)].filter(Boolean).join(", ")].filter(Boolean).join(" · ")}
+            <TimeRange card={card} />
+            {timeRange(card) && (card.venueName.trim() || card.city.trim()) ? " · " : null}
+            {joinPlace(titleCase(card.venueName), titleCase(card.city))}
           </p>
           <Invited party={party} print={props.print} />
         </div>

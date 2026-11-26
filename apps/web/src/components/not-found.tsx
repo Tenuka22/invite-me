@@ -1,6 +1,9 @@
-import { NotFoundMagnetic } from "@invite-me/ui/components/motion/not-found/magnetic";
+import { Link } from "@tanstack/react-router";
+import { SearchX } from "lucide-react";
 
-/** Fallback for unknown URLs, in the host theme (cream paper, Fraunces, terracotta). */
+import { EmptyState, buttonStyles } from "@/components/ui";
+
+/** Fallback for unknown URLs. */
 export function NotFound({
   title = "This page doesn't exist",
   description = "The link may be old or mistyped. If you were sent an invitation, ask the host for a fresh link.",
@@ -12,14 +15,17 @@ export function NotFound({
   inline?: boolean;
 } = {}) {
   return (
-    <div className={`host-app grid place-items-center ${inline ? "py-10" : "min-h-svh"}`}>
-      <NotFoundMagnetic
+    <div className={`host-app grid place-items-center px-4 ${inline ? "py-10" : "min-h-svh py-10"}`}>
+      <EmptyState
+        icon={SearchX}
         title={title}
         description={description}
-        homeHref="/"
-        homeLabel="Back home"
-        browseHref="/invitations"
-        browseLabel="My invitations"
+        className="w-full max-w-md"
+        action={
+          <Link to="/" className={buttonStyles({ variant: "primary", size: "lg" })}>
+            Go home
+          </Link>
+        }
       />
     </div>
   );

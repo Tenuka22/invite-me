@@ -1,10 +1,11 @@
-import { Button } from "@invite-me/ui/components/motion/button/base";
 import { createFileRoute, redirect } from "@tanstack/react-router";
+import { TriangleAlert } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { BrandMark } from "@/components/brand";
-import { LoginSkeleton, Skeleton } from "@/components/skeletons";
+import { LoginSkeleton } from "@/components/skeletons";
 import { toast } from "@/components/toaster";
+import { Button, EmptyState, Skeleton } from "@/components/ui";
 import { ENV } from "@/env.public";
 import { authClient, getSession } from "@/lib/auth-client";
 
@@ -52,6 +53,10 @@ function LoginPage() {
   const [busy, setBusy] = useState<Provider>();
   const available = (Object.keys(PROVIDER_NAME) as Provider[]).filter((provider) => methods?.[provider]);
 
+  function retryMethods() {
+    setMethods(null);
+    void fetchMethods().then(setMethods);
+  }
   async function signIn(provider: Provider) {
     setBusy(provider);
     const { error } = await authClient.signIn.social({
@@ -68,41 +73,52 @@ function LoginPage() {
   return (
     <main className="host-app grid min-h-svh place-items-center px-6 py-16">
       <div className="w-full max-w-sm">
-        <span className="flex items-center">
+        <span className="flex items-center text-primary">
           <BrandMark className="size-9" />
           <span className="sr-only">Invite Me</span>
         </span>
 
-        <h1 className="mt-8 text-5xl">Sign in</h1>
-        <p className="mt-3 text-pretty text-lg text-muted-foreground">
+        <h1 className="mt-8 text-display">Sign in</h1>
+        <p className="mt-3 text-pretty text-body text-text-muted">
           Use your Google or GitHub account. We never see your password.
         </p>
 
         <div className="mt-8 grid gap-3">
-          {methods === null ? <Skeleton className="h-14 w-full rounded-full" /> : null}
+          {methods === null ? (
+            <div role="status" aria-busy="true" aria-label="Checking sign-in options">
+              <Skeleton className="h-12 w-full rounded-pill" />
+            </div>
+          ) : null}
           {available.map((provider) => (
             <Button
               key={provider}
-              variant="outline"
+              variant="secondary"
               size="lg"
-              className="btn-xl btn-xl-outline w-full"
-              disabled={busy !== undefined}
+              className="w-full"
+              disabled={busy !== undefined && busy !== provider}
+              loading={busy === provider}
+              icon={
+                provider === "google" ? <GoogleMark aria-hidden className="size-5" /> : <GitHubMark aria-hidden className="size-5" />
+              }
               onClick={() => void signIn(provider)}
             >
-              {provider === "google" ? (
-                <GoogleMark aria-hidden className="size-5" />
-              ) : (
-                <GitHubMark aria-hidden className="size-5" />
-              )}
               {busy === provider ? "Opening…" : `Continue with ${PROVIDER_NAME[provider]}`}
             </Button>
           ))}
         </div>
 
         {methods && available.length === 0 ? (
-          <p role="status" className="mt-2 text-base text-muted-foreground">
-            Sign-in isn't set up on this server yet.
-          </p>
+          <EmptyState
+            className="mt-2"
+            icon={TriangleAlert}
+            title="Sign-in isn't available"
+            description="We could not find a sign-in method on this server. Please try again in a moment."
+            action={
+              <Button variant="secondary" onClick={retryMethods}>
+                Try again
+              </Button>
+            }
+          />
         ) : null}
       </div>
     </main>

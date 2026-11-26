@@ -95,13 +95,33 @@ export const OCCASION_PHRASES = [
 ] as const;
 export const CONNECTORS = ["TOGETHER WITH", "AND", "WITH"] as const;
 
+/** Collapses runs of spaces and removes any before a comma, full stop, colon or semicolon: "Beach Resort , Weligama" becomes "Beach Resort, Weligama". */
+export function tidyText(text: string): string {
+  return text.replace(/\s+/g, " ").replace(/\s+([,.;:])/g, "$1").trim();
+}
+
+/** The one possessive form on every card: "Matheesha's", "James's"; in capitals, "MATHEESHA'S". */
+export function possessive(name: string): string {
+  const n = name.trim();
+  return n === n.toUpperCase() ? `${n}'S` : `${n}'s`;
+}
+
+/** A name that lost its apostrophe before a family word ("MATHEESHAS PARENTS") gets it back. */
+const LOST_APOSTROPHE = /\b(\p{L}*[aeiou])s(?=\s+(?:PARENTS?|FAMILY|FAMILIES|SON|DAUGHTER|MOTHER|FATHER|SISTER|BROTHER)\b)/giu;
+
+/** Fixes copy a host typed on a card line: stray spaces, curly or missing possessive apostrophes. */
+export function tidyHostLine(text: string): string {
+  const straight = tidyText(text).replace(/[\u2018\u2019\u02bc]/g, "'");
+  return straight.replace(LOST_APOSTROPHE, (_m, stem: string) => possessive(stem));
+}
+
 /**
  * The lines of the host block, ready to print. Blank lines are dropped, and a card with no host
  * (or one whose host lines are all blank) falls back to a wording that reads right without one.
  */
 export function hostBlock(card: Pick<Card, "hostMode" | "hostLine1" | "hostLine2" | "connector" | "requestLine" | "occasionLine">) {
-  const one = card.hostLine1.trim();
-  const two = card.hostLine2.trim();
+  const one = tidyHostLine(card.hostLine1);
+  const two = tidyHostLine(card.hostLine2);
   const names = card.hostMode === "none" ? [] : card.hostMode === "families" ? [one, two].filter(Boolean) : [one].filter(Boolean);
   const hosted = names.length > 0;
   return {
@@ -112,7 +132,20 @@ export function hostBlock(card: Pick<Card, "hostMode" | "hostLine1" | "hostLine2
   };
 }
 
-/** "9.30 AM to 2.30 PM", or just the start when no end time is given. */
+/** One time format everywhere: "9.28 pm", "9:28pm" and "9:28 P.M." all become "9:28 PM". Anything else is kept as typed. */
+export function formatTime(text: string): string {
+  return tidyText(text).replace(
+    /\b(\d{1,2})(?:[.:](\d{2}))?\s*([ap])\.?m\b\.?/gi,
+    (_m, h: string, min: string | undefined, ap: string) => `${Number(h)}:${min ?? "00"} ${ap.toUpperCase()}M`,
+  );
+}
+
+/** "9:30 AM to 2:30 PM", or just the start when no end time is given. */
 export function timeRange(card: Pick<Card, "timeFrom" | "timeTo">): string {
-  return [card.timeFrom.trim(), card.timeTo.trim()].filter(Boolean).join(" to ");
+  return [formatTime(card.timeFrom), formatTime(card.timeTo)].filter(Boolean).join(" to ");
+}
+
+/** "Venue, City" as one line with no stray spaces; blank parts are dropped. */
+export function joinPlace(...parts: string[]): string {
+  return parts.map((p) => tidyText(p).replace(/[,\s]+$/, "")).filter(Boolean).join(", ");
 }

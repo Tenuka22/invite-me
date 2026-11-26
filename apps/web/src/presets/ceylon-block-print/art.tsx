@@ -1,12 +1,13 @@
 import "@fontsource/hanken-grotesk/latin-400.css";
 import "@fontsource/hanken-grotesk/latin-600.css";
-import { cardDateParts, hostBlock, timeRange } from "@invite-me/api/invites/card";
+import { cardDateParts, hostBlock, joinPlace, timeRange } from "@invite-me/api/invites/card";
 import { type CSSProperties, useRef } from "react";
 
 import { useFit } from "../fit";
 import { Invited } from "../invited";
 import { GuestStage } from "../stage";
 import type { GuestPageProps } from "../types";
+import { TimeRange } from "../time-range";
 import "./ceylon.css";
 import { resolveLook } from "./config";
 import { Corner, Diamond, Frangipani, Leaves, Lotus, Ring } from "./motifs";
@@ -59,7 +60,7 @@ export function CeylonGuestPage(props: GuestPageProps) {
   const host = hostBlock(card);
   const root = useRef<HTMLElement>(null);
   useFit(root, ".cp-head, .cp-names, .cp-when", limits, [card, party.displayName, lite]);
-  const place = [titleCase(card.venueName), titleCase(card.city)].filter(Boolean).join(", ");
+  const place = joinPlace(titleCase(card.venueName), titleCase(card.city));
 
   return (
     <GuestStage {...props} toneClass={`tone-ceylon-${look.palette}`}>
@@ -107,7 +108,9 @@ export function CeylonGuestPage(props: GuestPageProps) {
               </span>
             </p>
             <p className="cp-line">
-              {[titleCase(date.weekday), timeRange(card)].filter(Boolean).join(" · ")}
+              {titleCase(date.weekday)}
+              {timeRange(card) ? " · " : null}
+              <TimeRange card={card} />
             </p>
             {place ? <p className="cp-line">{place}</p> : null}
             <Invited party={party} print={props.print} />

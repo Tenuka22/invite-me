@@ -1,13 +1,14 @@
 import "@fontsource/hanken-grotesk/latin-400.css";
 import "@fontsource/hanken-grotesk/latin-600.css";
 import "@fontsource/hanken-grotesk/latin-800.css";
-import { cardDateParts, hostBlock, timeRange } from "@invite-me/api/invites/card";
+import { cardDateParts, hostBlock, joinPlace, timeRange } from "@invite-me/api/invites/card";
 import { type CSSProperties, useRef } from "react";
 
 import { useFit } from "../fit";
 import { Invited } from "../invited";
 import { GuestStage } from "../stage";
 import type { GuestPageProps } from "../types";
+import { TimeRange } from "../time-range";
 import { resolveLook } from "./config";
 import { Glyph } from "./glyphs";
 import "./tiles.css";
@@ -52,7 +53,7 @@ export function SanniGuestPage(props: GuestPageProps) {
   const host = hostBlock(card);
   const root = useRef<HTMLElement>(null);
   useFit(root, ".st-head", limits, [card, party.displayName, lite]);
-  const place = [titleCase(card.venueName), titleCase(card.city)].filter(Boolean).join(", ");
+  const place = joinPlace(titleCase(card.venueName), titleCase(card.city));
 
   return (
     <GuestStage {...props} toneClass={`tone-sanni-${look.palette}`}>
@@ -95,7 +96,11 @@ export function SanniGuestPage(props: GuestPageProps) {
                 {date.year}
               </span>
             </p>
-            <p className="st-line">{[titleCase(date.weekday), timeRange(card)].filter(Boolean).join(" · ")}</p>
+            <p className="st-line">
+              {titleCase(date.weekday)}
+              {timeRange(card) ? " · " : null}
+              <TimeRange card={card} />
+            </p>
             {place ? <p className="st-line">{place}</p> : null}
             <Invited party={party} print={props.print} />
           </div>

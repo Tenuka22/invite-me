@@ -1,125 +1,149 @@
-import { Dock, DockItem } from "@invite-me/ui/components/motion/dock";
-import { Link, type LinkProps, useRouterState } from "@tanstack/react-router";
-import { ArrowLeft, Home, Mail, Plus, User } from "lucide-react";
-import { motion, useMotionValueEvent, useScroll } from "motion/react";
-import { type ReactNode, useState } from "react";
+import { cn } from "@invite-me/ui/lib/utils";
+import { Link, useRouterState } from "@tanstack/react-router";
+import { Home, Mail, Plus, User } from "lucide-react";
+import { type CSSProperties, type ReactNode, createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { Brand } from "@/components/brand";
+import { NewInvitationDialog } from "@/components/new-invitation-dialog";
+import { TooltipProvider, buttonStyles } from "@/components/ui";
 
 type Tab = "home" | "invitations" | "profile";
 
 function activeTab(pathname: string): Tab | null {
   if (pathname === "/") return "home";
-  if (pathname === "/invitations/new") return null;
   if (pathname.startsWith("/invitations")) return "invitations";
   if (pathname.startsWith("/profile")) return "profile";
   return null;
 }
 
-/** Top bar that slides away while you read down and comes back the moment you scroll up. */
-function TopBar() {
-  const { scrollY } = useScroll();
-  const [hidden, setHidden] = useState(false);
-  useMotionValueEvent(scrollY, "change", (y) => {
-    const previous = scrollY.getPrevious() ?? 0;
-    if (y < 80) setHidden(false);
-    else if (y > previous + 4) setHidden(true);
-    else if (y < previous - 4) setHidden(false);
-  });
-  return (
-    <motion.header
-      animate={{ y: hidden ? "-110%" : "0%" }}
-      transition={{ type: "spring", stiffness: 380, damping: 36 }}
-      className="fixed inset-x-0 top-0 z-30 border-b bg-background print:hidden"
-    >
-      <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-5">
-        <Brand />
-        <Link
-          to="/invitations/new"
-          className="hidden rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground sm:inline-flex"
-        >
-          New invitation
-        </Link>
-      </div>
-    </motion.header>
-  );
+const NAV = [
+  { tab: "home", to: "/", label: "Home", Icon: Home },
+  { tab: "invitations", to: "/invitations", label: "Invitations", Icon: Mail },
+  { tab: "profile", to: "/profile", label: "Profile", Icon: User },
+] as const;
+
+type Shell = { openNew: () => void; setFlowOn: (on: boolean) => void; slot: HTMLElement | null };
+const ShellContext = createContext<Shell>({ openNew: () => {}, setFlowOn: () => {}, slot: null });
+/** Opens the "New invitation" dialog from anywhere inside the shell. */
+export function useNewInvitation() {
+  return useContext(ShellContext).openNew;
 }
 
-function NavLink({
-  to,
-  label,
-  Icon,
-  active,
-}: {
-  to: "/" | "/invitations" | "/profile";
-  label: string;
-  Icon: typeof Home;
-  active: boolean;
-}) {
-  return (
-    <DockItem active={active}>
-      <Link
-        to={to}
-        aria-label={label}
-        aria-current={active ? "page" : undefined}
-        className={`absolute inset-0 grid place-content-center justify-items-center gap-0.5 rounded-[1.4rem] text-[11px] font-medium active:scale-95 ${
-          active ? "text-foreground" : "text-muted-foreground"
-        }`}
-      >
-        <Icon className="size-6" strokeWidth={active ? 2.2 : 1.8} aria-hidden />
-        {label}
-      </Link>
-    </DockItem>
-  );
+/**
+ * Actions for a focused task (edit card, add guest, print). Rendering this hides the tab bar and
+ * shows a sticky action bar at the bottom on every screen size; the shell pads the page to match.
+ */
+export function FlowBar({ children }: { children: ReactNode }) {
+  const { setFlowOn, slot } = useContext(ShellContext);
+  useEffect(() => {
+    setFlowOn(true);
+    return () => setFlowOn(false);
+  }, [setFlowOn]);
+  return slot ? createPortal(children, slot) : null;
 }
 
-/** App frame for hosts: a slide-away top bar and a big tab bar docked at the bottom. */
-export function HostShell({ children }: { children: ReactNode }) {
+const TAB_BAR = "calc(4.25rem + env(safe-area-inset-bottom))";
+const ACTION_BAR = "calc(4.5rem + env(safe-area-inset-bottom))";
+
+/**
+ * The one layout shell. It owns every fixed bar and publishes their heights as `--header-h` and
+ * `--bottom-bar-h`; the page body pads itself with them, so nothing is ever covered.
+ *
+ * - below md: a top bar (brand, New invitation) and a bottom tab bar.
+ * - md and up: a top bar with the nav links and one New invitation button.
+ * - `flow`: focused tasks (edit, add guest, print) hide the tab bar and show their own action bar.
+ */
+export function HostShell({ children, signedIn = true }: { children: ReactNode; signedIn?: boolean }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const active = activeTab(pathname);
-  // Editing a card is a focused task with its own Save bar, so the tab bar steps aside.
-  const focused = pathname.endsWith("/edit");
+  const [newOpen, setNewOpen] = useState(false);
+  const [flowOn, setFlowOn] = useState(false);
+  const [slot, setSlot] = useState<HTMLElement | null>(null);
+  const showTabs = signedIn && !flowOn;
+  const bottom = flowOn ? ACTION_BAR : showTabs ? TAB_BAR : "0px";
+  const shell = useMemo(() => ({ openNew: () => setNewOpen(true), setFlowOn, slot }), [slot]);
 
   return (
-    <div className="host-app flex min-h-svh flex-col">
-      <TopBar />
-      <main className={`mx-auto w-full max-w-6xl flex-1 px-5 pt-24 print:max-w-none print:p-0 ${focused ? "pb-24" : "pb-44"}`}>
-        {children}
-        <p className="mt-16 text-center text-sm text-muted-foreground print:hidden">Made by Tenuka22</p>
-      </main>
-      {focused ? null : (
-        <nav aria-label="Main" className="print:hidden fixed inset-x-0 bottom-0 z-30 flex justify-center px-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-          <Dock size={68} className="items-center gap-1 rounded-[2.2rem] p-2 shadow-[0_18px_40px_-16px_rgb(60_30_10/0.35)]">
-            <NavLink to="/" label="Home" Icon={Home} active={active === "home"} />
-            <NavLink to="/invitations" label="Invitations" Icon={Mail} active={active === "invitations"} />
-            <DockItem className="mx-1">
-              <Link
-                to="/invitations/new"
-                aria-label="New invitation"
-                className="absolute inset-0 grid place-items-center rounded-full bg-primary text-primary-foreground shadow-lg active:scale-95"
-              >
-                <Plus className="size-8" aria-hidden />
-              </Link>
-            </DockItem>
-            <NavLink to="/profile" label="Profile" Icon={User} active={active === "profile"} />
-          </Dock>
-        </nav>
-      )}
-    </div>
-  );
-}
+    <ShellContext.Provider value={shell}>
+      <TooltipProvider>
+        <div
+          className="host-app flex min-h-dvh flex-col [--bottom-bar-h:var(--bar-small)] md:[--bottom-bar-h:var(--bar-wide)]"
+          style={{ ["--bar-small" as string]: bottom, ["--bar-wide" as string]: flowOn ? ACTION_BAR : "0px" } as CSSProperties}
+        >
+          <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[70] focus:rounded-pill focus:bg-surface-raised focus:px-4 focus:py-3 focus:shadow-overlay">
+            Skip to content
+          </a>
+          <header className="fixed inset-x-0 top-0 z-30 border-b border-border bg-surface/95 backdrop-blur-sm print:hidden" style={{ height: "var(--header-h)" }}>
+            <div className="mx-auto flex h-full w-full max-w-6xl items-center justify-between gap-4 px-(--page-gutter)">
+              <Brand />
+              {signedIn ? (
+                <nav aria-label="Main" className="hidden items-center gap-1 md:flex">
+                  {NAV.map(({ tab, to, label }) => (
+                    <Link
+                      key={tab}
+                      to={to}
+                      aria-current={active === tab ? "page" : undefined}
+                      className={cn("inline-flex min-h-11 items-center rounded-pill px-4 font-medium", active === tab ? "bg-primary-soft text-text" : "text-text-muted hover:text-text")}
+                    >
+                      {label}
+                    </Link>
+                  ))}
+                </nav>
+              ) : null}
+              {signedIn ? (
+                <>
+                  <button type="button" onClick={() => setNewOpen(true)} className={buttonStyles({ variant: "secondary", size: "icon", className: "md:hidden" })} aria-label="New invitation">
+                    <Plus className="size-6" aria-hidden />
+                  </button>
+                  <button type="button" onClick={() => setNewOpen(true)} className={buttonStyles({ variant: "secondary", className: "hidden md:inline-flex" })}>
+                    <Plus className="size-5" aria-hidden /> New invitation
+                  </button>
+                </>
+              ) : (
+                <Link to="/login" className={buttonStyles({ variant: "primary" })}>
+                  Sign in
+                </Link>
+              )}
+            </div>
+          </header>
 
-/** Title row for inner pages: a round back button and the page title. */
-export function PageTitle({ back, title, sub }: { back?: LinkProps; title: string; sub?: string }) {
-  return (
-    <div className="mb-6 grid gap-2">
-      {back ? (
-        <Link {...back} aria-label="Back" className="grid size-12 place-items-center rounded-full border bg-card shadow-sm active:scale-95">
-          <ArrowLeft className="size-5" aria-hidden />
-        </Link>
-      ) : null}
-      <h1 className="text-4xl sm:text-5xl">{title}</h1>
-      {sub ? <p className="text-muted-foreground">{sub}</p> : null}
-    </div>
+          <main
+            id="main"
+            tabIndex={-1}
+            className="mx-auto w-full max-w-6xl flex-1 px-(--page-gutter) pt-[calc(var(--header-h)+1.5rem)] outline-none print:max-w-none print:p-0"
+            style={{ paddingBottom: "calc(var(--bottom-bar-h) + 2rem)" }}
+          >
+            {children}
+          </main>
+
+          {showTabs ? (
+            <nav aria-label="Main" className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-sm md:hidden print:hidden">
+              <ul className="mx-auto grid h-[4.25rem] max-w-md grid-cols-3">
+                {NAV.map(({ tab, to, label, Icon }) => (
+                  <li key={tab}>
+                    <Link
+                      to={to}
+                      aria-current={active === tab ? "page" : undefined}
+                      className={cn("grid h-full place-content-center justify-items-center gap-0.5 text-label font-medium", active === tab ? "text-primary" : "text-text-muted")}
+                    >
+                      <Icon className="size-6" strokeWidth={active === tab ? 2.2 : 1.8} aria-hidden />
+                      {label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          ) : null}
+
+          {flowOn ? (
+            <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-surface-raised/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-sm print:hidden">
+              <div ref={setSlot} className="mx-auto flex h-[4.5rem] w-full max-w-6xl items-center justify-between gap-3 px-(--page-gutter)" />
+            </div>
+          ) : null}
+        </div>
+        <NewInvitationDialog open={newOpen} onOpenChange={setNewOpen} signedIn={signedIn} />
+      </TooltipProvider>
+    </ShellContext.Provider>
   );
 }

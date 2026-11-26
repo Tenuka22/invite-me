@@ -30,16 +30,6 @@ export type GuestPageProps = {
   lite?: boolean;
   /** Printed copy: no buttons, and an empty "Invited" line when no guest is chosen. */
   print?: boolean;
-  /** When set, the info drawer offers a Design tab so the guest can view the card in another design. */
-  design?: {
-    current: string;
-    options: readonly { id: string; name: string }[];
-    look: Record<string, string>;
-    lookOptions: readonly LookOption[];
-    onPick: (id: string) => void;
-    onLook: (key: string, value: string) => void;
-    onReset: () => void;
-  };
 };
 
 export type Preset = {
@@ -49,6 +39,4 @@ export type Preset = {
   lookOptions: readonly LookOption[];
   /** One single-screen card per orientation: portrait is centred, landscape is split left and right. */
   GuestPage: ComponentType<GuestPageProps>;
-  /** Small still of the design for template and invitation lists. */
-  Thumb: ComponentType<{ card: Card }>;
 };

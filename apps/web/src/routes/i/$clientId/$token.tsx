@@ -1,4 +1,4 @@
-import type { Card as CardData, PresetId } from "@invite-me/api/invites/card";
+import type { Card as CardData } from "@invite-me/api/invites/card";
 import { parseLinkToken } from "@invite-me/api/invites/token";
 import { GuestSkeleton } from "@/components/skeletons";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -6,7 +6,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 
 import { toast } from "@/components/toaster";
-import { PRESETS, presetFor } from "@/presets";
+import { presetFor } from "@/presets";
 import type { GuestPartyView } from "@/presets/types";
 import { orpc } from "@/utils/orpc";
 
@@ -83,47 +83,10 @@ function Open({ input, party, card }: { input: LinkInput; party: GuestPartyView 
     recordOpen.mutate(input);
   }, [input, recordOpen]);
 
-  // A guest may view the card in another design. It is their own choice, kept in this browser only.
-  const key = `invite.design.${input.partyId}`;
-  const [mine, setMine] = useState<{ preset: string; look: Record<string, string> } | null>(null);
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(key);
-      if (saved) setMine(JSON.parse(saved));
-    } catch {
-      // no saved choice
-    }
-  }, [key]);
-  function choose(next: { preset: string; look: Record<string, string> } | null) {
-    setMine(next);
-    try {
-      if (next) localStorage.setItem(key, JSON.stringify(next));
-      else localStorage.removeItem(key);
-    } catch {
-      // storage is off; the choice lasts until the page closes
-    }
-  }
-  const allowed = card.allowGuestDesign !== false;
-  const shownPreset = (allowed && mine?.preset && mine.preset in PRESETS ? mine.preset : card.preset) as PresetId;
-  const shownLook = allowed && mine && shownPreset === mine.preset ? mine.look : card.look;
-  const shown = presetFor(shownPreset);
-  const { GuestPage } = shown;
+  const { GuestPage } = presetFor(card.preset);
   return (
     <GuestPage
-      card={{ ...card, preset: shownPreset, look: shownLook }}
-      design={
-        allowed
-          ? {
-              current: shownPreset,
-              options: (Object.keys(PRESETS) as PresetId[]).map((id) => ({ id, name: PRESETS[id].name })),
-              look: shownLook,
-              lookOptions: shown.lookOptions,
-              onPick: (id) => choose({ preset: id, look: id === card.preset ? card.look : {} }),
-              onLook: (k, v) => choose({ preset: shownPreset, look: { ...shownLook, [k]: v } }),
-              onReset: () => choose(null),
-            }
-          : undefined
-      }
+      card={card}
       party={party}
       answer={answer}
       pending={rsvp.isPending ? rsvp.variables?.status : undefined}

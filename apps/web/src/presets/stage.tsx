@@ -1,10 +1,9 @@
-import { type Card, cardDateParts, timeRange } from "@invite-me/api/invites/card";
+import { type Card, cardDateParts, formatTime, tidyText, timeRange } from "@invite-me/api/invites/card";
 import { Button, ButtonLink } from "@invite-me/ui/components/motion/button/base";
 import { StatefulButton } from "@invite-me/ui/components/motion/button/stateful";
 import { AnimatedBadge } from "@invite-me/ui/components/motion/animated-badge";
 import { AnimatedNumber } from "@invite-me/ui/components/motion/animated-number";
 import { BottomSheet } from "@invite-me/ui/components/motion/bottom-sheet";
-import { RadioGroup, RadioGroupItem } from "@invite-me/ui/components/motion/radio";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@invite-me/ui/components/motion/tabs";
 import { CalendarPlus, Compass, Info, MapPin, Minus, Phone, Plus, Share2 } from "lucide-react";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
@@ -98,7 +97,6 @@ export function GuestStage({
   children,
   infoExtra,
   corner,
-  design,
 }: StageProps) {
   const [rsvpOpen, setRsvpOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
@@ -203,7 +201,6 @@ export function GuestStage({
               <TabsTrigger value="details">Details</TabsTrigger>
               <TabsTrigger value="schedule">Schedule</TabsTrigger>
               <TabsTrigger value="contact">Contact</TabsTrigger>
-              {design && !lite ? <TabsTrigger value="design">Design</TabsTrigger> : null}
             </TabsList>
 
             <TabsContent value="details">
@@ -211,7 +208,7 @@ export function GuestStage({
                 <section className="stage-block">
                   <p className="stage-label">When</p>
                   <p className="stage-big">
-                    {titleCase(date.weekday)}, {date.day} {titleCase(date.month)} {date.year}
+                    {titleCase(date.weekday)}, <span style={{ whiteSpace: "nowrap" }}>{date.day} {titleCase(date.month)} {date.year}</span>
                   </p>
                   {timeRange(card) ? <p>{timeRange(card)}</p> : null}
                 </section>
@@ -219,8 +216,8 @@ export function GuestStage({
                   {card.venueName.trim() || card.city.trim() ? (
                     <>
                       <p className="stage-label">Where</p>
-                      {card.venueName.trim() ? <p className="stage-big">{titleCase(card.venueName)}</p> : null}
-                      {card.city.trim() ? <p className="stage-muted">{titleCase(card.city)}</p> : null}
+                      {tidyText(card.venueName) ? <p className="stage-big">{titleCase(tidyText(card.venueName))}</p> : null}
+                      {tidyText(card.city) ? <p className="stage-muted">{titleCase(tidyText(card.city))}</p> : null}
                     </>
                   ) : null}
                   {!lite && card.venueGeo ? (
@@ -257,19 +254,19 @@ export function GuestStage({
               <ol className="stage-tab stage-timeline">
                 {card.subEvents.map((s, i) => (
                   <li key={i}>
-                    <time>{s.time}</time>
+                    <time>{formatTime(s.time)}</time>
                     <span>{titleCase(s.label)}</span>
                   </li>
                 ))}
                 {card.timeFrom.trim() ? (
                   <li>
-                    <time>{card.timeFrom}</time>
+                    <time>{formatTime(card.timeFrom)}</time>
                     <span>{card.venueName.trim() ? `Celebration begins at ${titleCase(card.venueName)}` : "Celebration begins"}</span>
                   </li>
                 ) : null}
                 {card.timeTo.trim() ? (
                   <li>
-                    <time>{card.timeTo}</time>
+                    <time>{formatTime(card.timeTo)}</time>
                     <span>Celebration ends</span>
                   </li>
                 ) : null}
@@ -307,34 +304,6 @@ export function GuestStage({
                 )}
               </div>
             </TabsContent>
-
-            {design && !lite ? (
-              <TabsContent value="design">
-                <div className="stage-tab">
-                  <section className="stage-block">
-                    <p className="stage-label">View this invitation as</p>
-                    <RadioGroup aria-label="Design" value={design.current} onValueChange={design.onPick} className="gap-3">
-                      {design.options.map((o) => (
-                        <RadioGroupItem key={o.id} value={o.id} label={o.name} className="stage-option" />
-                      ))}
-                    </RadioGroup>
-                  </section>
-                  {design.lookOptions.map((opt) => (
-                    <section key={opt.key} className="stage-block">
-                      <p className="stage-label">{opt.label}</p>
-                      <RadioGroup aria-label={opt.label} value={design.look[opt.key] ?? opt.default} onValueChange={(v) => design.onLook(opt.key, v)} className="gap-3">
-                        {opt.choices.map((c) => (
-                          <RadioGroupItem key={c.value} value={c.value} label={c.label} className="stage-option" />
-                        ))}
-                      </RadioGroup>
-                    </section>
-                  ))}
-                  <Button className="stage-action" onClick={design.onReset}>
-                    Back to the host's design
-                  </Button>
-                </div>
-              </TabsContent>
-            ) : null}
           </Tabs>
         </div>
       </BottomSheet>
