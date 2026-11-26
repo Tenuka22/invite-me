@@ -1,3 +1,4 @@
+import { DatePicker } from "@invite-me/ui/components/motion/date-picker";
 import { type Card, cardSchema } from "@invite-me/api/invites/card";
 import { ORPCError } from "@orpc/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -11,7 +12,7 @@ import { FlowBar } from "@/components/host-shell";
 import { InvitationCard } from "@/components/invitation-card";
 import { NotFound } from "@/components/not-found";
 import { toast } from "@/components/toaster";
-import { BackLink, Button, Dialog, DialogContent, DialogTrigger, EmptyState, Field, Input, PageHeader, Skeleton } from "@/components/ui";
+import { BackLink, Button, Dialog, DialogContent, DialogTrigger, EmptyState, PageHeader, Skeleton } from "@/components/ui";
 import { client, orpc } from "@/utils/orpc";
 
 export const Route = createFileRoute("/_auth/invitations/$id/edit")({
@@ -151,7 +152,7 @@ function Editor({ id, initial }: { id: string; initial: Card }) {
     <div>
       <PageHeader title="Edit card" back={<BackLink to="/invitations/$id" params={{ id }} label="Back" />} />
 
-      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,28rem)] lg:gap-12">
+      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,30rem)] lg:gap-12">
         <div className="grid min-w-0 gap-8">
           <section aria-label="Essentials" className="grid gap-5">
             <div className="grid gap-4 sm:grid-cols-2">
@@ -160,9 +161,7 @@ function Editor({ id, initial }: { id: string; initial: Card }) {
             </div>
 
             <div className="grid gap-4 sm:grid-cols-3">
-              <Field label="Date" error={errors.date} className="sm:col-span-1">
-                <Input type="date" value={draft.date} onValueChange={(v) => set("date", v)} />
-              </Field>
+              <DatePicker label="Date" error={errors.date} value={draft.date} onChange={(v) => set("date", v)} />
               <TextField label="Starts" placeholder="e.g. 9.30 AM" value={draft.timeFrom} max={20} onChange={(v) => set("timeFrom", v)} />
               <TextField label="Ends" optional placeholder="e.g. 2.30 PM" value={draft.timeTo} max={20} onChange={(v) => set("timeTo", v)} />
             </div>
@@ -184,10 +183,11 @@ function Editor({ id, initial }: { id: string; initial: Card }) {
           </section>
         </div>
 
-        <aside aria-label="Live preview" className="hidden lg:sticky lg:top-[calc(var(--header-h,4rem)+1.5rem)] lg:block">
-          <div className="mx-auto w-[min(100%,calc((100dvh-var(--header-h,4rem)-9rem)*9/16))]">
-            <InvitationCard card={draft} className="rounded-2xl border border-border shadow-raised" />
-          </div>
+        <aside
+          aria-label="Live preview"
+          className="hidden rounded-2xl lg:sticky lg:top-[calc(var(--header-h,4rem)+1.5rem)] lg:block lg:max-h-[calc(100dvh-var(--header-h,4rem)-var(--bottom-bar-h,4.5rem)-3rem)] lg:overflow-y-auto"
+        >
+          <InvitationCard card={draft} className="rounded-2xl border border-border shadow-raised" />
         </aside>
       </div>
 

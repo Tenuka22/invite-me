@@ -39,3 +39,22 @@ describe("resolveMapsUrl", () => {
     expect(await resolveMapsUrl("https://maps.app.goo.gl/abc", fake)).toBeNull();
   });
 });
+
+describe("share.google links", () => {
+  test("are accepted as Google links", () => {
+    expect(isGoogleMapsUrl("https://share.google/H1WsKgEOkWXZ0uIoI")).toBe(true);
+  });
+
+  test("a link that only names a place is looked up by name", async () => {
+    const seen: string[] = [];
+    const fake = (async (input: RequestInfo | URL) => {
+      const url = String(input);
+      seen.push(url);
+      if (url.startsWith("https://share.google/")) return new Response(null, { status: 302, headers: { location: "https://www.google.com/search?q=The+Kingsbury+Colombo&kgmid=/m/1" } });
+      if (url.startsWith("https://www.google.com/search")) return new Response("<html></html>", { status: 200 });
+      return Response.json([{ lat: "6.93", lon: "79.84" }]);
+    }) as typeof fetch;
+    expect(await resolveMapsUrl("https://share.google/abc", fake)).toEqual({ lat: 6.93, lng: 79.84 });
+    expect(seen.at(-1)).toContain("q=The%20Kingsbury%20Colombo");
+  });
+});
