@@ -65,12 +65,6 @@ export function GoldenGuestPage(props: GuestPageProps) {
         <div className="ga-top" aria-hidden>
           <Mandala />
         </div>
-        <div className="ga-corner is-left" aria-hidden>
-          <Mandala />
-        </div>
-        <div className="ga-corner is-right" aria-hidden>
-          <Mandala />
-        </div>
 
         <header className="ga-hosts ga-caps">
           {party.displayName ? <p className="ga-for">For {party.displayName}</p> : null}

@@ -42,33 +42,7 @@
   width: 100%;
   transform: translateY(-50%);
 }
-.ga-corner {
-  position: absolute;
-  bottom: calc(5.5rem + env(safe-area-inset-bottom));
-  width: calc(var(--u) * 9);
-  aspect-ratio: 1;
-  overflow: hidden;
-  opacity: 0.85;
-  pointer-events: none;
-}
-.ga-corner .gc-mandala {
-  position: absolute;
-  width: 200%;
-}
-.ga-corner.is-left {
-  left: calc(var(--u) * 0.9);
-}
-.ga-corner.is-left .gc-mandala {
-  left: -100%;
-  top: 0;
-}
-.ga-corner.is-right {
-  right: calc(var(--u) * 0.9);
-}
-.ga-corner.is-right .gc-mandala {
-  right: -100%;
-  top: 0;
-}
+
 
 .ga-caps {
   text-transform: uppercase;
@@ -177,10 +151,6 @@
     grid-template-columns: auto auto auto;
     justify-content: start;
   }
-  .ga-corner {
-    bottom: calc(var(--u) * 1.5);
-    width: calc(var(--u) * 11);
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -217,9 +187,6 @@
 .ga-hosts {
   margin-top: calc(var(--u) * 11);
 }
-.ga-corner {
-  display: none;
-}
 @media (orientation: landscape) and (min-aspect-ratio: 5/4) {
   .ga {
     --u: min(1.5svh, 0.95vw);
@@ -230,9 +197,6 @@
   }
   .ga-names {
     font-size: calc(var(--u) * 6.2);
-  }
-  .ga-corner {
-    display: block;
   }
   .ga-hosts {
     margin-top: 0;
@@ -312,9 +276,6 @@
   .ga-venue {
     font-size: calc(var(--u) * 2.6);
   }
-  .ga-corner {
-    width: calc(var(--u) * 12);
-  }
 }
 
 /* Landscape, tuned: the middle column gets a fixed share, the date stacks beside its day number */
@@ -376,8 +337,6 @@
     radial-gradient(34% 26% at 72% 10%, color-mix(in oklab, var(--st-gold) 18%, transparent), transparent 72%),
     radial-gradient(circle at 5% 52%, var(--g) 0 0.3rem, transparent calc(0.3rem + 1px)),
     radial-gradient(circle at 84% 34%, var(--g) 0 0.45rem, transparent calc(0.45rem + 1px)),
-    radial-gradient(circle at 8% 80%, transparent 0 0.75rem, var(--g) calc(0.75rem + 1px) calc(0.75rem + 2px), transparent calc(0.75rem + 3px)),
-    radial-gradient(circle at 90% 88%, transparent 0 1.1rem, var(--a) calc(1.1rem + 1px) calc(1.1rem + 2px), transparent calc(1.1rem + 3px)),
     radial-gradient(circle at 93% 22%, var(--a) 0 0.25rem, transparent calc(0.25rem + 1px)),
     radial-gradient(circle at 60% 90%, var(--g) 0 0.2rem, transparent calc(0.2rem + 1px)),
     radial-gradient(circle at 94% 14%, transparent 0 0.6rem, var(--g) calc(0.6rem + 1px) calc(0.6rem + 2px), transparent calc(0.6rem + 3px));
@@ -388,8 +347,6 @@
   background:
     radial-gradient(circle at 5% 52%, var(--g) 0 0.3rem, transparent calc(0.3rem + 1px)),
     radial-gradient(circle at 84% 34%, var(--g) 0 0.45rem, transparent calc(0.45rem + 1px)),
-    radial-gradient(circle at 8% 80%, transparent 0 0.75rem, var(--g) calc(0.75rem + 1px) calc(0.75rem + 2px), transparent calc(0.75rem + 3px)),
-    radial-gradient(circle at 90% 88%, transparent 0 1.1rem, var(--a) calc(1.1rem + 1px) calc(1.1rem + 2px), transparent calc(1.1rem + 3px)),
     radial-gradient(circle at 93% 22%, var(--a) 0 0.25rem, transparent calc(0.25rem + 1px)),
     radial-gradient(circle at 60% 90%, var(--g) 0 0.2rem, transparent calc(0.2rem + 1px)),
     radial-gradient(circle at 94% 14%, transparent 0 0.6rem, var(--g) calc(0.6rem + 1px) calc(0.6rem + 2px), transparent calc(0.6rem + 3px));
