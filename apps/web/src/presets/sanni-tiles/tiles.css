@@ -186,6 +186,8 @@
 /* Thumbnail: the same card shrunk into the list. */
 .st-thumb {
   --u: 2.2cqw;
+  position: relative;
+  inset: auto;
 }
 .st-thumb .st-card {
   inset: 6%;
@@ -193,6 +195,8 @@
   margin: 0;
   padding: 8%;
   border-radius: 4cqw;
+  grid-template-columns: none;
+  grid-template-areas: none;
   grid-template-rows: auto minmax(0, 1fr);
 }
 .st-thumb-names {
@@ -202,10 +206,14 @@
   text-transform: uppercase;
 }
 .st-thumb .st-grid {
+  grid-area: auto;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(0, 1fr));
   gap: 2cqw;
   align-self: end;
 }
 .st-thumb .st-tile {
+  aspect-ratio: 1;
   padding: 8%;
   border-radius: 1cqw;
 }
