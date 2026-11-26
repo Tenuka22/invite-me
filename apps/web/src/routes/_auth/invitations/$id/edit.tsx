@@ -160,10 +160,12 @@ function Editor({ id, initial }: { id: string; initial: Card }) {
               <TextField label="Second name" placeholder="e.g. Sameera" value={draft.name2} max={40} error={errors.name2} onChange={(v) => set("name2", v)} />
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-3">
-              <DatePicker label="Date" error={errors.date} value={draft.date} onChange={(v) => set("date", v)} />
-              <TextField label="Starts" placeholder="e.g. 9.30 AM" value={draft.timeFrom} max={20} onChange={(v) => set("timeFrom", v)} />
-              <TextField label="Ends" optional placeholder="e.g. 2.30 PM" value={draft.timeTo} max={20} onChange={(v) => set("timeTo", v)} />
+            <div className="grid gap-4">
+              <DatePicker label="Date" className="sm:max-w-72" error={errors.date} value={draft.date} onChange={(v) => set("date", v)} />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <TextField label="Starts" placeholder="e.g. 9.30 AM" value={draft.timeFrom} max={20} onChange={(v) => set("timeFrom", v)} />
+                <TextField label="Ends" optional placeholder="e.g. 2.30 PM" value={draft.timeTo} max={20} onChange={(v) => set("timeTo", v)} />
+              </div>
             </div>
 
             <div className="grid gap-4">
@@ -183,11 +185,11 @@ function Editor({ id, initial }: { id: string; initial: Card }) {
           </section>
         </div>
 
-        <aside
-          aria-label="Live preview"
-          className="hidden rounded-2xl lg:sticky lg:top-[calc(var(--header-h,4rem)+1.5rem)] lg:block lg:max-h-[calc(100dvh-var(--header-h,4rem)-var(--bottom-bar-h,4.5rem)-3rem)] lg:overflow-y-auto"
-        >
-          <InvitationCard card={draft} className="rounded-2xl border border-border shadow-raised" />
+        <aside aria-label="Live preview" className="hidden lg:sticky lg:top-[calc(var(--header-h,4rem)+1.5rem)] lg:block">
+          {/* Fits the space above the action bar, so the whole card is always in view and never cut. */}
+          <div className="mx-auto w-full" style={{ maxWidth: "min(100%, calc((100dvh - 12rem) * 0.5625))" }}>
+            <InvitationCard card={draft} mode="print" className="rounded-2xl border border-border shadow-raised" />
+          </div>
         </aside>
       </div>
 
@@ -205,7 +207,7 @@ function Editor({ id, initial }: { id: string; initial: Card }) {
               >
                 <div className="grid place-items-center">
                   <div className="w-[min(100%,calc((100dvh-9rem)*9/16))]">
-                    <InvitationCard card={draft} className="rounded-2xl border border-border shadow-raised" />
+                    <InvitationCard card={draft} mode="print" className="rounded-2xl border border-border shadow-raised" />
                   </div>
                 </div>
               </DialogContent>

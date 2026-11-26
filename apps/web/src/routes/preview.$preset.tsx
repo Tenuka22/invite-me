@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { z } from "zod";
 
 import { PRESETS } from "@/presets";
-import { SAMPLE_PARTY, sampleCard } from "@/presets/sample";
+import { NO_GUEST, SAMPLE_PARTY, sampleCard } from "@/presets/sample";
 
 /**
  * A design shown at the size of the window it is in. `?lite=1` is the light version for small
@@ -27,12 +27,14 @@ function Preview() {
   const [answer, setAnswer] = useState("pending");
   const [draft, setDraft] = useState<Card | null>(null);
   const [guest, setGuest] = useState<typeof SAMPLE_PARTY | null>(null);
+  const [fromParent, setFromParent] = useState(false);
 
   useEffect(() => {
     const onMessage = (e: MessageEvent) => {
       if (e.origin !== window.location.origin || e.data?.type !== "invite-preview") return;
       setDraft(e.data.card as Card);
       setGuest((e.data.party as typeof SAMPLE_PARTY | undefined) ?? null);
+      setFromParent(true);
     };
     window.addEventListener("message", onMessage);
     window.parent?.postMessage({ type: "invite-preview-ready" }, window.location.origin);
@@ -41,6 +43,8 @@ function Preview() {
 
   const card = draft ?? sampleCard(id);
   const { GuestPage } = PRESETS[card.preset] ?? PRESETS[id];
-  const party = guest ?? (print ? { ...SAMPLE_PARTY, displayName: "" } : SAMPLE_PARTY);
+  // A card sent by its owner is the truth: no guest means no guest, not a sample one. Only a page
+  // that nothing has spoken to (the design catalogue) borrows the sample so the card looks alive.
+  const party = fromParent ? (guest ?? NO_GUEST) : SAMPLE_PARTY;
   return <GuestPage card={card} party={party} answer={answer} lite={lite} print={print} onAnswer={(s) => setAnswer(s)} />;
 }

@@ -28,10 +28,16 @@ function limits(el: HTMLElement) {
   const r = el.getBoundingClientRect();
   const pad = 16;
   const sides = { left: r.left + pad, right: r.right - pad };
-  const bar = document.querySelector(".stage-bar")?.getBoundingClientRect();
-  if (window.matchMedia(LANDSCAPE).matches) return { ...sides, top: r.top + pad, bottom: r.bottom - pad, avoid: bar };
+  // Previews and print hide the floating bar, and a hidden element measures as an empty box at the
+  // top of the page. Reading it there would leave no room for the words at all, so the text would
+  // shrink to its floor. Without a bar, the card's own bottom edge is the limit.
+  const bar = document.querySelector(".stage-bar");
+  const barBox = bar?.getBoundingClientRect();
+  const barTop = barBox && barBox.height > 0 ? barBox.top : r.bottom;
+  if (window.matchMedia(LANDSCAPE).matches)
+    return { ...sides, top: r.top + pad, bottom: r.bottom - pad, avoid: barTop < r.bottom ? barBox : undefined };
   const mandala = el.querySelector(".ga-top")?.getBoundingClientRect();
-  return { ...sides, top: (mandala?.bottom ?? r.top) - 6, bottom: (bar?.top ?? r.bottom) - 6 };
+  return { ...sides, top: (mandala?.bottom ?? r.top) - 6, bottom: barTop - 6 };
 }
 
 function longestWord(...names: string[]) {

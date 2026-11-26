@@ -1,5 +1,5 @@
 import type { Card } from "@invite-me/api/invites/card";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import type { GuestPartyView } from "@/presets/types";
 
@@ -44,6 +44,66 @@ export function PrintStyle({ pageW, pageH }: { pageW: number; pageH: number }) {
         .print-sheet { zoom: 1 !important; box-shadow: none !important; margin: 0 !important; }
       }
     `}</style>
+  );
+}
+
+/**
+ * The real sheet, scaled down to sit inside a panel. This is the same component the browser prints,
+ * so the preview cannot disagree with the paper: it shows the page, the artwork and the crop marks.
+ */
+export function SheetPreview({
+  card,
+  party,
+  pageW,
+  pageH,
+  artW,
+  artH,
+  inset,
+  marks,
+}: {
+  card: Card;
+  party: GuestPartyView | null;
+  pageW: number;
+  pageH: number;
+  artW: number;
+  artH: number;
+  inset: number;
+  marks: boolean;
+}) {
+  const studio = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(0);
+  const width = pageW * PX_PER_MM;
+  const height = pageH * PX_PER_MM;
+
+  useEffect(() => {
+    const el = studio.current;
+    if (!el) return;
+    const measure = () => {
+      // The panel's own padding (p-4) is not room for the paper.
+      const room = el.clientWidth - 32;
+      const tallest = Math.min(640, window.innerHeight * 0.56);
+      if (room > 0) setScale(Math.min(room / width, tallest / height));
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    window.addEventListener("resize", measure);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [width, height]);
+
+  return (
+    <div ref={studio} className="grid w-full justify-items-center rounded-2xl border border-border bg-surface p-4">
+      <div className="relative" style={{ width: width * scale, height: height * scale }}>
+        <div className="absolute left-0 top-0 origin-top-left" style={{ width, height, transform: `scale(${scale})` }}>
+          {scale > 0 ? (
+            <Sheet card={card} party={party} last pageW={pageW} pageH={pageH} artW={artW} artH={artH} inset={inset} marks={marks} fit={1} />
+          ) : null}
+        </div>
+      </div>
+    </div>
   );
 }
 

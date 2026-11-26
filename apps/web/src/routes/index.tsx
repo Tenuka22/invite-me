@@ -1,4 +1,11 @@
 import type { PresetId } from "@invite-me/api/invites/card";
+import {
+  Card,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@invite-me/ui/components/motion/card";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 
@@ -9,7 +16,7 @@ import { PageSkeleton } from "@/components/skeletons";
 import { Button, PageHeader, buttonStyles } from "@/components/ui";
 import { getSession } from "@/lib/auth-client";
 import { PRESETS } from "@/presets";
-import { sampleCard } from "@/presets/sample";
+import { SAMPLE_PARTY, sampleCard } from "@/presets/sample";
 
 export const Route = createFileRoute("/")({
   component: HomePage,
@@ -44,45 +51,58 @@ function HomePage() {
       <PageHeader
         title="Pick a design"
         description="Four ways to say you're invited. Choose one, then make every word your own."
-        actions={
-          signedIn ? (
-            <Link to="/invitations" className={buttonStyles({ variant: "secondary" })}>
-              Your invitations
-            </Link>
-          ) : undefined
-        }
       />
-      <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {designs.map(({ id, card }) => (
-          <li
-            key={id}
-            className="group flex flex-col gap-3 rounded-3xl border border-border bg-surface-raised p-3 shadow-raised transition-[transform,box-shadow] duration-(--duration-base) ease-(--ease-out) hover:-translate-y-1 hover:shadow-overlay"
-          >
-            <InvitationCard card={card} className="mx-auto max-w-60 rounded-2xl shadow-raised sm:max-w-none" label={`${PRESETS[id].name} preview`} />
-            <div className="flex min-w-0 flex-1 flex-col justify-between gap-3 px-1">
-              <div className="grid gap-2">
-                <h2 className="text-section">{PRESETS[id].name}</h2>
-                <p className="text-text-muted">{PRESETS[id].blurb}</p>
-              </div>
-              {signedIn ? (
-                <Button
-                  variant="primary"
-                  size="md"
-                  loading={create.isPending && create.variables?.preset === id}
-                  disabled={create.isPending}
-                  onClick={() => create.mutate({ preset: id })}
-                >
-                  Use this design
-                </Button>
-              ) : (
-                <Link to="/login" className={buttonStyles({ variant: "primary", size: "md" })}>
-                  Use this design
-                </Link>
-              )}
-            </div>
-          </li>
-        ))}
-      </ul>
+
+      <section aria-label="Designs" className="grid gap-4">
+        <div className="flex items-baseline justify-between gap-4 border-b border-border pb-3">
+          <h2 className="text-section">Designs</h2>
+          <p className="text-label text-text-muted">{IDS.length} to choose from</p>
+        </div>
+
+        <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {designs.map(({ id, card }) => (
+            <li key={id} className="flex">
+              {/* No tile chrome: the artwork is the card, sitting straight on the page. */}
+              <Card size="compact" className="w-full gap-0 rounded-3xl border-0 p-0">
+                <div className="p-3">
+                  <InvitationCard
+                    card={card}
+                    party={SAMPLE_PARTY}
+                    className="mx-auto max-w-60 rounded-2xl shadow-raised sm:max-w-none"
+                    label={`${PRESETS[id].name} preview`}
+                  />
+                </div>
+
+                <CardHeader className="gap-1 px-4 pb-4">
+                  <CardTitle as="h2" className="font-display text-section font-[450] text-text">
+                    {PRESETS[id].name}
+                  </CardTitle>
+                  <CardDescription className="text-text-muted">{PRESETS[id].blurb}</CardDescription>
+                </CardHeader>
+
+                <CardFooter className="mt-auto px-4 pb-4">
+                  {signedIn ? (
+                    <Button
+                      variant="primary"
+                      size="md"
+                      className="w-full"
+                      loading={create.isPending && create.variables?.preset === id}
+                      disabled={create.isPending}
+                      onClick={() => create.mutate({ preset: id })}
+                    >
+                      Use this design
+                    </Button>
+                  ) : (
+                    <Link to="/login" className={buttonStyles({ variant: "primary", size: "md", className: "w-full" })}>
+                      Use this design
+                    </Link>
+                  )}
+                </CardFooter>
+              </Card>
+            </li>
+          ))}
+        </ul>
+      </section>
     </HostShell>
   );
 }

@@ -8,6 +8,7 @@ import { InvitationCard } from "@/components/invitation-card";
 import { Button, Dialog, DialogClose, DialogContent, DialogTrigger, Field, Textarea } from "@/components/ui";
 import { PRESETS, presetFor } from "@/presets";
 import { resolveLook } from "@/presets/look";
+import { SAMPLE_PARTY } from "@/presets/sample";
 import { LookPicker } from "@/presets/look-picker";
 
 type Set = <K extends keyof Card>(key: K, value: Card[K]) => void;
@@ -181,7 +182,7 @@ function DesignPicker({ draft, onPick }: { draft: Card; onPick: (id: PresetId) =
                 chosen ? "border-primary bg-primary-soft" : "border-transparent hover:border-border-strong",
               )}
             >
-              <InvitationCard card={{ ...draft, preset: id, look: chosen ? draft.look : {} }} className="rounded-xl" label={`${PRESETS[id].name} preview`} />
+              <InvitationCard card={{ ...draft, preset: id, look: chosen ? draft.look : {} }} party={SAMPLE_PARTY} className="rounded-xl" label={`${PRESETS[id].name} preview`} />
               <span className="flex min-h-11 items-center justify-between gap-2 px-1">
                 <span className="grid min-w-0">
                   <span className="font-semibold">{PRESETS[id].name}</span>

@@ -19,8 +19,14 @@ export const Route = createFileRoute("/login")({
         : undefined,
   }),
   beforeLoad: async ({ search }) => {
-    const { data } = await getSession();
-    if (data?.session) throw redirect({ href: search.next ?? "/invitations" });
+    let signedIn = false;
+    try {
+      signedIn = Boolean((await getSession()).data?.session);
+    } catch {
+      // The account service is unreachable. Show the sign-in page anyway: an error screen here is a
+      // dead end, and the page itself tells the visitor what is happening.
+    }
+    if (signedIn) throw redirect({ href: search.next ?? "/invitations" });
   },
   component: LoginPage,
   pendingComponent: LoginSkeleton,

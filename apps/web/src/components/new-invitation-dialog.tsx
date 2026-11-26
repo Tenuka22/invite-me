@@ -9,7 +9,7 @@ import { InvitationCard } from "@/components/invitation-card";
 import { toast } from "@/components/toaster";
 import { Button, Dialog, DialogContent } from "@/components/ui";
 import { PRESETS } from "@/presets";
-import { sampleCard } from "@/presets/sample";
+import { SAMPLE_PARTY, sampleCard } from "@/presets/sample";
 import { orpc } from "@/utils/orpc";
 
 /** The designs are bundled with the app, so listing them needs no request. */
@@ -34,7 +34,7 @@ export function TemplatePicker({ value, onChange, className }: { value: PresetId
                 chosen ? "border-primary bg-primary-soft" : "border-transparent hover:border-border-strong",
               )}
             >
-              <InvitationCard card={card} className="rounded-xl" label={`${PRESETS[id].name} preview`} />
+              <InvitationCard card={card} party={SAMPLE_PARTY} className="rounded-xl" label={`${PRESETS[id].name} preview`} />
               <span className="flex min-h-11 items-center justify-between gap-2 px-1">
                 <span className="grid">
                   <span className="font-semibold">{PRESETS[id].name}</span>

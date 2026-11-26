@@ -14,6 +14,15 @@ export function sampleCard(preset: PresetId, look: Record<string, string> = {}) 
   };
 }
 
+/** The card with nobody chosen: no greeting, no seats, and a blank write-on line when printed. */
+export const NO_GUEST = {
+  displayName: "",
+  ageGroup: null,
+  seats: 0,
+  seatLabel: null,
+  rules: null,
+} as const;
+
 export const SAMPLE_PARTY = {
   displayName: "Silva Family",
   ageGroup: "family",

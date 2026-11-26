@@ -3,8 +3,7 @@ import { Download, Printer, RectangleHorizontal, RectangleVertical } from "lucid
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 
-import { InvitationCard } from "@/components/invitation-card";
-import { PrintStyle, SIZES, Sheet, layoutFor, type PrintPayload, type SizeId } from "@/components/print-sheet";
+import { PrintStyle, SIZES, Sheet, SheetPreview, layoutFor, type PrintPayload, type SizeId } from "@/components/print-sheet";
 import { toast } from "@/components/toaster";
 import { Button, Dialog, DialogContent, EmptyState, Field, SegmentedControl, Select, Skeleton, Switch } from "@/components/ui";
 import { ENV } from "@/env.public";
@@ -52,7 +51,6 @@ export function PrintDialog({
   }, [people, who]);
 
   const layout = layoutFor({ size, landscape, marks });
-  const aspect = layout.artW / layout.artH;
 
   const options = [
     { value: "blank", label: "Blank template" },
@@ -151,13 +149,10 @@ export function PrintDialog({
                 <Switch checked={marks} onCheckedChange={setMarks} label="Bleed and crop marks" description="For print shops: 3 mm of colour past the edge and cut marks." />
               </div>
               <div className="grid justify-items-center gap-2">
-                <div
-                  className="w-full overflow-hidden rounded-2xl border border-border-strong bg-muted p-3"
-                >
-                  <div className="mx-auto" style={{ width: `min(100%, calc(46dvh * ${aspect}))` }}>
-                    <InvitationCard card={card} party={sheets[0] ?? null} aspect={aspect} mode="print" className="shadow-raised" />
-                  </div>
-                </div>
+                <SheetPreview card={card} party={sheets[0] ?? null} {...layout} marks={marks} />
+                <p className="text-label text-text-muted">
+                  {SIZES[size].label} · {landscape ? "Landscape" : "Portrait"}
+                </p>
                 {sheets.length > 1 ? <p className="text-label text-text-muted">Showing the first of {sheets.length} pages</p> : null}
               </div>
             </div>

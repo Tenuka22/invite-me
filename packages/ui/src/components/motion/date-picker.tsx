@@ -38,7 +38,7 @@ export function DatePicker({
   value,
   onChange,
   onClose,
-  placeholder = "Pick a date",
+  placeholder = "Choose a date",
   error,
   min,
   max,
@@ -54,8 +54,8 @@ export function DatePicker({
     : null;
 
   return (
-    <div className={cn("grid gap-1.5", className)}>
-      <span className="px-1 text-base font-semibold">{label}</span>
+    <div className={cn("grid min-w-0 gap-1.5", className)}>
+      <span className="text-label font-medium text-text">{label}</span>
       <DateRangePicker
         label={label}
         value={value ? { from: value, to: value } : null}
@@ -77,23 +77,24 @@ export function DatePicker({
           aria-label={`${label}: ${shown ?? "not set"}`}
           aria-describedby={error ? errorId : undefined}
           className={cn(
-            "!h-14 w-full justify-between gap-3 !rounded-full !border !border-foreground/25 bg-card !px-5 text-lg font-normal hover:bg-card",
-            error && "border-destructive",
+            "!h-12 !w-full !max-w-full !justify-start !gap-2.5 !rounded-xl !border !border-border-strong !bg-surface-raised !px-4 !text-body !font-normal text-text",
+            "hover:!bg-surface focus-visible:!outline-2 focus-visible:!outline-offset-2 focus-visible:!outline-focus-ring",
+            error && "!border-danger",
           )}
         >
-          <CalendarDays className="size-5 shrink-0 text-muted-foreground" aria-hidden />
-          <span className={cn("min-w-0 flex-1 truncate pl-1 text-left", !shown && "text-muted-foreground")}>
+          <CalendarDays className="size-5 shrink-0 text-text-muted" aria-hidden />
+          <span className={cn("min-w-0 flex-1 truncate text-left", !shown && "text-text-placeholder")}>
             {shown ?? placeholder}
           </span>
-          <ChevronDown className={cn("size-5 shrink-0 text-muted-foreground", open && "rotate-180")} aria-hidden />
+          <ChevronDown className={cn("size-5 shrink-0 text-text-muted", open && "rotate-180")} aria-hidden />
         </DateRangePickerTrigger>
         <DateRangePickerContent>
           <DateRangePickerCalendar
             showSummary={false}
             className={cn(
               "w-full rounded-none border-0 p-4",
-              "[&_button]:text-base [&_td]:h-10 [&_th]:text-sm [&_td>button]:h-10 [&_td>button]:max-w-10 [&_td>button]:text-base",
-              "[&_td_button.bg-foreground]:!bg-[oklch(0.56_0.16_35)] [&_td_button.bg-foreground]:!text-white",
+              "[&_button]:text-body [&_td]:h-10 [&_th]:text-label [&_td>button]:h-10 [&_td>button]:max-w-10 [&_td>button]:text-body",
+              "[&_td_button.bg-foreground]:!bg-primary [&_td_button.bg-foreground]:!text-primary-foreground",
               "[&_div>div>button]:min-h-11 [&_div>div:last-child>button]:size-11",
             )}
           >
@@ -103,7 +104,7 @@ export function DatePicker({
         </DateRangePickerContent>
       </DateRangePicker>
       {error ? (
-        <p id={errorId} className="px-1 text-xs text-destructive">
+        <p id={errorId} className="text-label font-medium text-danger">
           {error}
         </p>
       ) : null}

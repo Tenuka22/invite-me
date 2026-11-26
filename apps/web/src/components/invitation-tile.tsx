@@ -1,10 +1,17 @@
 import type { Card, PresetId } from "@invite-me/api/invites/card";
+import {
+  Card as UiCard,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@invite-me/ui/components/motion/card";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { CheckCircle2, Copy, MailOpen, MoreHorizontal, Pencil, Printer, Send, TriangleAlert, Trash2, UserPlus, Users } from "lucide-react";
+import { CheckCircle2, Copy, MailOpen, MoreHorizontal, Pencil, Printer, Send, Settings2, TriangleAlert, Trash2, Users } from "lucide-react";
 import { useState } from "react";
 
-import { useNewInvitation } from "@/components/host-shell";
 import { InvitationCard, invitationDate, invitationTitle } from "@/components/invitation-card";
 import { TemplatePicker } from "@/components/new-invitation-dialog";
 import { ListSkeleton } from "@/components/skeletons";
@@ -121,64 +128,82 @@ export function InvitationTile({ invitation }: { invitation: Invitation }) {
   }
 
   return (
-    <li className="relative grid content-start gap-3 rounded-2xl border border-border bg-surface-raised p-3 shadow-raised transition-shadow duration-(--duration-fast) hover:shadow-overlay">
-      <Link to="/invitations/$id" params={{ id }} className="group grid gap-3 rounded-xl outline-offset-4">
-        <InvitationCard card={card} className="mx-auto max-w-60 rounded-xl sm:max-w-none" />
-        <span className="grid min-w-0 gap-1.5 px-1">
-          <span className="text-section break-words">{title}</span>
-          <span className="text-label text-text-muted">
+    <li className="flex">
+      <UiCard
+        size="compact"
+        className="w-full gap-0 rounded-3xl bg-surface-raised p-0 transition-[border-color,box-shadow] duration-(--duration-base) hover:border-border-strong hover:shadow-overlay"
+      >
+        <div className="relative p-3">
+          <Link
+            to="/invitations/$id"
+            params={{ id }}
+            aria-label={`Open ${title}`}
+            className="block overflow-hidden rounded-2xl outline-offset-4"
+          >
+            <InvitationCard card={card} className="mx-auto max-w-60 rounded-2xl sm:max-w-none" />
+          </Link>
+
+          <Menu>
+            <MenuTrigger
+              render={
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  aria-label="More actions"
+                  className="absolute right-5 top-5 bg-surface-raised/95 shadow-overlay"
+                  disabled={duplicating}
+                />
+              }
+            >
+              <MoreHorizontal className="size-5" aria-hidden />
+            </MenuTrigger>
+            <MenuContent>
+              <MenuItem render={<Link to="/invitations/$id/print" params={{ id }} />}>
+                <Printer className="size-5" aria-hidden />
+                Print or PDF
+              </MenuItem>
+              <MenuItem onClick={() => void duplicate()}>
+                <Copy className="size-5" aria-hidden />
+                Duplicate
+              </MenuItem>
+              <MenuSeparator />
+              <MenuItem danger onClick={() => setConfirmDelete(true)}>
+                <Trash2 className="size-5" aria-hidden />
+                Delete
+              </MenuItem>
+            </MenuContent>
+          </Menu>
+        </div>
+
+        <CardHeader className="gap-1 px-4 pb-3">
+          <CardTitle as="h2" className="font-display text-section font-[450] text-text">
+            {title}
+          </CardTitle>
+          <CardDescription className="text-label text-text-muted">
             {invitationDate(card)}
             {venue ? ` · ${venue}` : ""}
-          </span>
-          <span className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-2">
-            <StatusBadge {...summary} />
-            <span className="flex items-center gap-1.5 text-label text-text-muted">
-              <Users className="size-4 shrink-0" aria-hidden />
-              {summary.loading ? "Counting replies…" : summary.total === 0 ? "No guests yet" : `${summary.replied} of ${summary.total} replied`}
-            </span>
-          </span>
-        </span>
-      </Link>
+          </CardDescription>
+        </CardHeader>
 
-      <div className="grid grid-cols-2 gap-2 border-t border-border pt-3">
-        <Link to="/invitations/$id" params={{ id }} className={buttonStyles({ variant: "secondary", className: "w-full" })}>
-          <UserPlus className="size-5" aria-hidden />
-          Add guest
-        </Link>
-        <Link to="/invitations/$id/edit" params={{ id }} className={buttonStyles({ variant: "secondary", className: "w-full" })}>
-          <Pencil className="size-5" aria-hidden />
-          Edit
-        </Link>
-      </div>
+        <CardContent className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 pb-4 text-label">
+          <StatusBadge {...summary} />
+          <span className="flex items-center gap-1.5 text-label text-text-muted">
+            <Users className="size-4 shrink-0" aria-hidden />
+            {summary.loading ? "Counting replies…" : summary.total === 0 ? "No guests yet" : `${summary.replied} of ${summary.total} replied`}
+          </span>
+        </CardContent>
 
-      <Menu>
-        <MenuTrigger render={<Button variant="secondary" size="icon" aria-label="More actions" className="absolute right-5 top-5 bg-surface-raised/95 shadow-overlay" disabled={duplicating} />}>
-          <MoreHorizontal className="size-5" aria-hidden />
-        </MenuTrigger>
-        <MenuContent>
-          <MenuItem render={<Link to="/invitations/$id/edit" params={{ id }} />}>
-            <Pencil className="size-5" aria-hidden />
-            Edit
-          </MenuItem>
-          <MenuItem render={<Link to="/invitations/$id" params={{ id }} />}>
-            <UserPlus className="size-5" aria-hidden />
-            Add guest
-          </MenuItem>
-          <MenuItem render={<Link to="/invitations/$id/print" params={{ id }} />}>
-            <Printer className="size-5" aria-hidden />
-            Print or PDF
-          </MenuItem>
-          <MenuItem onClick={() => void duplicate()}>
-            <Copy className="size-5" aria-hidden />
-            Duplicate
-          </MenuItem>
-          <MenuSeparator />
-          <MenuItem danger onClick={() => setConfirmDelete(true)}>
-            <Trash2 className="size-5" aria-hidden />
-            Delete
-          </MenuItem>
-        </MenuContent>
-      </Menu>
+        <CardFooter className="mt-auto px-4 pb-4">
+          <Link
+            to="/invitations/$id"
+            params={{ id }}
+            className={buttonStyles({ variant: "secondary", className: "w-full" })}
+          >
+            <Settings2 className="size-5" aria-hidden />
+            Configuration
+          </Link>
+        </CardFooter>
+      </UiCard>
 
       <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
         <AlertDialogContent
@@ -218,20 +243,10 @@ function FirstInvitation() {
 /** The signed-in list screen, shared by Home and Invitations. */
 export function InvitationList({ title }: { title: string }) {
   const list = useQuery(orpc.invitations.list.queryOptions());
-  const openNew = useNewInvitation();
   const empty = list.data?.length === 0;
   return (
     <>
-      <PageHeader
-        title={title}
-        actions={
-          list.data && !empty ? (
-            <Button variant="primary" size="lg" onClick={openNew}>
-              New invitation
-            </Button>
-          ) : undefined
-        }
-      />
+      <PageHeader title={title} description="Every card you have made. Open Configure to manage its guests and settings." />
       {list.isError ? (
         <EmptyState
           icon={TriangleAlert}
