@@ -16,6 +16,13 @@ import { type ReactNode, useState } from "react";
 
 import { orpc } from "@/utils/orpc";
 
+/** Big, clearly bordered fields: easy to hit on a phone and easy to read. */
+export const LARGE = {
+  field: "h-14 border-foreground/25 bg-card",
+  input: "pl-5 pr-5 text-lg",
+  label: "text-base font-semibold",
+};
+
 export function Text({
   label,
   value,
@@ -31,7 +38,7 @@ export function Text({
   type?: string;
   placeholder?: string;
 }) {
-  return <Input label={label} type={type} placeholder={placeholder} maxLength={max} value={value} onChange={onChange} />;
+  return <Input label={label} type={type} placeholder={placeholder} maxLength={max} value={value} onChange={onChange} classNames={LARGE} />;
 }
 
 /** A labelled group inside a step. */
@@ -66,7 +73,7 @@ export function HostFields({ card, set }: { card: Card; set: <K extends keyof Ca
   const mode = card.hostMode;
   return (
     <div className="grid gap-6">
-      <Group title="Who is inviting?">
+      <Group title="Choose one">
         <RadioGroup
           aria-label="Who is inviting"
           value={mode}
@@ -91,7 +98,7 @@ export function HostFields({ card, set }: { card: Card; set: <K extends keyof Ca
           {mode === "families" ? (
             <>
               <div className="grid gap-1.5">
-                <p className="px-1 text-sm font-medium">Joined by</p>
+                <p className="px-1 text-base font-semibold">Joined by</p>
                 <Choice
                   value={card.connector}
                   options={[...CONNECTORS]}
@@ -114,11 +121,11 @@ export function HostFields({ card, set }: { card: Card; set: <K extends keyof Ca
 
       <Group title="Wording" hint="Leave on Automatic and the card picks wording that fits your choice.">
         <div className="grid gap-1.5">
-          <p className="px-1 text-sm font-medium">The invitation</p>
+          <p className="px-1 text-base font-semibold">The invitation</p>
           <Choice value={card.requestLine} options={[...REQUEST_PHRASES]} onChange={(v) => set("requestLine", v)} label="Invitation wording" />
         </div>
         <div className="grid gap-1.5">
-          <p className="px-1 text-sm font-medium">The occasion</p>
+          <p className="px-1 text-base font-semibold">The occasion</p>
           <Choice value={card.occasionLine} options={[...OCCASION_PHRASES]} onChange={(v) => set("occasionLine", v)} label="Occasion wording" max={160} />
         </div>
       </Group>
@@ -165,7 +172,7 @@ function Choice({
           }
         }}
       >
-        <SelectTrigger>
+        <SelectTrigger className="h-auto min-h-14 justify-between rounded-full border-foreground/25 bg-card px-5 py-2 text-left text-lg [&_span]:text-left">
           <SelectValue placeholder={label} />
         </SelectTrigger>
         <SelectContent>
@@ -179,7 +186,7 @@ function Choice({
         </SelectContent>
       </Select>
       {current === CUSTOM ? (
-        <Input label="Your wording" maxLength={max} value={value} onChange={onChange} />
+        <Input label="Your wording" maxLength={max} value={value} onChange={onChange} classNames={LARGE} />
       ) : null}
     </div>
   );
@@ -213,6 +220,7 @@ export function MapsLinkField({
     <div className="grid gap-1.5">
       <Input
         label="Google Maps link"
+        classNames={LARGE}
         type="url"
         inputMode="url"
         placeholder="https://maps.app.goo.gl/…"

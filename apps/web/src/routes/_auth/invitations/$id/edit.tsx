@@ -20,11 +20,11 @@ export const Route = createFileRoute("/_auth/invitations/$id/edit")({
 });
 
 const STEPS = [
-  { id: "hosts", label: "Hosts" },
-  { id: "couple", label: "Couple" },
-  { id: "place", label: "Place" },
-  { id: "guests", label: "Guests" },
-  { id: "design", label: "Design" },
+  { id: "hosts", label: "Hosts", title: "Who is inviting?", blurb: "Choose how the card introduces the hosts. You can leave it out entirely." },
+  { id: "couple", label: "Couple", title: "The couple and the day", blurb: "Names as you want them printed, and when it starts." },
+  { id: "place", label: "Place", title: "Where is it?", blurb: "The venue name guests will see. Add a Google Maps link and they get a map." },
+  { id: "guests", label: "Guests", title: "What guests might need", blurb: "Who to call, other events that day, and any note for everyone." },
+  { id: "design", label: "Design", title: "Pick the look", blurb: "Change the design any time. Your words stay the same." },
 ] as const;
 type StepId = (typeof STEPS)[number]["id"];
 
@@ -97,6 +97,19 @@ function Editor({ id, initial }: { id: string; initial: Card }) {
               ))}
             </TabsList>
           </Tabs>
+
+          <header className="grid gap-3">
+            <div className="flex gap-1.5" aria-hidden>
+              {STEPS.map((s, i) => (
+                <span key={s.id} className={`h-1.5 flex-1 rounded-full transition-colors ${i <= index ? "bg-primary" : "bg-border"}`} />
+              ))}
+            </div>
+            <p className="text-sm font-medium text-muted-foreground">
+              Step {index + 1} of {STEPS.length}
+            </p>
+            <h2 className="text-3xl">{STEPS[index]!.title}</h2>
+            <p className="text-base text-muted-foreground">{STEPS[index]!.blurb}</p>
+          </header>
 
           <div className={showPreview ? "hidden lg:grid" : "grid gap-8"}>
             {step === "hosts" ? <HostFields card={draft} set={set} /> : null}
