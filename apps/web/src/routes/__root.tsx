@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import "@fontsource-variable/dm-sans";
 import "@fontsource-variable/geist-mono";
 import { Toaster } from "@/components/toaster";
@@ -6,10 +7,11 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { HeadContent, Outlet, Scripts, createRootRouteWithContext } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
+import { ENV } from "@/env.public";
 import type { orpc } from "@/utils/orpc";
 
-
 import appCss from "../index.css?url";
+
 export interface RouterAppContext {
   orpc: typeof orpc;
   queryClient: QueryClient;
@@ -18,22 +20,15 @@ export interface RouterAppContext {
 export const Route = createRootRouteWithContext<RouterAppContext>()({
   head: () => ({
     meta: [
-      {
-        charSet: "utf-8",
-      },
-      {
-        name: "viewport",
-        content: "width=device-width, initial-scale=1",
-      },
-      {
-        title: "My App",
-      },
+      { charSet: "utf-8" },
+      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { title: "InviteMe" },
+      { name: "description", content: "Digital invitations with a link for every guest." },
     ],
     links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
+      // Open the API connection (TLS included) while the stylesheet and script download.
+      { rel: "preconnect", href: ENV.VITE_SERVER_URL, crossOrigin: "use-credentials" },
+      { rel: "stylesheet", href: appCss },
     ],
   }),
 
@@ -47,14 +42,24 @@ function RootDocument() {
         <HeadContent />
       </head>
       <body>
-        <div className="grid h-svh grid-rows-[auto_1fr]">
-          <Outlet />
-        </div>
+        <Outlet />
         <Toaster />
-        <TanStackRouterDevtools position="bottom-left" />
-        <ReactQueryDevtools position="bottom" buttonPosition="bottom-right" />
+        {import.meta.env.DEV ? <Devtools /> : null}
         <Scripts />
       </body>
     </html>
+  );
+}
+
+/** Dev-only. Hidden unless the URL has ?devtools, so the buttons never cover the app's own. */
+function Devtools() {
+  const [on, setOn] = useState(false);
+  useEffect(() => setOn(new URLSearchParams(window.location.search).has("devtools")), []);
+  if (!on) return null;
+  return (
+    <>
+      <TanStackRouterDevtools position="bottom-left" />
+      <ReactQueryDevtools position="bottom" buttonPosition="bottom-right" />
+    </>
   );
 }

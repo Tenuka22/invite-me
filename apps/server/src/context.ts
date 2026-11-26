@@ -1,6 +1,6 @@
 import type { Context as ApiContext } from "@invite-me/api/context";
 import type { Context as HonoContext } from "hono";
-
+import { ENV } from "./env.server";
 import { getDb } from "./services";
 import { createAuth } from "./services";
 
@@ -18,6 +18,8 @@ export async function createContext({ context }: CreateContextOptions): Promise<
   return {
     db,
     session,
+    inviteLinkKey: ENV.INVITE_LINK_KEY,
+    clientIp: context.req.header("cf-connecting-ip") ?? "local",
   };
 }
 

@@ -47,12 +47,14 @@ export function Toaster() {
   }, [showToast]);
 
   return (
-    <AnimatedToastStack
-      toasts={toasts}
-      onDismiss={dismissToast}
-      position="bottom-right"
-      placement="fixed"
-      maxVisible={4}
-    />
+    <div className="host-app contents">
+      <AnimatedToastStack
+        toasts={toasts}
+        onDismiss={dismissToast}
+        position="top-right"
+        placement="fixed"
+        maxVisible={4}
+      />
+    </div>
   );
 }

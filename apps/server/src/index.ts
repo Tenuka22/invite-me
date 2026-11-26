@@ -4,7 +4,7 @@ import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
 import { onError } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
-import { Hono } from "hono";
+import { Hono, type MiddlewareHandler } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 
@@ -24,6 +24,17 @@ app.use(
     credentials: true,
   }),
 );
+
+/** CSRF: session cookies are SameSite=None, so cross-site requests carry them. Mutations must come from our web origin. */
+const requireWebOrigin: MiddlewareHandler = async (c, next) => {
+  if (c.req.method === "GET" || c.req.method === "OPTIONS") return next();
+  if (c.req.header("origin") !== ENV.CORS_ORIGIN) {
+    return c.json({ message: "Cross-site request blocked" }, 403);
+  }
+  return next();
+};
+app.use("/rpc/*", requireWebOrigin);
+app.use("/api/*", requireWebOrigin);
 
 app.on(["POST", "GET"], "/api/auth/*", async (c) => (await createAuth()).handler(c.req.raw));
 

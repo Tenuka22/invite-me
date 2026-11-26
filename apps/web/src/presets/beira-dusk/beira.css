@@ -1,0 +1,195 @@
+/* Beira Dusk, one screen: the evening sky over the lake. */
+
+.bd {
+  --s0: #f7c98a;
+  --s1: #f2a66e;
+  --s2: #df7a5f;
+  --sun: #fcd98c;
+  --sun-y: 0px;
+  --ink: #33131f;
+  --ink-soft: #5a2a33;
+  --sil: #4a1d2c;
+  --w0: #8e4458;
+  --w1: #3d2340;
+  --u: min(1.5svh, 3vw);
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto 1fr auto auto;
+  justify-items: center;
+  text-align: center;
+  color: var(--ink);
+  background: linear-gradient(180deg, var(--s0) 0%, var(--s1) 46%, var(--s2) 100%);
+  font-family: "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
+  overflow: hidden;
+}
+.bd[data-hour="golden"] {
+  --s0: #fbe6b0;
+  --s1: #f6c98a;
+  --s2: #eea06c;
+  --sun: #fff0b8;
+  --sun-y: -22px;
+}
+/* The lake is part of the stage floor so the floating buttons float over water, not paper. */
+.bd-words {
+  display: grid;
+  gap: calc(var(--u) * 0.9);
+  justify-items: center;
+  max-width: 34rem;
+  padding: calc(var(--u) * 3) calc(var(--u) * 2) 0;
+}
+.bd-hello {
+  font-size: calc(var(--u) * 1.9);
+  font-weight: 600;
+}
+.bd-hosts {
+  display: grid;
+  gap: 2px;
+  font-size: calc(var(--u) * 1.45);
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+.bd-join {
+  font-weight: 400;
+  color: var(--ink-soft);
+}
+.bd-request {
+  max-width: 28ch;
+  font-size: calc(var(--u) * 1.55);
+  line-height: 1.45;
+  text-transform: lowercase;
+  color: var(--ink-soft);
+}
+.bd-request::first-letter {
+  text-transform: uppercase;
+}
+.bd-names {
+  display: grid;
+  justify-items: center;
+  align-self: end;
+  font-family: Gloock, Georgia, serif;
+  font-weight: 400;
+  font-size: calc(var(--u) * 7.4);
+  line-height: 0.92;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+}
+.bd-amp {
+  margin: 0.12em 0 0.18em;
+  font-family: "Hanken Grotesk", sans-serif;
+  font-size: 0.17em;
+  font-weight: 600;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.bd-when {
+  display: grid;
+  gap: 2px;
+  padding: calc(var(--u) * 1.4) calc(var(--u) * 2) calc(var(--u) * 0.6);
+  font-size: calc(var(--u) * 1.5);
+  font-weight: 600;
+}
+.bd-date {
+  font-family: Gloock, Georgia, serif;
+  font-size: calc(var(--u) * 2.3);
+  font-weight: 400;
+}
+.bd-lake {
+  align-self: end;
+  width: 100%;
+}
+.bd-horizon {
+  display: block;
+  width: min(100%, 720px);
+  height: calc(var(--u) * 11);
+  margin: 0 auto;
+  color: var(--sil);
+}
+.bd-sil {
+  fill: currentColor;
+}
+.bd-sun {
+  fill: var(--sun);
+  transform: translateY(var(--sun-y));
+}
+.bd-water {
+  position: relative;
+  height: calc(5.5rem + env(safe-area-inset-bottom) + var(--u) * 2);
+  overflow: hidden;
+  background: linear-gradient(180deg, var(--w0), var(--w1));
+}
+.bd-mirror {
+  margin: 0;
+  transform: scaleY(-1);
+  transform-origin: top;
+  translate: 0 100%;
+  color: var(--s1);
+  opacity: 0.3;
+  mask-image: linear-gradient(to top, black 10%, transparent 75%);
+}
+.bd[data-age="elder"] {
+  --u: min(1.65svh, 3.3vw);
+}
+
+/* Landscape: words on the left, names on the right, horizon across the bottom. */
+@media (orientation: landscape) and (min-aspect-ratio: 5/4) {
+  .bd {
+    --u: min(1.5svh, 0.95vw);
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr auto auto;
+    grid-template-areas:
+      "words names"
+      "when names"
+      "lake lake";
+    justify-items: stretch;
+    text-align: left;
+  }
+  .bd-words {
+    grid-area: words;
+    justify-items: start;
+    align-self: start;
+    padding: calc(var(--u) * 4) calc(var(--u) * 4) 0;
+  }
+  .bd-when {
+    grid-area: when;
+    align-self: end;
+    padding: 0 calc(var(--u) * 4) calc(var(--u) * 2);
+  }
+  .bd > .bd-names {
+    grid-area: names;
+    align-self: center;
+    justify-items: end;
+    padding-right: calc(var(--u) * 5);
+    font-size: calc(var(--u) * 9);
+    text-align: right;
+  }
+  .bd-lake {
+    grid-area: lake;
+  }
+  .bd-horizon {
+    height: calc(var(--u) * 9);
+  }
+  .bd-water {
+    height: calc(5rem + var(--u));
+  }
+}
+
+/* ---- Fit ---- */
+.bd > * {
+  min-width: 0;
+  max-width: 100%;
+}
+.bd-names {
+  font-size: min(calc(var(--u) * 7.4), 15.5vw);
+}
+.bd-when {
+  font-size: calc(var(--u) * 1.4);
+}
+@media (orientation: landscape) and (min-aspect-ratio: 5/4) {
+  .bd > .bd-names {
+    font-size: calc(var(--u) * 9);
+  }
+}

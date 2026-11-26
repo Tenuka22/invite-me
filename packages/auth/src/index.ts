@@ -3,7 +3,7 @@ import { drizzleAdapter } from "@better-auth/drizzle-adapter/relations-v2";
 import type { Database } from "@invite-me/db";
 import * as schema from "@invite-me/db/schema/auth";
 import { betterAuth } from "better-auth";
-import { emailOTP } from "better-auth/plugins";
+import { anonymous, emailOTP } from "better-auth/plugins";
 
 import { type EmailConfig, sendEmail } from "./email";
 
@@ -40,6 +40,7 @@ export function createAuth(
       },
     },
     plugins: [
+      anonymous(),
       emailOTP({
         async sendVerificationOTP({ email, otp, type }) {
           const subject =

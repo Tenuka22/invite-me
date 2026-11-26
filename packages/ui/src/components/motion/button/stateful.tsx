@@ -11,6 +11,7 @@ import {
 import {
   forwardRef,
   type ReactNode,
+  useEffect,
   useLayoutEffect,
   useRef,
   useState,
@@ -118,6 +119,20 @@ function TextSlot({
     if (!nextWidth) return;
     setWidth((current) => (current === nextWidth ? current : nextWidth));
   });
+
+  // A web font that swaps in after first paint changes the label's width; measure again then,
+  // or the last letters stay clipped by the width that was measured with the fallback font.
+  useEffect(() => {
+    const fonts = typeof document === "undefined" ? undefined : document.fonts;
+    if (!fonts) return;
+    const remeasure = () => {
+      const next = measureRef.current?.offsetWidth;
+      if (next) setWidth((current) => (current === next ? current : next));
+    };
+    void fonts.ready.then(remeasure);
+    fonts.addEventListener("loadingdone", remeasure);
+    return () => fonts.removeEventListener("loadingdone", remeasure);
+  }, []);
 
   return (
     <motion.span

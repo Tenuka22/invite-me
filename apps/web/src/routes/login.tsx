@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { Brand } from "@/components/brand";
 import { LoginForm } from "@/components/login-form";
 
 export const Route = createFileRoute("/login")({
@@ -8,8 +9,13 @@ export const Route = createFileRoute("/login")({
 
 function RouteComponent() {
   return (
-    <main className="flex min-h-svh items-center justify-center bg-muted/40 p-6">
-      <LoginForm />
-    </main>
+    <div className="host-app flex min-h-svh flex-col">
+      <header className="mx-auto w-full max-w-6xl px-4 py-5">
+        <Brand />
+      </header>
+      <main className="flex flex-1 items-center justify-center px-4 pb-16">
+        <LoginForm />
+      </main>
+    </div>
   );
 }

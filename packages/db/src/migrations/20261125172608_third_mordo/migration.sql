@@ -1,0 +1,1 @@
+ALTER TABLE `party` ADD `age_group` text;

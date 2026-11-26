@@ -37,10 +37,7 @@ export function LoginForm() {
   const isSignup = mode === "signup";
   const emailError =
     email.length > 0 && !EMAIL_PATTERN.test(email) ? "Enter a valid email" : undefined;
-  const nameError =
-    isSignup && name.trim().length === 0 && step === "email" && email.length > 0
-      ? "Enter your name"
-      : undefined;
+  const nameError = isSignup && error === "Enter your name" ? error : undefined;
 
   function switchMode(next: Mode) {
     if (next === mode) return;
@@ -77,7 +74,7 @@ export function LoginForm() {
     const { error } = await authClient.signIn.emailOtp({ email, otp: code });
     if (error) {
       setBusy(null);
-      setError(error.message ?? "Invalid code");
+      setError("That code didn't work. Check it, or request a new one.");
       return;
     }
     // The OTP sign-in creates the account on first use, with no name.
@@ -98,7 +95,7 @@ export function LoginForm() {
       }
     }
     setBusy(null);
-    await navigate({ to: "/profile" });
+    await navigate({ to: "/" });
   }
 
   async function signInWithGoogle() {
@@ -106,7 +103,7 @@ export function LoginForm() {
     setBusy("google");
     const { error } = await authClient.signIn.social({
       provider: "google",
-      callbackURL: `${window.location.origin}/profile`,
+      callbackURL: `${window.location.origin}/`,
     });
     setBusy(null);
     if (error) setError(error.message ?? "Google sign-in failed");
@@ -121,7 +118,7 @@ export function LoginForm() {
       setError(error.message ?? "Passkey sign-in failed");
       return;
     }
-    await navigate({ to: "/profile" });
+    await navigate({ to: "/" });
   }
 
   const anyBusy = busy !== null;
@@ -137,12 +134,7 @@ export function LoginForm() {
   return (
     <div className="flex w-full max-w-sm flex-col gap-6 rounded-3xl bg-card p-6 shadow-xl shadow-black/5 ring-1 ring-border">
       <div className="flex flex-col gap-4">
-        <div className="flex flex-col gap-1">
-          <span className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-            Invite Me
-          </span>
-          <h1 className="text-xl font-semibold tracking-tight text-foreground">{title}</h1>
-        </div>
+        <h1 className="text-3xl text-foreground">{title}</h1>
         <p className="text-sm text-muted-foreground">{subtitle}</p>
 
         <div className="grid grid-cols-2 gap-1 rounded-full bg-muted p-1" role="group" aria-label="Mode">
@@ -218,7 +210,7 @@ export function LoginForm() {
             leftIcon={<KeyRound />}
             disabled={anyBusy}
             value={code}
-            onChange={setCode}
+            onChange={(v) => setCode(v.replace(/\D/g, "").slice(0, 6))}
             reserveErrorLine
           />
           <StatefulButton
