@@ -1,17 +1,22 @@
+import type { Card } from "@invite-me/api/invites/card";
 import { Button } from "@invite-me/ui/components/motion/button/base";
 import { RadioGroup, RadioGroupItem } from "@invite-me/ui/components/motion/radio";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@invite-me/ui/components/motion/select";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { Printer } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { z } from "zod";
 
 import { OPTION_ROW } from "@/components/card-fields";
+import type { GuestPartyView } from "@/presets/types";
 import { PageTitle } from "@/components/host-shell";
 import { NotFound } from "@/components/not-found";
 import { Skeleton } from "@/components/skeletons";
 import { orpc } from "@/utils/orpc";
 
 export const Route = createFileRoute("/_auth/invitations/$id/print")({
+  validateSearch: z.object({ guest: z.string().optional() }),
   component: PrintPage,
 });
 
@@ -55,18 +60,16 @@ function PrintPage() {
     return () => window.removeEventListener("resize", measure);
   }, [pageW]);
 
-  const frame = useRef<HTMLIFrameElement>(null);
   const card = invitation.data?.card;
-  useEffect(() => {
-    if (!card) return;
-    const send = () => frame.current?.contentWindow?.postMessage({ type: "invite-preview", card }, window.location.origin);
-    const onReady = (e: MessageEvent) => {
-      if (e.origin === window.location.origin && e.data?.type === "invite-preview-ready") send();
-    };
-    window.addEventListener("message", onReady);
-    send();
-    return () => window.removeEventListener("message", onReady);
-  }, [card, artW, artH]);
+  const guests = useQuery(orpc.parties.list.queryOptions({ input: { eventId: id } }));
+  const initial = Route.useSearch().guest;
+  const [who, setWho] = useState<string>(initial ?? "blank");
+  const people = guests.data ?? [];
+  const chosen = who === "all" ? people : people.filter((p) => p.id === who);
+  const sheets: (GuestPartyView | null)[] =
+    who === "blank" || (who !== "all" && chosen.length === 0)
+      ? [null]
+      : chosen.map((p) => ({ displayName: p.displayName, ageGroup: p.ageGroup, seats: p.seats, seatLabel: p.seatLabel, rules: p.rules }));
 
   if (invitation.isError) {
     return <NotFound inline title="We can't find that invitation" description="It may have been deleted, or the link is wrong." />;
@@ -101,6 +104,26 @@ function PrintPage() {
         </div>
         <div className="grid gap-8 print:block lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:items-start">
           <div className="grid gap-6 print:hidden">
+            <fieldset className="grid gap-3">
+              <legend className="mb-1 text-xl font-[Fraunces_Variable,Fraunces,Georgia,serif]">Whose card</legend>
+              <Select value={who} onValueChange={setWho}>
+                <SelectTrigger className="h-auto min-h-14 justify-between !rounded-full border-foreground/25 bg-card px-5 py-2 text-left text-lg">
+                  <SelectValue placeholder="Choose" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="blank">Blank template, no guest</SelectItem>
+                  <SelectItem value="all">All guests, one page each</SelectItem>
+                  {people.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.displayName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-base text-muted-foreground">
+                A blank template leaves an empty line after "Invited" to write the name by hand.
+              </p>
+            </fieldset>
             <fieldset className="grid gap-3">
               <legend className="mb-1 text-xl font-[Fraunces_Variable,Fraunces,Georgia,serif]">Paper size</legend>
               <RadioGroup aria-label="Paper size" value={size} onValueChange={(v) => setSize(v as SizeId)} className="gap-3">
@@ -149,9 +172,12 @@ function PrintPage() {
           </div>
 
           <div ref={holder} className="min-w-0 overflow-hidden rounded-3xl border bg-muted/50 p-3 lg:sticky lg:top-24 print:static print:overflow-visible print:rounded-none print:border-0 print:bg-transparent print:p-0">
+            {sheets.map((party, i) => (
             <Sheet
-              frame={frame}
-              preset={card.preset}
+              key={party?.displayName ?? "blank"}
+              card={card}
+              party={party}
+              last={i === sheets.length - 1}
               pageW={pageW}
               pageH={pageH}
               artW={artW}
@@ -160,6 +186,7 @@ function PrintPage() {
               marks={marks}
               fit={fit}
             />
+            ))}
           </div>
         </div>
       </div>
@@ -168,8 +195,9 @@ function PrintPage() {
 }
 
 function Sheet({
-  frame,
-  preset,
+  card,
+  party,
+  last,
   pageW,
   pageH,
   artW,
@@ -178,8 +206,9 @@ function Sheet({
   marks,
   fit,
 }: {
-  frame: React.RefObject<HTMLIFrameElement | null>;
-  preset: string;
+  card: Card;
+  party: GuestPartyView | null;
+  last: boolean;
   pageW: number;
   pageH: number;
   artW: number;
@@ -188,11 +217,23 @@ function Sheet({
   marks: boolean;
   fit: number;
 }) {
+  const frame = useRef<HTMLIFrameElement>(null);
+  useEffect(() => {
+    const send = () =>
+      frame.current?.contentWindow?.postMessage({ type: "invite-preview", card, party }, window.location.origin);
+    const onReady = (e: MessageEvent) => {
+      if (e.source === frame.current?.contentWindow && e.data?.type === "invite-preview-ready") send();
+    };
+    window.addEventListener("message", onReady);
+    send();
+    return () => window.removeEventListener("message", onReady);
+  }, [card, party, artW, artH]);
+  const preset = card.preset;
   const mm = (n: number) => `${n}mm`;
   const tick = "absolute bg-black";
   return (
     <div
-      className="print-sheet relative mx-auto bg-white shadow-[0_10px_30px_-12px_rgb(0_0_0/0.35)]"
+      className={`print-sheet relative mx-auto mb-6 bg-white print:mb-0 ${last ? "" : "print:break-after-page"} shadow-[0_10px_30px_-12px_rgb(0_0_0/0.35)]`}
       style={{ width: mm(pageW), height: mm(pageH), zoom: fit }}
     >
       <iframe

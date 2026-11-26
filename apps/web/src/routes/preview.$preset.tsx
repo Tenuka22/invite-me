@@ -26,11 +26,13 @@ function Preview() {
   const lite = liteParam || print;
   const [answer, setAnswer] = useState("pending");
   const [draft, setDraft] = useState<Card | null>(null);
+  const [guest, setGuest] = useState<typeof SAMPLE_PARTY | null>(null);
 
   useEffect(() => {
     const onMessage = (e: MessageEvent) => {
       if (e.origin !== window.location.origin || e.data?.type !== "invite-preview") return;
       setDraft(e.data.card as Card);
+      setGuest((e.data.party as typeof SAMPLE_PARTY | undefined) ?? null);
     };
     window.addEventListener("message", onMessage);
     window.parent?.postMessage({ type: "invite-preview-ready" }, window.location.origin);
@@ -39,5 +41,6 @@ function Preview() {
 
   const card = draft ?? sampleCard(id);
   const { GuestPage } = PRESETS[card.preset] ?? PRESETS[id];
-  return <GuestPage card={card} party={print ? { ...SAMPLE_PARTY, displayName: "" } : SAMPLE_PARTY} answer={answer} lite={lite} onAnswer={(s) => setAnswer(s)} />;
+  const party = guest ?? (print ? { ...SAMPLE_PARTY, displayName: "" } : SAMPLE_PARTY);
+  return <GuestPage card={card} party={party} answer={answer} lite={lite} print={print} onAnswer={(s) => setAnswer(s)} />;
 }

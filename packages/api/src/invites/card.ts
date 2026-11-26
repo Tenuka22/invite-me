@@ -6,7 +6,7 @@ const line = (max: number) => z.string().max(max);
 export const HOST_MODES = ["parents", "parent", "families", "host", "none"] as const;
 export type HostMode = (typeof HOST_MODES)[number];
 
-export const PRESETS = ["traditional-golden-caller", "beira-dusk"] as const;
+export const PRESETS = ["traditional-golden-caller", "beira-dusk", "ceylon-block-print", "sanni-tiles"] as const;
 export type PresetId = (typeof PRESETS)[number];
 
 /** Card content for one wedding event. Text is stored as typed; layout handles case. */
@@ -32,6 +32,8 @@ export const cardSchema = z.object({
   look: z.record(z.string().max(32), z.string().max(32)).default({}),
   /** Which preset renders the guest page. */
   preset: z.enum(PRESETS).default("traditional-golden-caller"),
+  /** Whether guests may switch to another design for themselves; it never changes what the host chose. */
+  allowGuestDesign: z.boolean().default(true),
   /** The Google Maps link the host pasted, kept so guests can open it in Google Maps. */
   mapsUrl: z.string().max(500).default(""),
   /** Venue coordinates resolved from `mapsUrl`; null when no link or it could not be read. */
@@ -63,6 +65,7 @@ export const DEFAULT_CARD: Card = {
   rules: "",
   look: {},
   preset: "traditional-golden-caller",
+  allowGuestDesign: true,
   mapsUrl: "",
   venueGeo: null,
 };

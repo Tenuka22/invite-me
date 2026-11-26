@@ -5,7 +5,8 @@ import {
   AdaptiveStepperIncrement,
   AdaptiveStepperValue,
 } from "@invite-me/ui/components/motion/adaptive-stepper";
-import { Button } from "@invite-me/ui/components/motion/button/base";
+import { Button, ButtonLink } from "@invite-me/ui/components/motion/button/base";
+import { Printer } from "lucide-react";
 import { StatefulButton } from "@invite-me/ui/components/motion/button/stateful";
 import {
   Card,
@@ -266,6 +267,14 @@ export function GuestList({ eventId, onAddFirst }: { eventId: string; onAddFirst
                   >
                     Copy link
                   </StatefulButton>
+                  <ButtonLink
+                    size="lg"
+                    variant="outline"
+                    className="btn-xl btn-xl-outline max-sm:!px-6"
+                    href={`/invitations/${eventId}/print?guest=${party.id}`}
+                  >
+                    <Printer className="size-5" aria-hidden /> Print card
+                  </ButtonLink>
                   {party.revoked ? null : (
                     <StatefulButton
                       size="lg"

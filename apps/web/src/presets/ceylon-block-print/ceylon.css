@@ -1,0 +1,276 @@
+/* Ceylon Block Print: a printed card (oatmeal paper and red ink, or coral, sage and navy) resting on a dark table.
+   One left edge, thin rules, a band of ornaments. */
+
+.cp {
+  --cp-back: #2b1519;
+  --cp-paper: #e8e1d3;
+  --cp-tint: #ded5c3;
+  --cp-ink: #a50f2b;
+  --cp-text: #7a0d20;
+  --cp-soft: #8a4650;
+  --cp-leaf: #a50f2b;
+  --cp-dark: #7a0d20;
+  --u: min(1.4svh, 3vw);
+  --bar: calc(6rem + env(safe-area-inset-bottom));
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--cp-back);
+  font-family: "Hanken Grotesk", "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+}
+.cp[data-palette="coral"] {
+  --cp-back: #17203d;
+  --cp-paper: #d86a5e;
+  --cp-tint: #cf5f53;
+  --cp-ink: #1c2748;
+  --cp-text: #1c2748;
+  --cp-soft: #2e3556;
+  --cp-leaf: #55764f;
+  --cp-dark: #1c2748;
+}
+
+/* The card. */
+.cp-card {
+  position: absolute;
+  inset: calc(var(--u) * 1.6) calc(var(--u) * 1.6) var(--bar);
+  isolation: isolate;
+  overflow: hidden;
+  color: var(--cp-text);
+  background: var(--cp-paper);
+  border-radius: calc(var(--u) * 2);
+  box-shadow: 0 calc(var(--u) * 1.4) calc(var(--u) * 3) calc(var(--u) * -1) rgb(0 0 0 / 0.55);
+}
+/* Paper grain: one small tile, no filters. */
+.cp-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.35  0 0 0 0 0.3  0 0 0 0 0.25  0 0 0 0.55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"),
+    radial-gradient(70% 45% at 8% 8%, rgb(255 255 255 / 0.25), transparent 70%);
+}
+
+/* A double rule inside the card edge, like the printed border of a book cover. */
+.cp-frame {
+  position: absolute;
+  inset: calc(var(--u) * 1.2);
+  border: 2px solid var(--cp-ink);
+  box-shadow: inset 0 0 0 calc(var(--u) * 0.35) var(--cp-paper), inset 0 0 0 calc(var(--u) * 0.35 + 1px) var(--cp-ink);
+  pointer-events: none;
+}
+.cp-corner {
+  position: absolute;
+  top: calc(var(--u) * 2.2);
+  width: calc(var(--u) * 4);
+  aspect-ratio: 1;
+  pointer-events: none;
+}
+.cp-corner.is-tl {
+  left: calc(var(--u) * 2.2);
+}
+.cp-corner.is-tr {
+  right: calc(var(--u) * 2.2);
+  transform: scaleX(-1);
+}
+
+.cp-text {
+  position: absolute;
+  inset: calc(var(--u) * 7) calc(var(--u) * 3.4) calc(var(--u) * 14);
+  display: grid;
+  align-content: space-between;
+  justify-items: start;
+  gap: calc(var(--u) * 1.6);
+  text-align: left;
+}
+.cp-head {
+  display: grid;
+  gap: calc(var(--u) * 0.7);
+  justify-items: start;
+  zoom: var(--fit, 1);
+}
+.cp-hello {
+  font-size: calc(var(--u) * 1.8);
+  font-weight: 600;
+}
+.cp-hosts {
+  display: grid;
+  gap: 2px;
+  font-size: calc(var(--u) * 1.45);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.cp-join {
+  font-weight: 400;
+  color: var(--cp-soft);
+}
+.cp-request {
+  max-width: 30ch;
+  font-size: calc(var(--u) * 1.5);
+  line-height: 1.45;
+  color: var(--cp-soft);
+  text-transform: lowercase;
+}
+.cp-request::first-letter {
+  text-transform: uppercase;
+}
+
+.cp-names {
+  display: grid;
+  width: 100%;
+  padding-block: calc(var(--u) * 1.4);
+  border-block: 1px solid var(--cp-ink);
+  font-family: "Fraunces Variable", Fraunces, Georgia, serif;
+  font-weight: 600;
+  font-size: min(calc(var(--u) * 5.6), calc(74vw / var(--len, 8) * 1.5));
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: var(--cp-ink);
+  zoom: var(--fit, 1);
+}
+.cp-names i {
+  font-weight: 400;
+  font-style: italic;
+  color: var(--cp-text);
+}
+
+.cp-when {
+  display: grid;
+  gap: calc(var(--u) * 0.6);
+  font-size: calc(var(--u) * 1.6);
+  zoom: var(--fit, 1);
+}
+.cp-day {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 1.2);
+  font-family: "Fraunces Variable", Fraunces, Georgia, serif;
+  line-height: 1.1;
+}
+.cp-day b {
+  font-size: calc(var(--u) * 5.8);
+  font-weight: 600;
+  line-height: 0.9;
+  color: var(--cp-ink);
+}
+.cp-day span {
+  font-size: calc(var(--u) * 2);
+  font-weight: 600;
+}
+.cp-line {
+  color: var(--cp-text);
+}
+
+/* The band: six equal tiles in a row, divided by thin rules, at the foot of the card. */
+.cp-band {
+  position: absolute;
+  inset: auto calc(var(--u) * 3.4) calc(var(--u) * 3);
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  border-block: 1px solid var(--cp-ink);
+  color: var(--cp-ink);
+  pointer-events: none;
+}
+.cp-tile {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 0;
+  aspect-ratio: 1;
+  padding: 18%;
+  border-left: 1px solid var(--cp-ink);
+}
+.cp-tile:first-child {
+  border-left: 0;
+}
+.cp-tile:nth-child(n + 7) {
+  display: none;
+}
+.cp-tile svg {
+  width: 100%;
+  height: 100%;
+}
+.cp[data-palette="coral"] .cp-tile:nth-child(3n + 1) svg {
+  color: var(--cp-leaf);
+}
+
+/* Landscape: a wide card. Words fill the left half, a tiled panel the right, both the full height of the frame. */
+@media (orientation: landscape) and (min-aspect-ratio: 5/4) {
+  .cp {
+    --u: min(1.9svh, 1.1vw);
+  }
+  .cp-card {
+    inset: calc(var(--u) * 1.6) 0 var(--bar);
+    margin-inline: auto;
+    width: min(calc(100% - var(--u) * 3.2), calc((100svh - var(--bar) - var(--u) * 1.6) * 1.55));
+  }
+  .cp-text {
+    inset: calc(var(--u) * 6) auto calc(var(--u) * 6) calc(var(--u) * 6);
+    width: 50%;
+    align-content: space-between;
+    gap: calc(var(--u) * 2);
+  }
+  .cp-hello {
+    font-size: calc(var(--u) * 2);
+  }
+  .cp-hosts {
+    font-size: calc(var(--u) * 1.65);
+  }
+  .cp-request {
+    font-size: calc(var(--u) * 1.8);
+    max-width: 34ch;
+  }
+  .cp-names {
+    font-size: min(calc(var(--u) * 7.2), calc(40vw / var(--len, 8) * 1.5));
+    padding-block: calc(var(--u) * 1.8);
+  }
+  .cp-when {
+    font-size: calc(var(--u) * 1.9);
+  }
+  .cp-day b {
+    font-size: calc(var(--u) * 7);
+  }
+  .cp-day span {
+    font-size: calc(var(--u) * 2.4);
+  }
+  .cp-band {
+    inset: calc(var(--u) * 6) calc(var(--u) * 6) calc(var(--u) * 6) auto;
+    width: 33%;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: repeat(4, minmax(0, 1fr));
+    border: 1px solid var(--cp-ink);
+  }
+  .cp-tile {
+    aspect-ratio: auto;
+    overflow: hidden;
+    padding: 14%;
+    border-left: 1px solid var(--cp-ink);
+    border-top: 1px solid var(--cp-ink);
+  }
+  .cp-tile:nth-child(-n + 3) {
+    border-top: 0;
+  }
+  .cp-tile:nth-child(3n + 1) {
+    border-left: 0;
+  }
+  .cp-tile:nth-child(n + 7) {
+    display: grid;
+  }
+  .cp-tile:nth-child(even) {
+    background: var(--cp-tint);
+  }
+}
+.cp[data-age="elder"] {
+  --u: min(1.55svh, 3.3vw);
+}
+
+/* The thumbnail is the same card, shrunk into its square of the list. */
+.cp-thumb .cp-card {
+  inset: 6%;
+  width: auto;
+  margin: 0;
+  border-radius: 4cqw;
+}

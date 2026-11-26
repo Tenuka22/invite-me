@@ -195,6 +195,17 @@ function Editor({ id, initial }: { id: string; initial: Card }) {
                     ))}
                   </RadioGroup>
                 </Group>
+                <Group title="Guests can change the design" hint="Each guest can view the card in another design from the details drawer. It never changes what you chose.">
+                  <RadioGroup
+                    aria-label="Guests can change the design"
+                    value={draft.allowGuestDesign ? "yes" : "no"}
+                    onValueChange={(v) => set("allowGuestDesign", v === "yes")}
+                    className="gap-3"
+                  >
+                    <RadioGroupItem value="yes" label="Yes, let them" description="Guests can pick the design that suits them" className={OPTION_ROW} />
+                    <RadioGroupItem value="no" label="No, keep mine" description="Everyone sees the design you chose" className={OPTION_ROW} />
+                  </RadioGroup>
+                </Group>
                 {preset.lookOptions.length ? (
                   <Group title={`Look of ${preset.name}`}>
                     <div className="[&_legend]:text-base [&_legend]:font-semibold [&_fieldset>p]:text-sm [&_[role=radiogroup]]:gap-3 [&_[role=radiogroup]>label]:min-h-14 [&_[role=radiogroup]>label]:gap-3 [&_[role=radiogroup]>label]:rounded-full [&_[role=radiogroup]>label]:border [&_[role=radiogroup]>label]:border-foreground/25 [&_[role=radiogroup]>label]:bg-card [&_[role=radiogroup]>label]:px-5 [&_[role=radiogroup]>label]:text-base [&_[role=radio]]:size-6">

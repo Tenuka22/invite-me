@@ -28,6 +28,18 @@ export type GuestPageProps = {
    * The full version is the same page without this flag.
    */
   lite?: boolean;
+  /** Printed copy: no buttons, and an empty "Invited" line when no guest is chosen. */
+  print?: boolean;
+  /** When set, the info drawer offers a Design tab so the guest can view the card in another design. */
+  design?: {
+    current: string;
+    options: readonly { id: string; name: string }[];
+    look: Record<string, string>;
+    lookOptions: readonly LookOption[];
+    onPick: (id: string) => void;
+    onLook: (key: string, value: string) => void;
+    onReset: () => void;
+  };
 };
 
 export type Preset = {

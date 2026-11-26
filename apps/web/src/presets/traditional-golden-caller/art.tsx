@@ -4,6 +4,7 @@ import { cardDateParts, hostBlock, timeRange } from "@invite-me/api/invites/card
 import { type CSSProperties, useEffect, useRef, useState } from "react";
 
 import { useFit } from "../fit";
+import { Invited } from "../invited";
 import { GuestStage } from "../stage";
 import type { GuestPageProps } from "../types";
 import "./art.css";
@@ -96,6 +97,7 @@ export function GoldenGuestPage(props: GuestPageProps) {
           {card.subEvents.length > CARD_EVENTS ? <p className="ga-soft">+ {card.subEvents.length - CARD_EVENTS} more in the schedule</p> : null}
           {card.venueName.trim() ? <p className="ga-venue">{card.venueName}</p> : null}
           {card.city.trim() ? <p className="ga-soft">{card.city}</p> : null}
+          <Invited party={party} print={props.print} />
         </section>
       </article>
     </GuestStage>

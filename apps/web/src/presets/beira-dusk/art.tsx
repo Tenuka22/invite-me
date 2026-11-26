@@ -7,6 +7,7 @@ import { Music2, VolumeX } from "lucide-react";
 import { type CSSProperties, useEffect, useRef, useState } from "react";
 
 import { useFit } from "../fit";
+import { Invited } from "../invited";
 import { GuestStage } from "../stage";
 import type { GuestPageProps } from "../types";
 import "./beira.css";
@@ -108,6 +109,7 @@ export function BeiraGuestPage(props: GuestPageProps) {
           <p>
             {[timeRange(card), [titleCase(card.venueName), titleCase(card.city)].filter(Boolean).join(", ")].filter(Boolean).join(" · ")}
           </p>
+          <Invited party={party} print={props.print} />
         </div>
 
         <div className="bd-lake">

@@ -4,6 +4,7 @@ import { StatefulButton } from "@invite-me/ui/components/motion/button/stateful"
 import { AnimatedBadge } from "@invite-me/ui/components/motion/animated-badge";
 import { AnimatedNumber } from "@invite-me/ui/components/motion/animated-number";
 import { BottomSheet } from "@invite-me/ui/components/motion/bottom-sheet";
+import { RadioGroup, RadioGroupItem } from "@invite-me/ui/components/motion/radio";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@invite-me/ui/components/motion/tabs";
 import { CalendarPlus, Compass, Info, MapPin, Minus, Phone, Plus, Share2 } from "lucide-react";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
@@ -97,6 +98,7 @@ export function GuestStage({
   children,
   infoExtra,
   corner,
+  design,
 }: StageProps) {
   const [rsvpOpen, setRsvpOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
@@ -201,6 +203,7 @@ export function GuestStage({
               <TabsTrigger value="details">Details</TabsTrigger>
               <TabsTrigger value="schedule">Schedule</TabsTrigger>
               <TabsTrigger value="contact">Contact</TabsTrigger>
+              {design && !lite ? <TabsTrigger value="design">Design</TabsTrigger> : null}
             </TabsList>
 
             <TabsContent value="details">
@@ -304,6 +307,34 @@ export function GuestStage({
                 )}
               </div>
             </TabsContent>
+
+            {design && !lite ? (
+              <TabsContent value="design">
+                <div className="stage-tab">
+                  <section className="stage-block">
+                    <p className="stage-label">View this invitation as</p>
+                    <RadioGroup aria-label="Design" value={design.current} onValueChange={design.onPick} className="gap-3">
+                      {design.options.map((o) => (
+                        <RadioGroupItem key={o.id} value={o.id} label={o.name} className="stage-option" />
+                      ))}
+                    </RadioGroup>
+                  </section>
+                  {design.lookOptions.map((opt) => (
+                    <section key={opt.key} className="stage-block">
+                      <p className="stage-label">{opt.label}</p>
+                      <RadioGroup aria-label={opt.label} value={design.look[opt.key] ?? opt.default} onValueChange={(v) => design.onLook(opt.key, v)} className="gap-3">
+                        {opt.choices.map((c) => (
+                          <RadioGroupItem key={c.value} value={c.value} label={c.label} className="stage-option" />
+                        ))}
+                      </RadioGroup>
+                    </section>
+                  ))}
+                  <Button className="stage-action" onClick={design.onReset}>
+                    Back to the host's design
+                  </Button>
+                </div>
+              </TabsContent>
+            ) : null}
           </Tabs>
         </div>
       </BottomSheet>

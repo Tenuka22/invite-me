@@ -1,0 +1,211 @@
+/* Sanni Tiles: a printed card of flat-colour tiles on a dark table. Heavy capitals, plain sentences, one left edge, lots of air. */
+
+.st {
+  --st-back: #16282b;
+  --st-paper: #dcd8c0;
+  --st-tile: #86a9ab;
+  --st-ink: #1f3033;
+  --st-soft: #46585a;
+  --st-outline: #2a2420;
+  --u: min(1.4svh, 3vw);
+  --bar: calc(6rem + env(safe-area-inset-bottom));
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--st-back);
+  font-family: "Hanken Grotesk", "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+}
+.st[data-palette="clay"] {
+  --st-back: #2e1a15;
+  --st-paper: #ead9c3;
+  --st-tile: #cf8a70;
+  --st-ink: #3a1f17;
+  --st-soft: #6b4638;
+}
+
+.st-card {
+  position: absolute;
+  inset: calc(var(--u) * 1.6) calc(var(--u) * 1.6) var(--bar);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: calc(var(--u) * 2.2);
+  padding: calc(var(--u) * 3);
+  overflow: hidden;
+  color: var(--st-ink);
+  background: var(--st-paper);
+  border-radius: calc(var(--u) * 2.2);
+  box-shadow: 0 calc(var(--u) * 1.4) calc(var(--u) * 3) calc(var(--u) * -1) rgb(0 0 0 / 0.55);
+  isolation: isolate;
+}
+/* Paper grain: one small tile, no filters. */
+.st-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.45;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.35  0 0 0 0 0.3  0 0 0 0 0.25  0 0 0 0.5 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+.st-head {
+  display: grid;
+  gap: calc(var(--u) * 0.9);
+  justify-items: start;
+  align-content: start;
+  text-align: left;
+  zoom: var(--fit, 1);
+}
+.st-hello {
+  font-size: calc(var(--u) * 1.7);
+  font-weight: 600;
+  color: var(--st-soft);
+}
+.st-names {
+  display: grid;
+  gap: calc(var(--u) * 0.2);
+  font-weight: 800;
+  font-size: min(calc(var(--u) * 5), calc(76vw / var(--len, 8) * 1.25));
+  line-height: 1;
+  text-transform: uppercase;
+}
+.st-hosts {
+  font-size: calc(var(--u) * 1.5);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--st-soft);
+}
+.st-sub {
+  max-width: 36ch;
+  font-size: calc(var(--u) * 1.6);
+  line-height: 1.5;
+  color: var(--st-soft);
+  text-transform: lowercase;
+}
+.st-sub::first-letter {
+  text-transform: uppercase;
+}
+
+/* Twelve tiles, four across in portrait, three across in landscape, with room between them. */
+.st-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: calc(var(--u) * 1);
+  min-height: 0;
+  align-self: center;
+}
+.st-tile {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 0;
+  aspect-ratio: 1;
+  overflow: hidden;
+  padding: 12%;
+  background: var(--st-tile);
+  border-radius: calc(var(--u) * 0.5);
+}
+.st-tile svg {
+  width: 100%;
+  height: 100%;
+}
+
+.st-credits {
+  display: grid;
+  gap: calc(var(--u) * 0.5);
+  padding-top: calc(var(--u) * 1.6);
+  border-top: 2px solid var(--st-ink);
+  font-size: calc(var(--u) * 1.7);
+}
+.st-day {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 1.2);
+  line-height: 1.1;
+}
+.st-day b {
+  font-size: calc(var(--u) * 5.2);
+  font-weight: 800;
+  line-height: 0.9;
+}
+.st-day span {
+  font-size: calc(var(--u) * 2);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.st-line {
+  color: var(--st-soft);
+}
+
+/* Landscape: words on the left, tiles on the right. */
+@media (orientation: landscape) and (min-aspect-ratio: 5/4) {
+  .st {
+    --u: min(1.9svh, 1.1vw);
+  }
+  .st-card {
+    --gw: calc((100svh - var(--bar) - var(--u) * 1.6 - var(--u) * 6) * 0.75);
+    inset: calc(var(--u) * 1.6) 0 var(--bar);
+    margin-inline: auto;
+    width: min(calc(100% - var(--u) * 3.2), calc((100svh - var(--bar) - var(--u) * 1.6) * 1.6));
+    grid-template-columns: minmax(0, 1fr) var(--gw);
+    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "head grid"
+      "credits grid";
+    column-gap: calc(var(--u) * 5);
+    padding: calc(var(--u) * 3.4);
+  }
+  .st-head {
+    grid-area: head;
+    align-self: end;
+  }
+  .st-credits {
+    grid-area: credits;
+  }
+  .st-grid {
+    grid-area: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: repeat(4, minmax(0, 1fr));
+    align-self: stretch;
+    gap: calc(var(--u) * 1.1);
+  }
+  .st-tile {
+    aspect-ratio: auto;
+  }
+  .st-names {
+    font-size: min(calc(var(--u) * 5.8), calc(30vw / var(--len, 8) * 1.25));
+  }
+}
+
+.st[data-age="elder"] {
+  --u: min(1.55svh, 3.3vw);
+}
+
+/* Thumbnail: the same card shrunk into the list. */
+.st-thumb {
+  --u: 2.2cqw;
+}
+.st-thumb .st-card {
+  inset: 6%;
+  width: auto;
+  margin: 0;
+  padding: 8%;
+  border-radius: 4cqw;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+.st-thumb-names {
+  font-size: clamp(12px, 8.5cqw, 30px);
+  font-weight: 800;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.st-thumb .st-grid {
+  gap: 2cqw;
+  align-self: end;
+}
+.st-thumb .st-tile {
+  padding: 8%;
+  border-radius: 1cqw;
+}
