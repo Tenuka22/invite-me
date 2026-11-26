@@ -5,17 +5,20 @@ import { user } from "./auth";
 
 const now = sql`(cast(unixepoch('subsecond') * 1000 as integer))`;
 
-/** One row per host. Auth is `user_id`; guest links derive from the server key. */
+/** One row per logged-in host. Guest links derive from the server key. */
 export const client = sqliteTable(
   "client",
   {
     id: text("id").primaryKey(),
-    userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id),
     createdAt: integer("created_at", { mode: "timestamp_ms" }).default(now).notNull(),
   },
   (table) => [uniqueIndex("client_userId_uq").on(table.userId)],
 );
 
+/** One row per invitation. A host may have many. */
 export const event = sqliteTable(
   "event",
   {
@@ -27,24 +30,22 @@ export const event = sqliteTable(
     preset: text("preset").notNull(),
     /** JSON card content, validated by the API. Null means template defaults. */
     card: text("card"),
-    coupleImageKey: text("couple_image_key"),
     createdAt: integer("created_at", { mode: "timestamp_ms" }).default(now).notNull(),
   },
   (table) => [index("event_clientId_idx").on(table.clientId)],
 );
-
+/** Each party belongs to one invitation; the guest sees that invitation's card. Null only on rows created before invitations existed. */
 export const party = sqliteTable(
   "party",
   {
     id: text("id").primaryKey(),
+    eventId: text("event_id").references(() => event.id),
     clientId: text("client_id")
       .notNull()
       .references(() => client.id),
-    /** The invitation this guest was invited to. Null only for rows created before hosts could have several invitations. */
-    eventId: text("event_id").references(() => event.id, { onDelete: "cascade" }),
     displayName: text("display_name").notNull(),
     invitedAs: text("invited_as").notNull(),
-    /** teen | adult | forties | elder | family; null for parties created before age groups existed. */
+    /** teen | adult | forties | elder | family; null when the host did not pick one. */
     ageGroup: text("age_group"),
     seats: integer("seats").notNull(),
     seatLabel: text("seat_label"),
@@ -59,7 +60,28 @@ export const party = sqliteTable(
     confirmedSeats: integer("confirmed_seats").default(0).notNull(),
     createdAt: integer("created_at", { mode: "timestamp_ms" }).default(now).notNull(),
   },
-  (table) => [index("party_clientId_idx").on(table.clientId), index("party_eventId_idx").on(table.eventId)],
+  (table) => [index("party_clientId_idx").on(table.clientId)],
+);
+
+/**
+ * Who holds access to an invitation. The `role="owner"` row is the creator;
+ * `role="admin"` rows are brides/grooms (and other spouses) granted via an
+ * admin invite link. One row per (event, user); an event has at most one owner.
+ */
+export const eventAdmin = sqliteTable(
+  "event_admin",
+  {
+    id: text("id").primaryKey(),
+    eventId: text("event_id")
+      .notNull()
+      .references(() => event.id),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id),
+    role: text("role").notNull().default("admin"),
+    grantedAt: integer("granted_at", { mode: "timestamp_ms" }).default(now).notNull(),
+  },
+  (table) => [uniqueIndex("event_admin_event_user_uq").on(table.eventId, table.userId)],
 );
 
 /** Fixed-window request counters for abuse limits. `bucket` is a hash; raw client addresses are never stored. */

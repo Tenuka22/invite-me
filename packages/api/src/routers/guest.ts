@@ -2,7 +2,7 @@ import { ORPCError } from "@orpc/server";
 import { z } from "zod";
 
 import type { Context } from "../context";
-import { publicProcedure } from "../index";
+import { publicProcedure } from "../base";
 import { allowRequest } from "../invites/rate-limit";
 import { openGuest, respondGuest, resolveGuest } from "../invites/store";
 import { guard } from "./errors";

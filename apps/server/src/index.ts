@@ -11,6 +11,7 @@ import { logger } from "hono/logger";
 import { createContext } from "./context";
 import { ENV } from "./env.server";
 import { createAuth } from "./services";
+import { signInMethods } from "@invite-me/auth";
 
 const app = new Hono();
 
@@ -25,7 +26,7 @@ app.use(
   }),
 );
 
-/** CSRF: session cookies are SameSite=None, so cross-site requests carry them. Mutations must come from our web origin. */
+/** CSRF: auth and host cookies are SameSite=None, so cross-site requests carry them. Mutations must come from our web origin. */
 const requireWebOrigin: MiddlewareHandler = async (c, next) => {
   if (c.req.method === "GET" || c.req.method === "OPTIONS") return next();
   if (c.req.header("origin") !== ENV.CORS_ORIGIN) {
@@ -35,6 +36,9 @@ const requireWebOrigin: MiddlewareHandler = async (c, next) => {
 };
 app.use("/rpc/*", requireWebOrigin);
 app.use("/api/*", requireWebOrigin);
+
+/** Which sign-in methods are on, so the login page offers only those that work. */
+app.get("/api/methods", (c) => c.json(signInMethods(ENV)));
 
 app.on(["POST", "GET"], "/api/auth/*", async (c) => (await createAuth()).handler(c.req.raw));
 

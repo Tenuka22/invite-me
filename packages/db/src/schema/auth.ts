@@ -7,8 +7,9 @@ export const user = sqliteTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
+  /** "host" (default) or "planner" — planners create invitations for their clients. */
+  role: text("role").notNull().default("host"),
   emailVerified: integer("email_verified", { mode: "boolean" }).default(false).notNull(),
-  isAnonymous: integer("is_anonymous", { mode: "boolean" }).default(false).notNull(),
   image: text("image"),
   createdAt: integer("created_at", { mode: "timestamp_ms" }).default(now).notNull(),
   updatedAt: integer("updated_at", { mode: "timestamp_ms" })

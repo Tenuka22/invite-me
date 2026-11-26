@@ -1,6 +1,6 @@
 import { ButtonLink } from "@invite-me/ui/components/motion/button/base";
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useState } from "react";
 import type { PresetId } from "@invite-me/api/invites/card";
 
@@ -20,17 +20,9 @@ export const Route = createFileRoute("/")({
     </HostShell>
   ),
   ssr: false,
-  // Opening the app with no account starts an anonymous one, so a host can begin straight away.
   beforeLoad: async () => {
-    let session = await authClient.getSession();
-    if (!session.data) {
-      const created = await authClient.signIn.anonymous();
-      // A parallel tab may have created the session first; anonymous sign-in then refuses to run twice.
-      if (created.error) session = await authClient.getSession();
-      if (created.error && !session.data) {
-        throw new Error("We couldn't start your session. Check your connection and try again.");
-      }
-    }
+    const session = await authClient.getSession();
+    if (!session.data) throw redirect({ to: "/login" });
   },
 });
 
