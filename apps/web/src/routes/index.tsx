@@ -52,28 +52,34 @@ function HomePage() {
           ) : undefined
         }
       />
-      <ul className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
+      <ul className="grid gap-6 lg:grid-cols-2">
         {designs.map(({ id, card }) => (
-          <li key={id} className="group flex flex-col gap-4 rounded-3xl border border-border bg-surface-raised p-3 shadow-raised transition-[transform,box-shadow] duration-(--duration-base) ease-(--ease-out) hover:-translate-y-1 hover:shadow-overlay">
-            <InvitationCard card={card} className="rounded-2xl" label={`${PRESETS[id].name} preview`} />
-            <div className="grid gap-1 px-2">
-              <h2 className="text-section">{PRESETS[id].name}</h2>
-              <p className="text-text-muted">{PRESETS[id].blurb}</p>
+          <li
+            key={id}
+            className="group grid gap-5 rounded-3xl border border-border bg-surface-raised p-4 shadow-raised transition-[transform,box-shadow] duration-(--duration-base) ease-(--ease-out) hover:-translate-y-1 hover:shadow-overlay sm:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] sm:p-5"
+          >
+            <InvitationCard card={card} className="mx-auto max-w-72 rounded-2xl shadow-raised sm:max-w-none" label={`${PRESETS[id].name} preview`} />
+            <div className="flex min-w-0 flex-col justify-end gap-5">
+              <div className="grid gap-2">
+                <h2 className="text-display">{PRESETS[id].name}</h2>
+                <p className="text-text-muted">{PRESETS[id].blurb}</p>
+              </div>
+              {signedIn ? (
+                <Button
+                  variant="primary"
+                  size="lg"
+                  loading={create.isPending && create.variables?.preset === id}
+                  disabled={create.isPending}
+                  onClick={() => create.mutate({ preset: id })}
+                >
+                  Use this design
+                </Button>
+              ) : (
+                <Link to="/login" className={buttonStyles({ variant: "primary", size: "lg" })}>
+                  Use this design
+                </Link>
+              )}
             </div>
-            {signedIn ? (
-              <Button className="mt-auto"
-                variant="primary"
-                loading={create.isPending && create.variables?.preset === id}
-                disabled={create.isPending}
-                onClick={() => create.mutate({ preset: id })}
-              >
-                Use this design
-              </Button>
-            ) : (
-              <Link to="/login" className={buttonStyles({ variant: "primary", className: "mt-auto" })}>
-                Sign in to use this design
-              </Link>
-            )}
           </li>
         ))}
       </ul>

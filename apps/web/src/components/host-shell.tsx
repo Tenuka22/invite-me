@@ -43,7 +43,7 @@ export function FlowBar({ children }: { children: ReactNode }) {
   return slot ? createPortal(children, slot) : null;
 }
 
-const TAB_BAR = "calc(4.25rem + env(safe-area-inset-bottom))";
+const TAB_BAR = "calc(5.5rem + env(safe-area-inset-bottom))";
 const ACTION_BAR = "calc(4.5rem + env(safe-area-inset-bottom))";
 
 /**
@@ -118,14 +118,14 @@ export function HostShell({ children, signedIn = true }: { children: ReactNode; 
           </main>
 
           {showTabs ? (
-            <nav aria-label="Main" className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-sm md:hidden print:hidden">
-              <ul className="mx-auto grid h-[4.25rem] max-w-md grid-cols-3">
+            <nav aria-label="Main" className="pointer-events-none fixed inset-x-0 bottom-0 z-30 px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:hidden print:hidden">
+              <ul className="pointer-events-auto mx-auto grid h-16 max-w-md grid-cols-3 rounded-pill border border-border bg-surface-raised/95 p-1 shadow-overlay backdrop-blur-sm">
                 {NAV.map(({ tab, to, label, Icon }) => (
                   <li key={tab}>
                     <Link
                       to={to}
                       aria-current={active === tab ? "page" : undefined}
-                      className={cn("grid h-full place-content-center justify-items-center gap-0.5 text-label font-medium", active === tab ? "text-primary" : "text-text-muted")}
+                      className={cn("grid h-full place-content-center justify-items-center gap-0.5 rounded-pill text-label font-medium", active === tab ? "bg-primary-soft text-primary" : "text-text-muted")}
                     >
                       <Icon className="size-6" strokeWidth={active === tab ? 2.2 : 1.8} aria-hidden />
                       {label}

@@ -284,3 +284,8 @@
   border-radius: 0;
   box-shadow: none;
 }
+
+/* Previews and print have no floating buttons, so do not reserve room for them. */
+.is-lite .cp {
+  --bar: calc(var(--u) * 1.6);
+}
