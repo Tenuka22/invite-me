@@ -265,3 +265,95 @@
 .tone-golden-emerald .stage-bar {
   padding-bottom: calc(1.6rem + env(safe-area-inset-bottom));
 }
+
+/* ---- Landscape, final: three balanced columns sized to the screen, centred below the mandala ---- */
+@media (orientation: landscape) and (min-aspect-ratio: 5/4) {
+  .ga {
+    --u: min(2svh, 1.18vw);
+    grid-template-columns: minmax(0, 1fr) minmax(0, auto) minmax(0, 1fr);
+    align-content: center;
+    align-items: center;
+    gap: calc(var(--u) * 4);
+    padding: calc(var(--u) * 16) calc(var(--u) * 7) calc(var(--u) * 9);
+  }
+  .ga-top {
+    width: calc(var(--u) * 34);
+  }
+  .ga-hosts {
+    margin-top: 0;
+    font-size: calc(var(--u) * 1.5);
+    gap: calc(var(--u) * 0.4);
+  }
+  .ga-for {
+    font-size: calc(var(--u) * 1.2);
+  }
+  .ga-occasion {
+    font-size: calc(var(--u) * 1.25);
+  }
+  .ga-names {
+    margin-top: 0;
+    font-size: min(calc(var(--u) * 8), 7.5vw);
+  }
+  .ga-and {
+    font-size: calc(var(--u) * 1.6);
+  }
+  .ga-when {
+    gap: calc(var(--u) * 0.8);
+    font-size: calc(var(--u) * 1.6);
+  }
+  .ga-date {
+    font-size: calc(var(--u) * 1.9);
+    gap: calc(var(--u) * 1.6);
+  }
+  .ga-date b {
+    font-size: calc(var(--u) * 7);
+  }
+  .ga-venue {
+    font-size: calc(var(--u) * 2.6);
+  }
+  .ga-corner {
+    width: calc(var(--u) * 12);
+  }
+}
+
+/* Landscape, tuned: the middle column gets a fixed share, the date stacks beside its day number */
+@media (orientation: landscape) and (min-aspect-ratio: 5/4) {
+  .ga {
+    --u: min(1.75svh, 1.02vw);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: calc(var(--u) * 3);
+    padding: calc(var(--u) * 14) calc(var(--u) * 6) calc(var(--u) * 9);
+  }
+  .ga-top {
+    width: calc(var(--u) * 28);
+  }
+  .ga-names {
+    font-size: calc(var(--u) * 6.2);
+  }
+  .ga-hosts {
+    font-size: calc(var(--u) * 1.4);
+  }
+  .ga-date {
+    grid-template-columns: auto 1fr;
+    grid-template-areas: "day month" "day week";
+    column-gap: calc(var(--u) * 1.4);
+    row-gap: 0;
+    min-width: 0;
+    font-size: calc(var(--u) * 1.7);
+  }
+  .ga-date > :first-child {
+    grid-area: month;
+    align-self: end;
+  }
+  .ga-date > b {
+    grid-area: day;
+    font-size: calc(var(--u) * 6);
+  }
+  .ga-date > :last-child {
+    grid-area: week;
+    align-self: start;
+  }
+  .ga-venue {
+    font-size: calc(var(--u) * 2.2);
+  }
+}
