@@ -2,10 +2,24 @@ import "@fontsource-variable/fraunces";
 import type { Card } from "@invite-me/api/invites/card";
 
 import "./ceylon.css";
-import { Corner, Diamond, Frangipani, Leaves } from "./motifs";
+import { Corner, Diamond, Frangipani, Leaves, Ring } from "./motifs";
 
-/** A small still of the design: the card on its dark table, left-aligned names, a band of ornaments. */
+const SERIF = "Fraunces Variable, Georgia, serif";
+const ORNAMENTS = [Leaves, Frangipani, Diamond, Ring, Frangipani, Leaves];
+
+function dayParts(date: string): { day: string; month: string } | null {
+  const d = new Date(`${date}T00:00:00Z`);
+  if (Number.isNaN(d.getTime())) return null;
+  return {
+    day: String(d.getUTCDate()),
+    month: d.toLocaleDateString("en-GB", { month: "short", year: "numeric", timeZone: "UTC" }).toUpperCase(),
+  };
+}
+
+/** A small still of the design: the printed card filling its tile, names on one left edge, a band of ornaments. */
 export function CeylonThumb({ card }: { card: Card }) {
+  const when = dayParts(card.date);
+  const ink = { color: "var(--cp-ink)" };
   return (
     <div
       className="cp cp-thumb relative aspect-[3/4] w-full overflow-hidden"
@@ -16,18 +30,44 @@ export function CeylonThumb({ card }: { card: Card }) {
         <div className="cp-frame" />
         <Corner className="cp-corner is-tl" />
         <Corner className="cp-corner is-tr" />
-        <p
-          className="absolute left-[12%] top-[34%] leading-[0.95]"
-          style={{ fontFamily: "Fraunces Variable, Georgia, serif", fontWeight: 600, fontSize: "clamp(14px, 10cqw, 34px)", color: "var(--cp-ink)" }}
+
+        <div className="absolute inset-x-[13%] top-[27%]" style={{ fontFamily: SERIF, ...ink }}>
+          <p className="text-[clamp(7px,2.6cqw,11px)] font-semibold uppercase tracking-[0.28em]" style={{ color: "var(--cp-text)" }}>
+            The wedding of
+          </p>
+          <p className="mt-[4cqw] font-semibold leading-[0.95] tracking-[-0.01em]" style={{ fontSize: "clamp(18px,12.5cqw,52px)" }}>
+            {card.name1}
+            <br />
+            <span className="font-normal italic" style={{ color: "var(--cp-text)" }}>
+              &amp;
+            </span>{" "}
+            {card.name2}
+          </p>
+          <div className="mt-[5cqw] flex items-center gap-[3cqw] border-t pt-[4cqw]" style={{ borderColor: "var(--cp-ink)" }}>
+            {when ? (
+              <>
+                <b className="text-[clamp(20px,11cqw,44px)] font-semibold leading-[0.9]">{when.day}</b>
+                <span className="text-[clamp(7px,2.6cqw,11px)] font-semibold uppercase leading-tight tracking-[0.18em]">
+                  {when.month}
+                </span>
+              </>
+            ) : null}
+          </div>
+        </div>
+
+        <div
+          className="absolute inset-x-[8%] bottom-[7%] grid grid-cols-6 border-y"
+          style={{ borderColor: "var(--cp-ink)", color: "var(--cp-ink)" }}
         >
-          {card.name1}
-          <br />
-          <span style={{ fontStyle: "italic", fontWeight: 400 }}>&amp;</span> {card.name2}
-        </p>
-        <div className="absolute inset-x-[12%] bottom-[9%] grid grid-cols-3 gap-[5%]" style={{ color: "var(--cp-ink)" }}>
-          <Leaves />
-          <Frangipani />
-          <Diamond />
+          {ORNAMENTS.map((Ornament, i) => (
+            <span
+              key={i}
+              className={`grid aspect-square place-items-center p-[18%] ${i ? "border-l" : ""}`}
+              style={{ borderColor: "var(--cp-ink)" }}
+            >
+              <Ornament className="size-full" />
+            </span>
+          ))}
         </div>
       </div>
     </div>

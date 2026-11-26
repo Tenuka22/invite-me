@@ -28,7 +28,15 @@ function StillPreview({ preset }: { preset: PresetId }) {
  * Opens when a template is picked. Offers to start an invitation from it, or to look at the
  * full design in a full-page view.
  */
-export function TemplateModal({ preset, onClose }: { preset: PresetId | null; onClose: () => void }) {
+export function TemplateModal({
+  preset,
+  signedIn,
+  onClose,
+}: {
+  preset: PresetId | null;
+  signedIn: boolean;
+  onClose: () => void;
+}) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [full, setFull] = useState(false);
@@ -71,9 +79,9 @@ export function TemplateModal({ preset, onClose }: { preset: PresetId | null; on
                     className="btn-xl"
                     state={create.isPending ? "loading" : "idle"}
                     loadingText="Creating"
-                    onClick={() => create.mutate({ preset })}
+                    onClick={() => (signedIn ? create.mutate({ preset }) : void navigate({ to: "/login" }))}
                   >
-                    Use this design
+                    {signedIn ? "Use this design" : "Sign in to use this design"}
                   </StatefulButton>
                   <Button size="lg" variant="outline" className="btn-xl btn-xl-outline" onClick={() => setFull(true)}>
                     <Eye className="size-5" aria-hidden /> Just looking

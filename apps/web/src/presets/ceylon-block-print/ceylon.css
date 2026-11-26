@@ -278,3 +278,9 @@
   position: relative;
   inset: auto;
 }
+/* In its tile the card fills the whole frame; the dark table is only for the full page. */
+.cp-thumb .cp-card {
+  inset: 0;
+  border-radius: 0;
+  box-shadow: none;
+}

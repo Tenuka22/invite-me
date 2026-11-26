@@ -1,6 +1,6 @@
 import { ButtonLink } from "@invite-me/ui/components/motion/button/base";
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import type { PresetId } from "@invite-me/api/invites/card";
 
@@ -24,22 +24,28 @@ export const Route = createFileRoute("/")({
     </HostShell>
   ),
   ssr: false,
+  // Public page: visitors can browse and preview every design. Only the visitor's own invitations
+  // and "Use this design" need an account.
   beforeLoad: async ({ context }) => {
-    // Start the list now so it loads while the session is checked.
-    void context.queryClient.prefetchQuery(orpc.invitations.list.queryOptions());
     const session = await getSession();
-    if (!session.data) throw redirect({ to: "/login" });
+    const signedIn = Boolean(session.data);
+    if (signedIn) void context.queryClient.prefetchQuery(orpc.invitations.list.queryOptions());
+    return { signedIn };
   },
 });
 
 function HomePage() {
-
-  const list = useQuery(orpc.invitations.list.queryOptions());
+  const { signedIn } = Route.useRouteContext();
+  const list = useQuery({ ...orpc.invitations.list.queryOptions(), enabled: signedIn });
   const [picked, setPicked] = useState<PresetId | null>(null);
   return (
     <HostShell>
-      <h1 className="text-5xl sm:text-6xl">Welcome back</h1>
-      <p className="mt-2 text-muted-foreground">Start from one of our templates.</p>
+      <h1 className="text-5xl sm:text-6xl">{signedIn ? "Welcome back" : "Invitations, made simple"}</h1>
+      <p className="mt-2 text-muted-foreground">
+        {signedIn
+          ? "Start from one of our templates."
+          : "Browse our templates and open any of them to see how it looks. Sign in when you want to make one."}
+      </p>
 
       <section aria-labelledby="templates" className="mt-10">
         <h2 id="templates" className="mb-4 text-2xl">
@@ -61,8 +67,9 @@ function HomePage() {
           })}
         </ul>
       </section>
-      <TemplateModal preset={picked} onClose={() => setPicked(null)} />
+      <TemplateModal preset={picked} signedIn={signedIn} onClose={() => setPicked(null)} />
 
+      {signedIn ? (
       <section aria-labelledby="mine" className="mt-14">
         <h2 id="mine" className="mb-4 text-2xl">
           Your invitations
@@ -84,6 +91,7 @@ function HomePage() {
           </ul>
         )}
       </section>
+      ) : null}
     </HostShell>
   );
 }
