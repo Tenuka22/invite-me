@@ -151,8 +151,8 @@ function Editor({ id, initial }: { id: string; initial: Card }) {
     <div>
       <PageHeader title="Edit card" back={<BackLink to="/invitations/$id" params={{ id }} label="Back" />} />
 
-      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
-        <div className="grid min-w-0 max-w-xl gap-8">
+      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,28rem)] lg:gap-12">
+        <div className="grid min-w-0 gap-8">
           <section aria-label="Essentials" className="grid gap-5">
             <div className="grid gap-4 sm:grid-cols-2">
               <TextField label="First name" placeholder="e.g. Binuri" value={draft.name1} max={40} error={errors.name1} onChange={(v) => set("name1", v)} />
@@ -185,7 +185,9 @@ function Editor({ id, initial }: { id: string; initial: Card }) {
         </div>
 
         <aside aria-label="Live preview" className="hidden lg:sticky lg:top-[calc(var(--header-h,4rem)+1.5rem)] lg:block">
-          <InvitationCard card={draft} className="rounded-2xl border border-border shadow-raised" />
+          <div className="mx-auto w-[min(100%,calc((100dvh-var(--header-h,4rem)-9rem)*9/16))]">
+            <InvitationCard card={draft} className="rounded-2xl border border-border shadow-raised" />
+          </div>
         </aside>
       </div>
 
@@ -198,7 +200,7 @@ function Editor({ id, initial }: { id: string; initial: Card }) {
               <DialogContent
                 title="Preview"
                 hideTitle
-                size="xl"
+                size="sm"
                 className="max-md:h-dvh max-md:max-h-none max-md:rounded-none"
               >
                 <div className="grid place-items-center">
