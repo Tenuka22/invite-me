@@ -238,3 +238,10 @@
     font-size: min(calc(var(--u) * 9), calc(42vw / var(--len, 8)));
   }
 }
+
+/* Desktop and tablet landscape read small at the phone-first scale. */
+@media (orientation: landscape) and (min-aspect-ratio: 5/4) {
+  .bd {
+    --u: min(2svh, 1.3vw);
+  }
+}

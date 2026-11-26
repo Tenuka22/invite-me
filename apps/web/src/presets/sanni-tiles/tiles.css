@@ -222,3 +222,10 @@
 .is-lite .st {
   --bar: calc(var(--u) * 1.6);
 }
+
+/* Desktop and tablet landscape read small at the phone-first scale. */
+@media (orientation: landscape) and (min-aspect-ratio: 5/4) {
+  .st {
+    --u: min(1.9svh, 1.3vw);
+  }
+}
