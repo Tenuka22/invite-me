@@ -18,7 +18,7 @@ export function GoldenThumb({ card }: { card: Card }) {
         } as CSSProperties
       }
     >
-      <div className="is-in absolute left-1/2 top-0 w-[84%] -translate-x-1/2 -translate-y-1/2">
+      <div className="is-in gc-still absolute left-1/2 top-0 w-[84%] -translate-x-1/2 -translate-y-1/2">
         <Mandala />
       </div>
       <div

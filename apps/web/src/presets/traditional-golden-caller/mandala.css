@@ -64,3 +64,8 @@
     animation: none;
   }
 }
+
+/* Thumbnails are stills: a 90s rotation of ~200 SVG paths repaints on the main thread every frame. */
+.gc-still .gc-mandala-spin {
+  animation: none;
+}

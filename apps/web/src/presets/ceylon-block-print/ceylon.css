@@ -274,3 +274,7 @@
   margin: 0;
   border-radius: 4cqw;
 }
+.cp-thumb {
+  position: relative;
+  inset: auto;
+}
