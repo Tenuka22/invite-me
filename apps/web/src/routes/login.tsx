@@ -1,9 +1,9 @@
 import { Button } from "@invite-me/ui/components/motion/button/base";
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { BrandMark } from "@/components/brand";
-import { PageSkeleton as LoginSkeleton } from "@/components/skeletons";
+import { LoginSkeleton, Skeleton } from "@/components/skeletons";
 import { toast } from "@/components/toaster";
 import { ENV } from "@/env.public";
 import { authClient, getSession } from "@/lib/auth-client";
@@ -22,7 +22,6 @@ export const Route = createFileRoute("/login")({
     if (data?.session) throw redirect({ href: search.next ?? "/invitations" });
   },
   component: LoginPage,
-  loader: fetchMethods,
   pendingComponent: LoginSkeleton,
   pendingMs: 0,
   pendingMinMs: 250,
@@ -46,9 +45,12 @@ async function fetchMethods(): Promise<Methods> {
 
 function LoginPage() {
   const { next: returnTo = "/invitations" } = Route.useSearch();
-  const methods = Route.useLoaderData();
+  const [methods, setMethods] = useState<Methods | null>(null);
+  useEffect(() => {
+    void fetchMethods().then(setMethods);
+  }, []);
   const [busy, setBusy] = useState<Provider>();
-  const available = (Object.keys(PROVIDER_NAME) as Provider[]).filter((provider) => methods[provider]);
+  const available = (Object.keys(PROVIDER_NAME) as Provider[]).filter((provider) => methods?.[provider]);
 
   async function signIn(provider: Provider) {
     setBusy(provider);
@@ -64,25 +66,26 @@ function LoginPage() {
   }
 
   return (
-    <main className="grid min-h-svh place-items-center px-6 py-16">
-      <div className="w-full max-w-[20rem]">
+    <main className="host-app grid min-h-svh place-items-center px-6 py-16">
+      <div className="w-full max-w-sm">
         <span className="flex items-center">
-          <BrandMark className="size-6" />
+          <BrandMark className="size-9" />
           <span className="sr-only">Invite Me</span>
         </span>
 
-        <h1 className="mt-9 font-display text-3xl tracking-[-0.02em]">Sign in</h1>
-        <p className="mt-2 text-pretty text-muted-foreground">
+        <h1 className="mt-8 text-5xl">Sign in</h1>
+        <p className="mt-3 text-pretty text-lg text-muted-foreground">
           Use your Google or GitHub account. We never see your password.
         </p>
 
         <div className="mt-8 grid gap-3">
+          {methods === null ? <Skeleton className="h-14 w-full rounded-full" /> : null}
           {available.map((provider) => (
             <Button
               key={provider}
               variant="outline"
               size="lg"
-              className="w-full border-foreground/25"
+              className="btn-xl btn-xl-outline w-full"
               disabled={busy !== undefined}
               onClick={() => void signIn(provider)}
             >
@@ -96,8 +99,8 @@ function LoginPage() {
           ))}
         </div>
 
-        {available.length === 0 ? (
-          <p role="status" className="mt-2 text-sm text-muted-foreground">
+        {methods && available.length === 0 ? (
+          <p role="status" className="mt-2 text-base text-muted-foreground">
             Sign-in isn't set up on this server yet.
           </p>
         ) : null}

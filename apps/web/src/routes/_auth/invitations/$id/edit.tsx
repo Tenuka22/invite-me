@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { Group, HostFields, ListEditor, MapsLinkField, OPTION_ROW, Text } from "@/components/card-fields";
 import { PageTitle } from "@/components/host-shell";
+import { NotFound } from "@/components/not-found";
 import { EditorSkeleton } from "@/components/skeletons";
 import { toast } from "@/components/toaster";
 import { PRESETS, presetFor } from "@/presets";
@@ -32,6 +33,9 @@ type StepId = (typeof STEPS)[number]["id"];
 function CardEditor() {
   const { id } = Route.useParams();
   const invitation = useQuery(orpc.invitations.get.queryOptions({ input: { id } }));
+  if (invitation.isError) {
+    return <NotFound inline title="We can't find that invitation" description="It may have been deleted, or the link is wrong." />;
+  }
   if (!invitation.data) return <EditorSkeleton />;
   return <Editor key={invitation.data.id} id={id} initial={invitation.data.card} />;
 }
@@ -84,13 +88,13 @@ function Editor({ id, initial }: { id: string; initial: Card }) {
   }, [draft, showPreview]);
 
   return (
-    <div className="grid gap-5 pb-28">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-5 pb-28">
       <PageTitle back={{ to: "/invitations/$id", params: { id } }} title="Edit card" />
 
-      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,24rem)]">
-        <div className="mx-auto grid w-full min-w-0 max-w-2xl gap-6 lg:mx-0">
+      <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,24rem)]">
+        <div className="mx-auto grid w-full min-w-0 max-w-2xl grid-cols-[minmax(0,1fr)] gap-6 lg:mx-0">
           <Tabs variant="pill" value={step} onValueChange={(v) => setStep(v as StepId)}>
-            <TabsList aria-label="Card sections" className="w-full bg-muted/60 p-1 [&_[role=tab]]:flex-1 [&_[role=tab]]:justify-center">
+            <TabsList aria-label="Card sections" className="w-full bg-muted/60 p-1 [&_[role=tab]]:flex-1 [&_[role=tab]]:justify-center max-sm:[&_[role=tab]]:!px-2.5">
               {STEPS.map((s) => (
                 <TabsTrigger key={s.id} value={s.id}>
                   {s.label}
@@ -193,7 +197,9 @@ function Editor({ id, initial }: { id: string; initial: Card }) {
                 </Group>
                 {preset.lookOptions.length ? (
                   <Group title={`Look of ${preset.name}`}>
-                    <LookPicker options={preset.lookOptions} look={draft.look} onChange={(look) => set("look", look)} />
+                    <div className="[&_legend]:text-base [&_legend]:font-semibold [&_fieldset>p]:text-sm [&_[role=radiogroup]]:gap-3 [&_[role=radiogroup]>label]:min-h-14 [&_[role=radiogroup]>label]:gap-3 [&_[role=radiogroup]>label]:rounded-full [&_[role=radiogroup]>label]:border [&_[role=radiogroup]>label]:border-foreground/25 [&_[role=radiogroup]>label]:bg-card [&_[role=radiogroup]>label]:px-5 [&_[role=radiogroup]>label]:text-base [&_[role=radio]]:size-6">
+                      <LookPicker options={preset.lookOptions} look={draft.look} onChange={(look) => set("look", look)} />
+                    </div>
                   </Group>
                 ) : null}
               </div>
@@ -236,7 +242,7 @@ function Editor({ id, initial }: { id: string; initial: Card }) {
           <Button
             size="lg"
             variant="outline"
-            className="btn-xl btn-xl-outline px-2 text-base sm:flex-none sm:px-6 sm:text-[1.0625rem]"
+            className="btn-xl btn-xl-outline max-sm:!px-2 text-base sm:flex-none"
             disabled={index === 0}
             onClick={() => setStep(STEPS[index - 1]!.id)}
           >
@@ -245,19 +251,19 @@ function Editor({ id, initial }: { id: string; initial: Card }) {
           <Button
             size="lg"
             variant="outline"
-            className="btn-xl btn-xl-outline px-2 text-base sm:px-6 sm:text-[1.0625rem] lg:hidden"
+            className="btn-xl btn-xl-outline max-sm:!px-2 text-base lg:hidden"
             onClick={() => setShowPreview((v) => !v)}
           >
             {showPreview ? "Edit" : "Preview"}
           </Button>
           {index < STEPS.length - 1 ? (
-            <Button size="lg" variant="outline" className="btn-xl btn-xl-outline px-2 text-base sm:flex-none sm:px-6 sm:text-[1.0625rem]" onClick={() => setStep(STEPS[index + 1]!.id)}>
+            <Button size="lg" variant="outline" className="btn-xl btn-xl-outline max-sm:!px-2 text-base sm:flex-none" onClick={() => setStep(STEPS[index + 1]!.id)}>
               Next
             </Button>
           ) : null}
           <StatefulButton
             size="lg"
-            className="btn-xl px-2 text-base sm:ml-auto sm:min-w-40 sm:px-6 sm:text-[1.0625rem]"
+            className="btn-xl max-sm:!px-2 text-base sm:ml-auto sm:min-w-40"
             state={save.isPending ? "loading" : "idle"}
             loadingText="Saving"
             onClick={onSave}

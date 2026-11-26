@@ -52,7 +52,6 @@ export function AddGuestForm({ eventId, onDone }: { eventId: string; onDone: () 
         setRules("");
         onDone();
         await queryClient.invalidateQueries({ queryKey: orpc.parties.list.queryKey({ input: { eventId } }) });
-        await queryClient.invalidateQueries({ queryKey: orpc.meter.get.queryKey({ input: { eventId } }) });
       },
       onError: (error) => toast.error("Could not add guest", { description: error.message }),
     }),
@@ -99,8 +98,8 @@ export function AddGuestForm({ eventId, onDone }: { eventId: string; onDone: () 
             <RadioGroupItem value="group" label="Group" description="Choose how many seats" className={OPTION_ROW} />
           </RadioGroup>
           <fieldset className="grid gap-2">
-            <legend className="px-1 text-sm font-medium">Who are they?</legend>
-            <p className="px-1 text-xs text-muted-foreground">
+            <legend className="px-1 text-base font-semibold">Who are they?</legend>
+            <p className="px-1 text-sm text-muted-foreground">
               Sets how the invitation greets them. Elders get larger text.
             </p>
             <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
@@ -110,7 +109,7 @@ export function AddGuestForm({ eventId, onDone }: { eventId: string; onDone: () 
                   type="button"
                   variant={ageGroup === group ? "primary" : "outline"}
                   aria-pressed={ageGroup === group}
-                  className="h-auto flex-col gap-1 rounded-2xl px-1 pb-2 pt-3 text-xs"
+                  className="h-auto flex-col gap-1 rounded-2xl px-1 pb-2 pt-3 text-sm"
                   onClick={() => setAgeGroup(group)}
                 >
                   <AgeFigure group={group} name={displayName} className="size-14" />
@@ -121,7 +120,7 @@ export function AddGuestForm({ eventId, onDone }: { eventId: string; onDone: () 
           </fieldset>
           {invitedAs === "group" ? (
             <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-              <span className="text-sm font-medium">Group size</span>
+              <span className="text-base font-semibold">Group size</span>
               <AdaptiveStepper
                 aria-label="Group size"
                 value={groupSize}
@@ -189,11 +188,10 @@ export function GuestList({ eventId, onAddFirst }: { eventId: string; onAddFirst
   const revoke = useMutation(
     orpc.parties.revoke.mutationOptions({
       onSuccess: async () => {
-        toast.success("Invitation revoked");
+        toast.success("Link revoked", { description: "That guest can no longer open the invitation." });
         await queryClient.invalidateQueries({ queryKey: orpc.parties.list.queryKey({ input: { eventId } }) });
-        await queryClient.invalidateQueries({ queryKey: orpc.meter.get.queryKey({ input: { eventId } }) });
       },
-      onError: (error) => toast.error("Could not revoke", { description: error.message }),
+      onError: (error) => toast.error("Could not revoke the link", { description: error.message }),
     }),
   );
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -210,7 +208,7 @@ export function GuestList({ eventId, onAddFirst }: { eventId: string; onAddFirst
         <CardContent className="grid justify-items-center gap-3 py-6 text-center">
           <CardTitle as="h2">No guests yet</CardTitle>
           <CardDescription>Add your first guest to get a private invitation link.</CardDescription>
-          <Button onClick={onAddFirst}>
+          <Button size="lg" className="btn-xl" onClick={onAddFirst}>
             Add guest
           </Button>
         </CardContent>
@@ -242,19 +240,20 @@ export function GuestList({ eventId, onAddFirst }: { eventId: string; onAddFirst
                     {rsvp.label}
                   </AnimatedBadge>
                 </div>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-base text-muted-foreground">
                   {party.seats} seat{party.seats === 1 ? "" : "s"}
                   {party.confirmedSeats > 0 ? ` · ${party.confirmedSeats} confirmed` : ""} · opened{" "}
                   {party.opens}×
-                  {party.shared ? "" : " · not shared yet"}
+                  {party.shared || party.revoked ? "" : " · not shared yet"}
                 </p>
-                <p className="truncate font-mono text-xs text-muted-foreground" title={link}>
+                <p className="truncate font-mono text-sm text-muted-foreground" title={link}>
                   {link}
                 </p>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-3">
                   <StatefulButton
-                    size="sm"
+                    size="lg"
                     variant="outline"
+                    className="btn-xl btn-xl-outline max-sm:!px-6"
                     state={copiedId === party.id ? "success" : "idle"}
                     successText="Copied"
                     disabled={party.revoked}
@@ -269,8 +268,9 @@ export function GuestList({ eventId, onAddFirst }: { eventId: string; onAddFirst
                   </StatefulButton>
                   {party.revoked ? null : (
                     <StatefulButton
-                      size="sm"
-                      variant={confirmId === party.id ? "primary" : "ghost"}
+                      size="lg"
+                      className={confirmId === party.id ? "btn-xl max-sm:!px-6" : "btn-xl btn-xl-outline max-sm:!px-6"}
+                      variant={confirmId === party.id ? "primary" : "outline"}
                       state={revoke.isPending && revoke.variables?.id === party.id ? "loading" : "idle"}
                       loadingText="Revoking"
                       onBlur={() => setConfirmId((id) => (id === party.id ? null : id))}

@@ -6,7 +6,7 @@ import type { PresetId } from "@invite-me/api/invites/card";
 
 import { HostShell } from "@/components/host-shell";
 import { InvitationCard } from "@/components/invitation-card";
-import { HomeSkeleton } from "@/components/skeletons";
+import { HomeSkeleton, TileGridSkeleton } from "@/components/skeletons";
 import { TemplateModal } from "@/components/template-modal";
 import { getSession } from "@/lib/auth-client";
 import { PRESETS, presetFor } from "@/presets";
@@ -24,7 +24,9 @@ export const Route = createFileRoute("/")({
     </HostShell>
   ),
   ssr: false,
-  beforeLoad: async () => {
+  beforeLoad: async ({ context }) => {
+    // Start the list now so it loads while the session is checked.
+    void context.queryClient.prefetchQuery(orpc.invitations.list.queryOptions());
     const session = await getSession();
     if (!session.data) throw redirect({ to: "/login" });
   },
@@ -34,13 +36,6 @@ function HomePage() {
 
   const list = useQuery(orpc.invitations.list.queryOptions());
   const [picked, setPicked] = useState<PresetId | null>(null);
-  if (!list.data) {
-    return (
-      <HostShell>
-        <HomeSkeleton />
-      </HostShell>
-    );
-  }
   return (
     <HostShell>
       <h1 className="text-5xl sm:text-6xl">Welcome back</h1>
@@ -72,14 +67,16 @@ function HomePage() {
         <h2 id="mine" className="mb-4 text-2xl">
           Your invitations
         </h2>
-        {list.data?.length === 0 ? (
+        {!list.data ? (
+          <TileGridSkeleton count={2} />
+        ) : list.data.length === 0 ? (
           <div className="grid justify-items-start gap-3">
             <p className="text-muted-foreground">Nothing here yet. Pick a template above to begin.</p>
             <ButtonLink href="/invitations/new">New invitation</ButtonLink>
           </div>
         ) : (
           <ul className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
-            {list.data?.map((inv) => (
+            {list.data.map((inv) => (
               <li key={inv.id}>
                 <InvitationCard id={inv.id} card={inv.card} />
               </li>

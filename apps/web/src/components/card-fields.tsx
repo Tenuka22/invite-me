@@ -136,6 +136,9 @@ export function HostFields({ card, set }: { card: Card; set: <K extends keyof Ca
 const AUTO = "__auto";
 const CUSTOM = "__custom";
 
+/** Roomy option rows for the wording menu, matching the 56px fields. */
+const CHOICE_ITEM = "min-h-12 rounded-full px-4 py-3 text-base";
+
 /** Pick ready-made wording, leave it on automatic, or write your own. */
 function Choice({
   value,
@@ -175,14 +178,14 @@ function Choice({
         <SelectTrigger className="h-auto min-h-14 justify-between !rounded-full border-foreground/25 bg-card px-5 py-2 text-left text-lg [&_span]:text-left">
           <SelectValue placeholder={label} />
         </SelectTrigger>
-        <SelectContent>
-          <SelectItem value={AUTO}>{allowCustom ? "Automatic" : "Nothing"}</SelectItem>
+        <SelectContent className="rounded-[1.75rem]">
+          <SelectItem className={CHOICE_ITEM} value={AUTO}>{allowCustom ? "Automatic" : "Nothing"}</SelectItem>
           {options.map((o) => (
-            <SelectItem key={o} value={o}>
+            <SelectItem className={CHOICE_ITEM} key={o} value={o}>
               {sentence(o)}
             </SelectItem>
           ))}
-          {allowCustom ? <SelectItem value={CUSTOM}>Write my own</SelectItem> : null}
+          {allowCustom ? <SelectItem className={CHOICE_ITEM} value={CUSTOM}>Write my own</SelectItem> : null}
         </SelectContent>
       </Select>
       {current === CUSTOM ? (

@@ -14,12 +14,14 @@ export const getRouter = () => {
     routeTree,
     scrollRestoration: true,
     defaultPreload: "intent",
-    defaultPreloadStaleTime: 0,
+    // Hover/touch preloads stay fresh for 30s so the click that follows reuses them instead of refetching.
+    defaultPreloadStaleTime: 30_000,
     context: { orpc, queryClient },
     defaultPendingComponent: PageSkeleton,
-    defaultPendingMs: 0,
-    defaultPendingMinMs: 250,
-    defaultNotFoundComponent: NotFound,
+    // Show the skeleton only when a route is actually slow, and never hold it past the data.
+    defaultPendingMs: 400,
+    defaultPendingMinMs: 0,
+    defaultNotFoundComponent: () => <NotFound />,
     defaultErrorComponent: RouteError,
   });
 

@@ -8,6 +8,8 @@ import {
   DateRangePicker,
   DateRangePickerCalendar,
   DateRangePickerContent,
+  DateRangePickerGrid,
+  DateRangePickerHeader,
   DateRangePickerTrigger,
 } from "@invite-me/ui/components/motion/date-range-picker";
 import { cn } from "@invite-me/ui/lib/utils";
@@ -86,7 +88,18 @@ export function DatePicker({
           <ChevronDown className={cn("size-5 shrink-0 text-muted-foreground", open && "rotate-180")} aria-hidden />
         </DateRangePickerTrigger>
         <DateRangePickerContent>
-          <DateRangePickerCalendar showSummary={false} className="w-full rounded-none border-0" />
+          <DateRangePickerCalendar
+            showSummary={false}
+            className={cn(
+              "w-full rounded-none border-0 p-4",
+              "[&_button]:text-base [&_td]:h-10 [&_th]:text-sm [&_td>button]:h-10 [&_td>button]:max-w-10 [&_td>button]:text-base",
+              "[&_td_button.bg-foreground]:!bg-[oklch(0.56_0.16_35)] [&_td_button.bg-foreground]:!text-white",
+              "[&_div>div>button]:min-h-11 [&_div>div:last-child>button]:size-11",
+            )}
+          >
+            <DateRangePickerHeader />
+            <DateRangePickerGrid />
+          </DateRangePickerCalendar>
         </DateRangePickerContent>
       </DateRangePicker>
       {error ? (

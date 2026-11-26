@@ -20,8 +20,8 @@ export function downloadCalendar(card: Card) {
     `DTSTART;VALUE=DATE:${day}`,
     `DTEND;VALUE=DATE:${end}`,
     `SUMMARY:${icsEscape(`${card.name1} & ${card.name2}`)}`,
-    `LOCATION:${icsEscape(`${card.venueName}, ${card.city}`)}`,
-    `DESCRIPTION:${icsEscape(`From ${timeRange(card)}`)}`,
+    `LOCATION:${icsEscape(placeLine(card))}`,
+    `DESCRIPTION:${icsEscape(timeRange(card) ? `From ${timeRange(card)}` : "")}`,
     "END:VEVENT",
     "END:VCALENDAR",
   ];
@@ -31,8 +31,14 @@ export function downloadCalendar(card: Card) {
   URL.revokeObjectURL(url);
 }
 
-/** Link that opens the venue in Google Maps: the host's own link when given, else a search. */
+/** Where the venue is, as one line; blank parts are dropped. */
+export function placeLine(card: Card): string {
+  return [card.venueName, card.city].map((s) => s.trim()).filter(Boolean).join(", ");
+}
+
+/** Link that opens the venue in Google Maps: the host's own link when given, else a search; "" when there is neither. */
 export function mapsLinkFor(card: Card): string {
   if (card.mapsUrl) return card.mapsUrl;
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${card.venueName}, ${card.city}`)}`;
+  const place = placeLine(card);
+  return place ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place)}` : "";
 }

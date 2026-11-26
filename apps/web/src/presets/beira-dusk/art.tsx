@@ -4,8 +4,9 @@ import "@fontsource/hanken-grotesk/latin-600.css";
 import { cardDateParts, hostBlock, timeRange } from "@invite-me/api/invites/card";
 import { Button } from "@invite-me/ui/components/motion/button/base";
 import { Music2, VolumeX } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { type CSSProperties, useEffect, useRef, useState } from "react";
 
+import { useFit } from "../fit";
 import { GuestStage } from "../stage";
 import type { GuestPageProps } from "../types";
 import "./beira.css";
@@ -49,6 +50,17 @@ function MusicToggle() {
   );
 }
 
+function limits(el: HTMLElement) {
+  const r = el.getBoundingClientRect();
+  const pad = 12;
+  const horizon = el.querySelector(".bd-horizon")?.getBoundingClientRect();
+  return { left: r.left + pad, right: r.right - pad, top: r.top + pad, bottom: (horizon?.top ?? r.bottom) + 2 };
+}
+
+function longestWord(...names: string[]) {
+  return Math.max(1, ...names.flatMap((n) => n.split(/\s+/).map((w) => w.length)));
+}
+
 /**
  * The card on one screen: a sunset over Beira Lake. Portrait: text on top, names above the
  * horizon, the lake below. Landscape: words on the left, the names on the right over the horizon.
@@ -58,6 +70,8 @@ export function BeiraGuestPage(props: GuestPageProps) {
   const look = resolveLook(card.look);
   const date = cardDateParts(card.date);
   const host = hostBlock(card);
+  const root = useRef<HTMLElement>(null);
+  useFit(root, ".bd-words, .bd-names, .bd-when", limits, [card, party.displayName, lite]);
 
   return (
     <GuestStage
@@ -65,21 +79,23 @@ export function BeiraGuestPage(props: GuestPageProps) {
       toneClass="tone-beira"
       infoExtra={look.music === "offer" && !lite ? <MusicToggle /> : null}
     >
-      <article className="bd" data-hour={look.hour} data-age={party.ageGroup ?? "adult"} aria-label={`Invitation for ${party.displayName}`}>
+      <article ref={root} className="bd" data-hour={look.hour} data-age={party.ageGroup ?? "adult"} aria-label={`Invitation for ${party.displayName}`}>
         <div className="bd-glow" aria-hidden />
         <div className="bd-words">
-          <p className="bd-hello">{salutation(party.displayName, party.ageGroup)}</p>
-          <p className="bd-hosts">
-            {host.hosts[0] ? <span>{host.hosts[0]}</span> : null}
-            {host.connector ? <span className="bd-join">{host.connector}</span> : null}
-            {host.hosts[1] ? <span>{host.hosts[1]}</span> : null}
-          </p>
+          {party.displayName ? <p className="bd-hello">{salutation(party.displayName, party.ageGroup)}</p> : null}
+          {host.hosts.length ? (
+            <p className="bd-hosts">
+              {host.hosts[0] ? <span>{host.hosts[0]}</span> : null}
+              {host.connector ? <span className="bd-join">{host.connector}</span> : null}
+              {host.hosts[1] ? <span>{host.hosts[1]}</span> : null}
+            </p>
+          ) : null}
           <p className="bd-request">
             {host.request} {host.occasion}
           </p>
         </div>
 
-        <h1 className="bd-names">
+        <h1 className="bd-names" style={{ "--len": longestWord(card.name1, card.name2) } as CSSProperties}>
           <span>{card.name1}</span>
           <span className="bd-amp">and</span>
           <span>{card.name2}</span>
@@ -96,13 +112,7 @@ export function BeiraGuestPage(props: GuestPageProps) {
 
         <div className="bd-lake">
           <Horizon />
-          <div className="bd-water" aria-hidden>
-            <p className="bd-names bd-mirror">
-              <span>{card.name1}</span>
-              <span className="bd-amp">and</span>
-              <span>{card.name2}</span>
-            </p>
-          </div>
+          <div className="bd-water" aria-hidden />
         </div>
       </article>
     </GuestStage>

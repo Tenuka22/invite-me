@@ -12,7 +12,7 @@ import { SAMPLE_PARTY, sampleCard } from "@/presets/sample";
  * previews. Inside the card editor's iframe the parent sends the host's draft as they type.
  */
 export const Route = createFileRoute("/preview/$preset")({
-  validateSearch: z.object({ lite: z.coerce.boolean().optional() }),
+  validateSearch: z.object({ lite: z.coerce.boolean().optional(), print: z.coerce.boolean().optional() }),
   head: () => ({ meta: [{ title: "Preview" }, { name: "robots", content: "noindex, nofollow" }] }),
   beforeLoad: ({ params }) => {
     if (!(PRESET_IDS as readonly string[]).includes(params.preset)) throw notFound();
@@ -22,7 +22,8 @@ export const Route = createFileRoute("/preview/$preset")({
 
 function Preview() {
   const id = Route.useParams().preset as PresetId;
-  const { lite } = Route.useSearch();
+  const { lite: liteParam, print } = Route.useSearch();
+  const lite = liteParam || print;
   const [answer, setAnswer] = useState("pending");
   const [draft, setDraft] = useState<Card | null>(null);
 
@@ -38,5 +39,5 @@ function Preview() {
 
   const card = draft ?? sampleCard(id);
   const { GuestPage } = PRESETS[card.preset] ?? PRESETS[id];
-  return <GuestPage card={card} party={SAMPLE_PARTY} answer={answer} lite={lite} onAnswer={(s) => setAnswer(s)} />;
+  return <GuestPage card={card} party={print ? { ...SAMPLE_PARTY, displayName: "" } : SAMPLE_PARTY} answer={answer} lite={lite} onAnswer={(s) => setAnswer(s)} />;
 }

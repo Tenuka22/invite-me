@@ -381,3 +381,32 @@
     radial-gradient(circle at 60% 90%, var(--g) 0 0.2rem, transparent calc(0.2rem + 1px)),
     radial-gradient(circle at 94% 14%, transparent 0 0.6rem, var(--g) calc(0.6rem + 1px) calc(0.6rem + 2px), transparent calc(0.6rem + 3px));
 }
+
+/* Long names and long cards: words wrap, big words shrink to the column, and the shared fit
+   hook sets --fit when the whole card still would not fit. */
+.ga-hosts,
+.ga-names,
+.ga-when {
+  zoom: var(--fit, 1);
+}
+.ga-names span,
+.ga-when p,
+.ga-hosts p {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+.ga-names {
+  font-size: min(calc(var(--u) * 6.4), calc(105vw / var(--len, 8)));
+}
+@media (orientation: landscape) and (min-aspect-ratio: 5/4) {
+  .ga-names {
+    font-size: min(calc(var(--u) * 6.2), calc(40vw / var(--len, 8)));
+  }
+}
+
+/* Older readers get larger words; the fit hook still keeps it on one screen. */
+.ga[data-age="elder"] .ga-hosts,
+.ga[data-age="elder"] .ga-when {
+  zoom: calc(var(--fit, 1) * 1.14);
+}

@@ -175,3 +175,20 @@ export function PageSkeleton() {
     </div>
   );
 }
+
+/** Stands in for the sign-in page while it checks your session. */
+export function LoginSkeleton() {
+  return (
+    <div className="host-app grid min-h-svh place-items-center px-6 py-16">
+      <Busy label="Loading sign in">
+        <div className="grid w-full max-w-sm gap-4">
+          <Skeleton className="size-9" />
+          <Skeleton className="mt-4 h-12 w-48" />
+          <Skeleton className="h-6 w-72 max-w-full" />
+          <Skeleton className="mt-4 h-14 w-full rounded-full" />
+          <Skeleton className="h-14 w-full rounded-full" />
+        </div>
+      </Busy>
+    </div>
+  );
+}

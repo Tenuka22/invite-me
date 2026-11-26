@@ -53,22 +53,30 @@
   background: var(--muted);
 }
 
-/* Loading skeletons: a soft shimmer over the page's own paper colour. */
+/* Loading skeletons: a soft shimmer over the page's own paper colour. The highlight is a layer that
+   slides with transform, which runs on the compositor; animating background-position repainted every
+   block on every frame. */
 .sk {
-  background: linear-gradient(100deg, oklch(0.93 0.02 78) 30%, oklch(0.97 0.015 82) 50%, oklch(0.93 0.02 78) 70%);
-  background-size: 250% 100%;
+  position: relative;
+  overflow: hidden;
+  background: oklch(0.93 0.02 78);
+}
+.sk::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 30%, oklch(0.97 0.015 82) 50%, transparent 70%);
+  transform: translate3d(-100%, 0, 0);
   animation: sk-shimmer 1.6s ease-in-out infinite;
+  will-change: transform;
 }
 @keyframes sk-shimmer {
-  from {
-    background-position: 100% 0;
-  }
   to {
-    background-position: -100% 0;
+    transform: translate3d(100%, 0, 0);
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .sk {
+  .sk::after {
     animation: none;
   }
 }

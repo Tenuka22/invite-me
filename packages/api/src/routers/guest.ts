@@ -34,8 +34,12 @@ async function throttle(context: Context, action: string, limit: number): Promis
 
 export const guestRouter = {
   resolve: publicProcedure.input(linkInput).handler(async ({ context, input }) => {
-    await throttle(context, "resolve", RESOLVE_PER_WINDOW);
-    return resolveGuest(context.db, context.inviteLinkKey, input.clientId, input.partyId, input.secret);
+    // The limiter write and the read are independent, so they share one round trip instead of two.
+    const [, result] = await Promise.all([
+      throttle(context, "resolve", RESOLVE_PER_WINDOW),
+      resolveGuest(context.db, context.inviteLinkKey, input.clientId, input.partyId, input.secret),
+    ]);
+    return result;
   }),
   recordOpen: publicProcedure.input(linkInput).handler(({ context, input }) =>
     openGuest(context.db, context.inviteLinkKey, input.clientId, input.partyId, input.secret),

@@ -4,13 +4,14 @@ import { Card, CardContent } from "@invite-me/ui/components/motion/card";
 import { WorkspaceSkeleton } from "@/components/skeletons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Pencil, UserPlus } from "lucide-react";
+import { Pencil, Printer, UserPlus } from "lucide-react";
 import { useState } from "react";
 
 import { AddGuestDialog, GuestList } from "@/components/guest-manager";
 import { HostMeter } from "@/components/host-meter";
 import { PageTitle } from "@/components/host-shell";
 import { invitationDate, invitationTitle } from "@/components/invitation-card";
+import { NotFound } from "@/components/not-found";
 import { toast } from "@/components/toaster";
 import { presetFor } from "@/presets";
 import { orpc } from "@/utils/orpc";
@@ -37,6 +38,9 @@ function InvitationPage() {
     }),
   );
 
+  if (invitation.isError) {
+    return <NotFound inline title="We can't find that invitation" description="It may have been deleted, or the link is wrong." />;
+  }
   if (!invitation.data) {
     return (
       <WorkspaceSkeleton />
@@ -73,6 +77,9 @@ function InvitationPage() {
               <Button size="lg" variant="outline" className="btn-xl btn-xl-outline" onClick={openAdd}>
                 <UserPlus className="size-5" aria-hidden /> Add guest
               </Button>
+              <Button size="lg" variant="outline" className="btn-xl btn-xl-outline" onClick={() => navigate({ to: "/invitations/$id/print", params: { id } })}>
+                <Printer className="size-5" aria-hidden /> Print or PDF
+              </Button>
             </div>
           </div>
 
@@ -93,9 +100,10 @@ function InvitationPage() {
 
           <Card variant="muted" size="compact">
             <CardContent className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-sm text-muted-foreground">Deleting removes this invitation and all its guest links.</p>
+              <p className="text-base text-muted-foreground">Deleting removes this invitation and all its guest links.</p>
               <StatefulButton
-                size="sm"
+                size="lg"
+                className={confirmDelete ? "btn-xl" : "btn-xl btn-xl-outline"}
                 variant={confirmDelete ? "primary" : "outline"}
                 state={remove.isPending ? "loading" : "idle"}
                 loadingText="Deleting"

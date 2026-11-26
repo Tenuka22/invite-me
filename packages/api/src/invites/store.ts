@@ -88,8 +88,19 @@ function toGuest(p: Party): GuestParty {
   };
 }
 
+/** user id -> client id. A host's client row never changes once created, so each isolate asks D1 once per user. */
+const clientIds = new Map<string, string>();
+
 /** Returns the host's client id, creating the row on first use. Unique on user_id. */
 export async function ensureClient(db: Database, userId: string): Promise<string> {
+  const known = clientIds.get(userId);
+  if (known) return known;
+  const id = await lookupOrCreateClient(db, userId);
+  clientIds.set(userId, id);
+  return id;
+}
+
+async function lookupOrCreateClient(db: Database, userId: string): Promise<string> {
   const existing = await db.select({ id: client.id }).from(client).where(eq(client.userId, userId)).limit(1);
   if (existing[0]) return existing[0].id;
   const id = randomToken();
@@ -148,10 +159,12 @@ export async function createInvitation(
 ): Promise<InvitationView> {
   const card: Card = { ...DEFAULT_CARD, preset };
   const id = randomToken();
-  await db
+  const [row] = await db
     .insert(event)
-    .values({ id, clientId, eventType: "wedding", preset, card: JSON.stringify(card) });
-  return getInvitation(db, clientId, id);
+    .values({ id, clientId, eventType: "wedding", preset, card: JSON.stringify(card) })
+    .returning();
+  if (!row) throw new InviteError("NOT_FOUND", "Invitation not found");
+  return toInvitation(row);
 }
 
 export async function saveInvitation(
@@ -160,23 +173,28 @@ export async function saveInvitation(
   eventId: string,
   card: Card,
 ): Promise<InvitationView> {
-  await loadEvent(db, clientId, eventId);
-  await db
+  const [row] = await db
     .update(event)
     .set({ card: JSON.stringify(card), preset: card.preset })
-    .where(and(eq(event.id, eventId), eq(event.clientId, clientId)));
-  return getInvitation(db, clientId, eventId);
+    .where(and(eq(event.id, eventId), eq(event.clientId, clientId)))
+    .returning();
+  if (!row) throw new InviteError("NOT_FOUND", "Invitation not found");
+  return toInvitation(row);
 }
 
 /** Deletes the invitation and its guests. */
 export async function deleteInvitation(db: Database, clientId: string, eventId: string): Promise<void> {
-  await loadEvent(db, clientId, eventId);
-  await db.delete(partyTable).where(and(eq(partyTable.eventId, eventId), eq(partyTable.clientId, clientId)));
-  await db.delete(event).where(and(eq(event.id, eventId), eq(event.clientId, clientId)));
+  // Both deletes in one round trip; the party delete is scoped to the host, so a foreign id removes nothing.
+  const [, removed] = await db.batch([
+    db.delete(partyTable).where(and(eq(partyTable.eventId, eventId), eq(partyTable.clientId, clientId))),
+    db.delete(event).where(and(eq(event.id, eventId), eq(event.clientId, clientId))).returning({ id: event.id }),
+  ]);
+  if (removed.length === 0) throw new InviteError("NOT_FOUND", "Invitation not found");
 }
 
 /** The card a guest sees: their invitation's, or for guests from before invitations were separate, the host's first. */
-async function cardForParty(db: Database, clientId: string, party: Party): Promise<Card> {
+async function cardForParty(db: Database, clientId: string, party: Party, joined: typeof event.$inferSelect | null): Promise<Card> {
+  if (joined) return cardOf(joined);
   if (party.eventId) return (await getInvitation(db, clientId, party.eventId)).card;
   const first = await db.select().from(event).where(eq(event.clientId, clientId)).orderBy(event.createdAt).limit(1);
   return first[0] ? cardOf(first[0]) : DEFAULT_CARD;
@@ -202,8 +220,8 @@ export async function createPartyFor(
     rules: domain.rules,
     locale: domain.locale,
   };
-  await db.insert(partyTable).values(row);
-  const saved = await loadParty(db, clientId, domain.id);
+  const [saved] = await db.insert(partyTable).values(row).returning();
+  if (!saved) throw new InviteError("NOT_FOUND", "Party not found");
   return toView(key, clientId, saved);
 }
 
@@ -228,11 +246,13 @@ export async function markPartyShared(
   partyId: string,
 ): Promise<PartyView> {
   const next = markShared(toDomain(await loadParty(db, clientId, partyId)));
-  await db
+  const [saved] = await db
     .update(partyTable)
     .set({ shared: next.shared })
-    .where(and(eq(partyTable.id, partyId), eq(partyTable.clientId, clientId)));
-  return toView(key, clientId, await loadParty(db, clientId, partyId));
+    .where(and(eq(partyTable.id, partyId), eq(partyTable.clientId, clientId)))
+    .returning();
+  if (!saved) throw new InviteError("NOT_FOUND", "Party not found");
+  return toView(key, clientId, saved);
 }
 
 export async function revokeParty(
@@ -242,11 +262,13 @@ export async function revokeParty(
   partyId: string,
 ): Promise<PartyView> {
   const next = revoke(toDomain(await loadParty(db, clientId, partyId)));
-  await db
+  const [saved] = await db
     .update(partyTable)
     .set({ revoked: next.revoked })
-    .where(and(eq(partyTable.id, partyId), eq(partyTable.clientId, clientId)));
-  return toView(key, clientId, await loadParty(db, clientId, partyId));
+    .where(and(eq(partyTable.id, partyId), eq(partyTable.clientId, clientId)))
+    .returning();
+  if (!saved) throw new InviteError("NOT_FOUND", "Party not found");
+  return toView(key, clientId, saved);
 }
 
 /**
@@ -259,18 +281,22 @@ async function authorizeGuest(
   clientId: string,
   partyId: string,
   secret: string,
-): Promise<Party | null> {
+): Promise<GuestRow | null> {
   const expected = await deriveLinkSecret(key, clientId, partyId);
   if (!timingSafeEqual(expected, secret)) return null;
+  // One round trip: the party and its invitation come back together (the card is needed right after).
   const rows = await db
-    .select()
+    .select({ party: partyTable, event })
     .from(partyTable)
+    .leftJoin(event, and(eq(event.id, partyTable.eventId), eq(event.clientId, partyTable.clientId)))
     .where(and(eq(partyTable.id, partyId), eq(partyTable.clientId, clientId)))
     .limit(1);
   if (!rows[0]) return null;
-  const party = toDomain(rows[0]);
-  return party.revoked ? null : party;
+  const party = toDomain(rows[0].party);
+  return party.revoked ? null : { party, event: rows[0].event };
 }
+
+type GuestRow = { party: Party; event: typeof event.$inferSelect | null };
 
 async function persistGuestState(db: Database, clientId: string, next: Party): Promise<void> {
   await db
@@ -285,8 +311,13 @@ async function persistGuestState(db: Database, clientId: string, next: Party): P
     .where(and(eq(partyTable.id, next.id), eq(partyTable.clientId, clientId)));
 }
 
-async function openResult(db: Database, clientId: string, party: Party): Promise<GuestResult> {
-  return { state: "open", party: toGuest(party), card: await cardForParty(db, clientId, party) };
+async function openResult(
+  db: Database,
+  clientId: string,
+  party: Party,
+  joined: typeof event.$inferSelect | null,
+): Promise<GuestResult> {
+  return { state: "open", party: toGuest(party), card: await cardForParty(db, clientId, party, joined) };
 }
 
 export async function resolveGuest(
@@ -296,8 +327,8 @@ export async function resolveGuest(
   partyId: string,
   secret: string,
 ): Promise<GuestResult> {
-  const party = await authorizeGuest(db, key, clientId, partyId, secret);
-  return party ? openResult(db, clientId, party) : CLOSED;
+  const found = await authorizeGuest(db, key, clientId, partyId, secret);
+  return found ? openResult(db, clientId, found.party, found.event) : CLOSED;
 }
 
 /** Call after the guest's card has rendered. Counts one open. */
@@ -309,11 +340,11 @@ export async function openGuest(
   secret: string,
   now: number = Date.now(),
 ): Promise<GuestResult> {
-  const party = await authorizeGuest(db, key, clientId, partyId, secret);
-  if (!party) return CLOSED;
-  const next = recordOpen(party, now);
+  const found = await authorizeGuest(db, key, clientId, partyId, secret);
+  if (!found) return CLOSED;
+  const next = recordOpen(found.party, now);
   await persistGuestState(db, clientId, next);
-  return openResult(db, clientId, next);
+  return openResult(db, clientId, next, found.event);
 }
 
 /** Throws InviteError for invalid head-counts; the router maps it to a client error. */
@@ -326,9 +357,9 @@ export async function respondGuest(
   status: Exclude<RsvpStatus, "pending">,
   headCount?: number,
 ): Promise<GuestResult> {
-  const party = await authorizeGuest(db, key, clientId, partyId, secret);
-  if (!party) return CLOSED;
-  const next = setRsvp(party, status, headCount);
+  const found = await authorizeGuest(db, key, clientId, partyId, secret);
+  if (!found) return CLOSED;
+  const next = setRsvp(found.party, status, headCount);
   await persistGuestState(db, clientId, next);
-  return openResult(db, clientId, next);
+  return openResult(db, clientId, next, found.event);
 }

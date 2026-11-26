@@ -30,7 +30,7 @@ function TopBar() {
     <motion.header
       animate={{ y: hidden ? "-110%" : "0%" }}
       transition={{ type: "spring", stiffness: 380, damping: 36 }}
-      className="fixed inset-x-0 top-0 z-30 border-b bg-background"
+      className="fixed inset-x-0 top-0 z-30 border-b bg-background print:hidden"
     >
       <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-5">
         <Brand />
@@ -83,12 +83,12 @@ export function HostShell({ children }: { children: ReactNode }) {
   return (
     <div className="host-app flex min-h-svh flex-col">
       <TopBar />
-      <main className={`mx-auto w-full max-w-6xl flex-1 px-5 pt-24 ${focused ? "pb-24" : "pb-44"}`}>
+      <main className={`mx-auto w-full max-w-6xl flex-1 px-5 pt-24 print:max-w-none print:p-0 ${focused ? "pb-24" : "pb-44"}`}>
         {children}
-        <p className="mt-16 text-center text-sm text-muted-foreground">Made by Tenuka22</p>
+        <p className="mt-16 text-center text-sm text-muted-foreground print:hidden">Made by Tenuka22</p>
       </main>
       {focused ? null : (
-        <nav aria-label="Main" className="fixed inset-x-0 bottom-0 z-30 flex justify-center px-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <nav aria-label="Main" className="print:hidden fixed inset-x-0 bottom-0 z-30 flex justify-center px-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
           <Dock size={68} className="items-center gap-1 rounded-[2.2rem] p-2 shadow-[0_18px_40px_-16px_rgb(60_30_10/0.35)]">
             <NavLink to="/" label="Home" Icon={Home} active={active === "home"} />
             <NavLink to="/invitations" label="Invitations" Icon={Mail} active={active === "invitations"} />

@@ -1,3 +1,4 @@
+import { computeMeter } from "@invite-me/api/invites/meter";
 import { AnimatedNumber } from "@invite-me/ui/components/motion/animated-number";
 import { Card, CardContent } from "@invite-me/ui/components/motion/card";
 import { Skeleton } from "@/components/skeletons";
@@ -9,16 +10,17 @@ import { orpc } from "@/utils/orpc";
 export const POLL_MS = 10_000;
 
 export function HostMeter({ eventId }: { eventId: string }) {
-  const meter = useQuery({
-    ...orpc.meter.get.queryOptions({ input: { eventId } }),
+  // The meter is computed from the same guest list the page already polls, so one request feeds both.
+  const parties = useQuery({
+    ...orpc.parties.list.queryOptions({ input: { eventId } }),
     refetchInterval: POLL_MS,
   });
-  if (!meter.data) {
+  if (!parties.data) {
     return (
       <Skeleton className="h-56 w-full rounded-3xl" />
     );
   }
-  const m = meter.data;
+  const m = computeMeter(parties.data);
   const percent = m.allottedSeats > 0 ? Math.round((m.confirmedSeats / m.allottedSeats) * 100) : 0;
   return (
     <Card>

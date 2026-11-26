@@ -61,9 +61,9 @@ const THANKS: Record<string, string> = {
 
 const CTA: Record<string, string> = {
   pending: "Will you attend?",
-  yes: "You're coming. Change",
-  maybe: "Maybe. Change",
-  no: "Can't come. Change",
+  yes: "Coming · Change",
+  maybe: "Maybe · Change",
+  no: "Not coming · Change",
 };
 
 function titleCase(text: string) {
@@ -210,21 +210,25 @@ export function GuestStage({
                   <p className="stage-big">
                     {titleCase(date.weekday)}, {date.day} {titleCase(date.month)} {date.year}
                   </p>
-                  <p>
-                    {timeRange(card)}
-                  </p>
+                  {timeRange(card) ? <p>{timeRange(card)}</p> : null}
                 </section>
                 <section className="stage-block">
-                  <p className="stage-label">Where</p>
-                  <p className="stage-big">{titleCase(card.venueName)}</p>
-                  <p className="stage-muted">{titleCase(card.city)}</p>
+                  {card.venueName.trim() || card.city.trim() ? (
+                    <>
+                      <p className="stage-label">Where</p>
+                      {card.venueName.trim() ? <p className="stage-big">{titleCase(card.venueName)}</p> : null}
+                      {card.city.trim() ? <p className="stage-muted">{titleCase(card.city)}</p> : null}
+                    </>
+                  ) : null}
                   {!lite && card.venueGeo ? (
                     <VenueMap lat={card.venueGeo.lat} lng={card.venueGeo.lng} label={`${card.venueName}, ${card.city}`} />
                   ) : null}
                   <div className="stage-actions">
-                    <ButtonLink className="stage-action is-primary" href={mapsLinkFor(card)} target="_blank" rel="noopener noreferrer">
-                      <MapPin className="size-5" aria-hidden /> Open in Google Maps
-                    </ButtonLink>
+                    {mapsLinkFor(card) ? (
+                      <ButtonLink className="stage-action is-primary" href={mapsLinkFor(card)} target="_blank" rel="noopener noreferrer">
+                        <MapPin className="size-5" aria-hidden /> Open in Google Maps
+                      </ButtonLink>
+                    ) : null}
                     <Button className="stage-action" onClick={() => downloadCalendar(card)}>
                       <CalendarPlus className="size-5" aria-hidden /> Add to calendar
                     </Button>
@@ -254,10 +258,12 @@ export function GuestStage({
                     <span>{titleCase(s.label)}</span>
                   </li>
                 ))}
-                <li>
-                  <time>{card.timeFrom}</time>
-                  <span>Celebration begins at {titleCase(card.venueName)}</span>
-                </li>
+                {card.timeFrom.trim() ? (
+                  <li>
+                    <time>{card.timeFrom}</time>
+                    <span>{card.venueName.trim() ? `Celebration begins at ${titleCase(card.venueName)}` : "Celebration begins"}</span>
+                  </li>
+                ) : null}
                 {card.timeTo.trim() ? (
                   <li>
                     <time>{card.timeTo}</time>

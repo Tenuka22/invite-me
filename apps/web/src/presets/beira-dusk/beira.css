@@ -121,15 +121,6 @@
   overflow: hidden;
   background: linear-gradient(180deg, var(--w0), var(--w1));
 }
-.bd-mirror {
-  margin: 0;
-  transform: scaleY(-1);
-  transform-origin: top;
-  translate: 0 100%;
-  color: var(--s1);
-  opacity: 0.3;
-  mask-image: linear-gradient(to top, black 10%, transparent 75%);
-}
 .bd[data-age="elder"] {
   --u: min(1.65svh, 3.3vw);
 }
@@ -213,4 +204,27 @@
     radial-gradient(circle at 6% 70%, transparent 0 1.1rem, rgb(255 244 214 / 0.55) calc(1.1rem + 1px) calc(1.1rem + 2px), transparent calc(1.1rem + 3px)),
     radial-gradient(circle at 36% 8%, rgb(255 244 214 / 0.65) 0 0.22rem, transparent calc(0.22rem + 1px)),
     radial-gradient(circle at 94% 52%, rgb(255 244 214 / 0.6) 0 0.26rem, transparent calc(0.26rem + 1px));
+}
+
+/* Long names and long cards: words wrap, big words shrink to the column, and the shared fit
+   hook sets --fit when the whole card still would not fit. */
+.bd-words,
+.bd-names,
+.bd-when {
+  zoom: var(--fit, 1);
+}
+.bd-names span,
+.bd-when p,
+.bd-words p {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+.bd-names {
+  font-size: min(calc(var(--u) * 7.4), calc(94vw / var(--len, 8)));
+}
+@media (orientation: landscape) and (min-aspect-ratio: 5/4) {
+  .bd > .bd-names {
+    font-size: min(calc(var(--u) * 9), calc(42vw / var(--len, 8)));
+  }
 }

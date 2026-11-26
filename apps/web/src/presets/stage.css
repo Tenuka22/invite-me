@@ -376,7 +376,7 @@
   line-height: 1;
   color: var(--st-gold-text);
 }
-.stage-count-down span {
+.stage-count-down > span:last-child {
   font-family: "Hanken Grotesk", sans-serif;
   font-size: 1rem;
   color: var(--st-muted);
@@ -469,4 +469,11 @@
 .tone-golden-midnight .stage-bar,
 .tone-golden-emerald .stage-bar {
   padding-bottom: calc(2.2rem + env(safe-area-inset-bottom));
+}
+
+/* Printing: keep every gradient and colour exactly as drawn. */
+.stage,
+.stage * {
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }

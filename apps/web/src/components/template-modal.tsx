@@ -9,25 +9,17 @@ import { useState } from "react";
 
 import { toast } from "@/components/toaster";
 import { PRESETS } from "@/presets";
-import { Skeleton } from "@/components/skeletons";
+import { sampleCard } from "@/presets/sample";
 import { orpc } from "@/utils/orpc";
 
-/**
- * A preview that arrives in two steps: a shimmer holds the place, the light version
- * loads over it, and the full version loads only in the full-page view.
- */
-function ProgressivePreview({ preset }: { preset: PresetId }) {
-  const [ready, setReady] = useState(false);
+/** The still of the design: drawn instantly with no second app boot; the full design loads only in the full-page view. */
+function StillPreview({ preset }: { preset: PresetId }) {
+  const { Thumb } = PRESETS[preset];
   return (
-    <div className="relative size-full">
-      <Skeleton className={`absolute inset-0 rounded-none transition-opacity duration-500 ${ready ? "opacity-0" : "opacity-100"}`} />
-      <iframe
-        title={`${PRESETS[preset].name} preview`}
-        src={`/preview/${preset}?lite=1`}
-        loading="lazy"
-        onLoad={() => setReady(true)}
-        className={`absolute inset-0 size-full border-0 transition-opacity duration-500 ${ready ? "opacity-100" : "opacity-0"}`}
-      />
+    <div className="grid size-full place-items-center bg-muted/40 p-3">
+      <div className="w-full">
+        <Thumb card={sampleCard(preset)} />
+      </div>
     </div>
   );
 }
@@ -60,9 +52,9 @@ export function TemplateModal({ preset, onClose }: { preset: PresetId | null; on
           className="host-app w-full max-w-3xl rounded-[2rem] border bg-background p-5 sm:p-8"
         >
           {design && preset ? (
-            <div className="grid gap-6 md:grid-cols-[minmax(0,20rem)_1fr] md:items-center">
-              <div className="mx-auto aspect-[9/16] max-h-[64svh] w-full max-w-[20rem] overflow-hidden rounded-[1.6rem] border shadow-[0_18px_40px_-18px_rgb(60_30_10/0.5)]">
-                <ProgressivePreview preset={preset} />
+            <div className="grid gap-5 md:grid-cols-[minmax(0,20rem)_1fr] md:items-center md:gap-6">
+              <div className="mx-auto aspect-[3/4] h-[34svh] w-auto overflow-hidden rounded-[1.6rem] border shadow-[0_18px_40px_-18px_rgb(60_30_10/0.5)] md:h-[min(64svh,35rem)]">
+                <StillPreview preset={preset} />
               </div>
               <div className="grid gap-6 pr-2">
                 <div className="grid gap-2">
