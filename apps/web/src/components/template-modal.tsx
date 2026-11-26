@@ -16,7 +16,7 @@ import { orpc } from "@/utils/orpc";
 function StillPreview({ preset }: { preset: PresetId }) {
   const { Thumb } = PRESETS[preset];
   return (
-    <div className="grid size-full place-items-center bg-muted/40 p-3">
+    <div className="size-full">
       <div className="w-full">
         <Thumb card={sampleCard(preset)} />
       </div>
@@ -53,7 +53,7 @@ export function TemplateModal({ preset, onClose }: { preset: PresetId | null; on
         >
           {design && preset ? (
             <div className="grid gap-5 md:grid-cols-[minmax(0,20rem)_1fr] md:items-center md:gap-6">
-              <div className="mx-auto aspect-[3/4] h-[34svh] w-auto overflow-hidden rounded-[1.6rem] border shadow-[0_18px_40px_-18px_rgb(60_30_10/0.5)] md:h-[min(64svh,35rem)]">
+              <div className="mx-auto aspect-[3/4] w-[min(100%,calc(34svh*0.75))] overflow-hidden rounded-[1.6rem] border shadow-[0_18px_40px_-18px_rgb(60_30_10/0.5)] md:w-[min(100%,calc(64svh*0.75))]">
                 <StillPreview preset={preset} />
               </div>
               <div className="grid gap-6 pr-2">
