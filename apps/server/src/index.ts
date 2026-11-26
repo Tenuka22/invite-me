@@ -12,6 +12,7 @@ import { createContext } from "./context";
 import { ENV } from "./env.server";
 import { createAuth } from "./services";
 import { signInMethods } from "@invite-me/auth";
+import { printPdf } from "./print-pdf";
 
 const app = new Hono();
 
@@ -87,6 +88,8 @@ app.use("/*", async (c, next) => {
 
   await next();
 });
+
+app.post("/api/print-pdf", printPdf);
 
 app.get("/", (c) => {
   return c.text("OK");

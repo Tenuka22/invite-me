@@ -15,6 +15,7 @@ export const server = Cloudflare.Worker("server", {
   },
   env: {
     DB: database,
+    BROWSER: Cloudflare.Browser(),
     CORS_ORIGIN: Config.String("CORS_ORIGIN"),
     BETTER_AUTH_SECRET: Config.Redacted("BETTER_AUTH_SECRET"),
     INVITE_LINK_KEY: Config.Redacted("INVITE_LINK_KEY"),

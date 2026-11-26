@@ -4,7 +4,7 @@ import { RadioGroup, RadioGroupItem } from "@invite-me/ui/components/motion/radi
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@invite-me/ui/components/motion/select";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { Printer } from "lucide-react";
+import { Download, Printer } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
@@ -14,23 +14,15 @@ import { PageTitle } from "@/components/host-shell";
 import { NotFound } from "@/components/not-found";
 import { Skeleton } from "@/components/skeletons";
 import { orpc } from "@/utils/orpc";
+import { ENV } from "@/env.public";
+import { toast } from "@/components/toaster";
+import { PX_PER_MM, PrintStyle, SIZES, Sheet, layoutFor, type PrintPayload, type SizeId } from "@/components/print-sheet";
 
 export const Route = createFileRoute("/_auth/invitations/$id/print")({
   validateSearch: z.object({ guest: z.string().optional() }),
   component: PrintPage,
 });
 
-/** Trim sizes in millimetres, portrait. Landscape swaps them. */
-const SIZES = {
-  a6: { label: "A6 card", w: 105, h: 148 },
-  a5: { label: "A5 invitation", w: 148, h: 210 },
-  a4: { label: "A4 poster", w: 210, h: 297 },
-} as const;
-type SizeId = keyof typeof SIZES;
-
-const BLEED = 3; // mm of artwork that goes past the cut line
-const MARK_ZONE = 8; // mm of margin that holds the crop marks
-const PX_PER_MM = 96 / 25.4;
 
 function PrintPage() {
   const { id } = Route.useParams();
@@ -38,15 +30,9 @@ function PrintPage() {
   const [size, setSize] = useState<SizeId>("a5");
   const [landscape, setLandscape] = useState(false);
   const [marks, setMarks] = useState(false);
+  const [busy, setBusy] = useState(false);
 
-  const trimW = landscape ? SIZES[size].h : SIZES[size].w;
-  const trimH = landscape ? SIZES[size].w : SIZES[size].h;
-  const art = marks ? BLEED : 0;
-  const pageW = trimW + 2 * (art + (marks ? MARK_ZONE - BLEED : 0));
-  const pageH = trimH + 2 * (art + (marks ? MARK_ZONE - BLEED : 0));
-  const artW = trimW + 2 * art;
-  const artH = trimH + 2 * art;
-
+  const { pageW, pageH, artW, artH, inset } = layoutFor({ size, landscape, marks });
   // Show the sheet at a size that fits the screen; printing always uses real millimetres.
   const holder = useRef<HTMLDivElement>(null);
   const [fit, setFit] = useState(0.6);
@@ -83,16 +69,32 @@ function PrintPage() {
     );
   }
 
-  const mm = (n: number) => `${n}mm`;
+  async function download(current: Card) {
+    setBusy(true);
+    try {
+      const res = await fetch(`${ENV.VITE_SERVER_URL.replace(/\/$/, "")}/api/print-pdf`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ size, landscape, marks, card: current, parties: sheets } satisfies PrintPayload),
+      });
+      if (!res.ok) throw new Error((await res.json().catch(() => null))?.message ?? `The server answered ${res.status}`);
+      const url = URL.createObjectURL(await res.blob());
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${current.name1}-${current.name2}-${size}.pdf`.replace(/\s+/g, "-");
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      toast.error("Could not make the PDF", { description: error instanceof Error ? error.message : undefined });
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="grid gap-8 print:block">
-      <style>{`
-        @page { size: ${mm(pageW)} ${mm(pageH)}; margin: 0; }
-        @media print {
-          html, body { margin: 0 !important; background: #fff !important; }
-          .print-sheet { zoom: 1 !important; box-shadow: none !important; margin: 0 !important; }
-        }
-      `}</style>
+      <PrintStyle pageW={pageW} pageH={pageH} />
 
       <div className="grid gap-8 print:block">
         <div className="print:hidden">
@@ -162,12 +164,15 @@ function PrintPage() {
                 />
               </RadioGroup>
             </fieldset>
-            <Button size="lg" className="btn-xl" onClick={() => window.print()}>
-              <Printer className="size-5" aria-hidden /> Download PDF or print
+            <Button size="lg" className="btn-xl" onClick={() => void download(card)} disabled={busy}>
+              <Download className="size-5" aria-hidden /> {busy ? "Making your PDF…" : "Download PDF"}
+            </Button>
+            <Button size="lg" variant="outline" className="btn-xl btn-xl-outline" onClick={() => window.print()}>
+              <Printer className="size-5" aria-hidden /> Print from this browser
             </Button>
             <p className="text-base text-muted-foreground">
-              In the window that opens, choose <strong>Save as PDF</strong> as the printer to get a file. Leave margins on
-              None and turn on background graphics if your browser asks.
+              The PDF is made on our server at exactly the paper size you chose, with colours and fonts kept. If it fails,
+              print from the browser instead: pick Save as PDF, set margins to None and turn on background graphics.
             </p>
           </div>
 
@@ -182,7 +187,7 @@ function PrintPage() {
               pageH={pageH}
               artW={artW}
               artH={artH}
-              inset={marks ? MARK_ZONE - BLEED : 0}
+              inset={inset}
               marks={marks}
               fit={fit}
             />
@@ -190,77 +195,6 @@ function PrintPage() {
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-function Sheet({
-  card,
-  party,
-  last,
-  pageW,
-  pageH,
-  artW,
-  artH,
-  inset,
-  marks,
-  fit,
-}: {
-  card: Card;
-  party: GuestPartyView | null;
-  last: boolean;
-  pageW: number;
-  pageH: number;
-  artW: number;
-  artH: number;
-  inset: number;
-  marks: boolean;
-  fit: number;
-}) {
-  const frame = useRef<HTMLIFrameElement>(null);
-  useEffect(() => {
-    const send = () =>
-      frame.current?.contentWindow?.postMessage({ type: "invite-preview", card, party }, window.location.origin);
-    const onReady = (e: MessageEvent) => {
-      if (e.source === frame.current?.contentWindow && e.data?.type === "invite-preview-ready") send();
-    };
-    window.addEventListener("message", onReady);
-    send();
-    return () => window.removeEventListener("message", onReady);
-  }, [card, party, artW, artH]);
-  const preset = card.preset;
-  const mm = (n: number) => `${n}mm`;
-  const tick = "absolute bg-black";
-  return (
-    <div
-      className={`print-sheet relative mx-auto mb-6 bg-white print:mb-0 ${last ? "" : "print:break-after-page"} shadow-[0_10px_30px_-12px_rgb(0_0_0/0.35)]`}
-      style={{ width: mm(pageW), height: mm(pageH), zoom: fit }}
-    >
-      <iframe
-        ref={frame}
-        key={`${preset}-${artW}-${artH}`}
-        title="Card artwork"
-        src={`/preview/${preset}?print=1`}
-        className="absolute border-0"
-        style={{ left: mm(inset), top: mm(inset), width: mm(artW), height: mm(artH) }}
-      />
-      {marks ? (
-        <>
-          {/* crop marks sit in the margin, clear of the bleed */}
-          {[inset + 3, pageH - inset - 3].flatMap((y) =>
-            [
-              <span key={`h-l-${y}`} className={tick} style={{ left: mm(1), top: mm(y), width: mm(inset - 1), height: "0.25pt" }} />,
-              <span key={`h-r-${y}`} className={tick} style={{ right: mm(1), top: mm(y), width: mm(inset - 1), height: "0.25pt" }} />,
-            ],
-          )}
-          {[inset + 3, pageW - inset - 3].flatMap((x) =>
-            [
-              <span key={`v-t-${x}`} className={tick} style={{ top: mm(1), left: mm(x), height: mm(inset - 1), width: "0.25pt" }} />,
-              <span key={`v-b-${x}`} className={tick} style={{ bottom: mm(1), left: mm(x), height: mm(inset - 1), width: "0.25pt" }} />,
-            ],
-          )}
-        </>
-      ) : null}
     </div>
   );
 }
