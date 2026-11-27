@@ -167,28 +167,36 @@ export function CustomizeList({ draft, set, patch }: { draft: Card; set: Set; pa
 /** Thumbnails of every design, drawn with the couple's own words. */
 function DesignPicker({ draft, onPick }: { draft: Card; onPick: (id: PresetId) => void }) {
   return (
-    <ul role="radiogroup" aria-label="Design" className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+    <ul role="radiogroup" aria-label="Design" className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
       {PRESET_IDS.map((id) => {
         const chosen = draft.preset === id;
         return (
-          <li key={id}>
+          <li key={id} className="flex">
             <button
               type="button"
               role="radio"
               aria-checked={chosen}
-              onClick={() => onPick(id)}
+              onClick={() => {
+                if (!chosen) onPick(id);
+              }}
               className={cn(
-                "grid w-full gap-2 rounded-2xl border-2 bg-surface-raised p-2 text-left transition-colors duration-(--duration-fast)",
-                chosen ? "border-primary bg-primary-soft" : "border-transparent hover:border-border-strong",
+                "flex h-full w-full flex-col items-stretch gap-3 rounded-2xl border-2 p-2 text-left transition-colors duration-(--duration-fast)",
+                chosen ? "border-primary bg-primary-soft" : "border-border bg-surface-raised hover:border-border-strong",
               )}
             >
-              <InvitationCard card={{ ...draft, preset: id, look: chosen ? draft.look : {} }} party={SAMPLE_PARTY} className="rounded-xl" label={`${PRESETS[id].name} preview`} />
-              <span className="flex min-h-11 items-center justify-between gap-2 px-1">
-                <span className="grid min-w-0">
-                  <span className="font-semibold">{PRESETS[id].name}</span>
-                  <span className="text-label text-text-muted">{PRESETS[id].blurb}</span>
-                </span>
-                {chosen ? <Check className="size-5 shrink-0 text-primary" aria-hidden /> : null}
+              {/* Bordered so pale artwork (Golden Caller ivory) still has an edge on the dialog. */}
+              <span aria-hidden className="relative block overflow-hidden rounded-xl border border-border bg-muted shadow-raised">
+                <InvitationCard card={{ ...draft, preset: id, look: chosen ? draft.look : {} }} party={SAMPLE_PARTY} className="rounded-none" />
+                {chosen ? (
+                  <span className="absolute right-2 top-2 grid size-6 place-items-center rounded-pill bg-primary text-primary-foreground ring-2 ring-surface-raised">
+                    <Check className="size-3.5" />
+                  </span>
+                ) : null}
+              </span>
+              <span className="flex flex-1 flex-col gap-0.5 px-1 pb-1">
+                {/* Two lines reserved, so every blurb starts on the same line. */}
+                <span className="min-h-[2lh] font-semibold leading-snug text-pretty">{PRESETS[id].name}</span>
+                <span className="text-label text-text-muted">{PRESETS[id].blurb}</span>
               </span>
             </button>
           </li>

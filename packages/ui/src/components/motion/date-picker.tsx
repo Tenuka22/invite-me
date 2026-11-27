@@ -88,11 +88,12 @@ export function DatePicker({
           </span>
           <ChevronDown className={cn("size-5 shrink-0 text-text-muted", open && "rotate-180")} aria-hidden />
         </DateRangePickerTrigger>
-        <DateRangePickerContent>
+        {/* The panel portals to <body>, so it must carry the host palette and elevation itself. */}
+        <DateRangePickerContent className="host-app" radius={20} shadow>
           <DateRangePickerCalendar
             showSummary={false}
             className={cn(
-              "w-full rounded-none border-0 p-4",
+              "w-full rounded-none border-0 !bg-surface-raised p-4",
               "[&_button]:text-body [&_td]:h-10 [&_th]:text-label [&_td>button]:h-10 [&_td>button]:max-w-10 [&_td>button]:text-body",
               "[&_td_button.bg-foreground]:!bg-primary [&_td_button.bg-foreground]:!text-primary-foreground",
               "[&_div>div>button]:min-h-11 [&_div>div:last-child>button]:size-11",
