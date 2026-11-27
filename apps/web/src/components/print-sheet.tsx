@@ -71,31 +71,36 @@ export function SheetPreview({
   marks: boolean;
 }) {
   const studio = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(0);
+  const [room, setRoom] = useState({ width: 0, height: 0 });
   const width = pageW * PX_PER_MM;
   const height = pageH * PX_PER_MM;
 
   useEffect(() => {
-    const el = studio.current;
-    if (!el) return;
+    // The column around the panel is the room: the panel hugs the paper, so its own width would
+    // depend on the size it is measuring.
+    const host = studio.current?.parentElement;
+    if (!host) return;
     const measure = () => {
-      // The panel's own padding (p-4) is not room for the paper.
-      const room = el.clientWidth - 32;
-      const tallest = Math.min(640, window.innerHeight * 0.56);
-      if (room > 0) setScale(Math.min(room / width, tallest / height));
+      // p-4 and the panel's border are not room for the paper, and the dialog's height caps it.
+      const width = host.clientWidth - 34;
+      const height = Math.min(280, window.innerHeight * 0.3);
+      setRoom((prev) => (prev.width === width && prev.height === height ? prev : { width, height }));
     };
     measure();
     const observer = new ResizeObserver(measure);
-    observer.observe(el);
+    observer.observe(host);
     window.addEventListener("resize", measure);
     return () => {
       observer.disconnect();
       window.removeEventListener("resize", measure);
     };
-  }, [width, height]);
+  }, []);
+
+  // The fit is a pure function of the room, so the paper can never spill outside the preview.
+  const scale = room.width > 0 ? Math.min(room.width / width, room.height / height, 1) : 0;
 
   return (
-    <div ref={studio} className="grid w-full justify-items-center rounded-2xl border border-border bg-surface p-4">
+    <div ref={studio} className="mx-auto grid w-fit min-w-0 justify-items-center rounded-2xl border border-border bg-surface p-4">
       <div className="relative" style={{ width: width * scale, height: height * scale }}>
         <div className="absolute left-0 top-0 origin-top-left" style={{ width, height, transform: `scale(${scale})` }}>
           {scale > 0 ? (

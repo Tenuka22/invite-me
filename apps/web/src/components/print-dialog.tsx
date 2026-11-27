@@ -126,8 +126,8 @@ export function PrintDialog({
               <Skeleton className="h-64 w-full" />
             </div>
           ) : (
-            <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:items-start">
-              <div className="grid gap-5">
+            <div className="grid gap-6">
+              <div className="grid gap-5 sm:grid-cols-2">
                 <Field
                   label="Whose card"
                   description={
@@ -148,7 +148,7 @@ export function PrintDialog({
                 </Field>
                 <Switch checked={marks} onCheckedChange={setMarks} label="Bleed and crop marks" description="For print shops: 3 mm of colour past the edge and cut marks." />
               </div>
-              <div className="grid justify-items-center gap-2">
+              <div className="grid min-w-0 gap-2 text-center">
                 <SheetPreview card={card} party={sheets[0] ?? null} {...layout} marks={marks} />
                 <p className="text-label text-text-muted">
                   {SIZES[size].label} · {landscape ? "Landscape" : "Portrait"}
